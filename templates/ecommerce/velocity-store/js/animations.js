@@ -3,6 +3,14 @@
 /* =========================================================
    VELOCITY STORE
    ADVANCED ANIMATION ENGINE
+   ---------------------------------------------------------
+   - Reveal animations
+   - Parallax
+   - Magnetic buttons
+   - Product tilt
+   - Navbar scroll
+   - Cursor glow
+   - Dynamic product support
 ========================================================= */
 
 (function () {
@@ -11,22 +19,37 @@
 
         initialized: false,
 
+        /* =====================================================
+           INIT
+        ===================================================== */
+
         init() {
 
-            if (this.initialized) return;
+            if (this.initialized) {
+                return;
+            }
 
             this.initialized = true;
 
             this.setupRevealAnimations();
+
             this.setupParallax();
+
             this.setupMagneticButtons();
+
             this.setupTiltCards();
+
             this.setupNavbarScroll();
+
             this.setupCursorGlow();
 
+
             document.dispatchEvent(
-                new CustomEvent('velocity:animations-ready')
+                new CustomEvent(
+                    'velocity:animations-ready'
+                )
             );
+
         },
 
 
@@ -41,52 +64,81 @@
                     '[data-reveal]'
                 );
 
-            if (!elements.length) return;
 
-            if (
-                !('IntersectionObserver' in window)
-            ) {
-
-                elements.forEach(element => {
-                    element.classList.add('revealed');
-                });
-
+            if (!elements.length) {
                 return;
             }
+
+
+            if (
+                !(
+                    'IntersectionObserver'
+                    in window
+                )
+            ) {
+
+                elements.forEach(
+                    element => {
+
+                        element.classList.add(
+                            'revealed'
+                        );
+
+                    }
+                );
+
+                return;
+
+            }
+
 
             const observer =
                 new IntersectionObserver(
                     entries => {
 
-                        entries.forEach(entry => {
+                        entries.forEach(
+                            entry => {
 
-                            if (!entry.isIntersecting) {
-                                return;
+                                if (
+                                    !entry.isIntersecting
+                                ) {
+
+                                    return;
+
+                                }
+
+
+                                entry.target.classList.add(
+                                    'revealed'
+                                );
+
+
+                                observer.unobserve(
+                                    entry.target
+                                );
+
                             }
-
-                            entry.target.classList.add(
-                                'revealed'
-                            );
-
-                            observer.unobserve(
-                                entry.target
-                            );
-
-                        });
+                        );
 
                     },
                     {
                         threshold: 0.12,
-                        rootMargin: '0px 0px -60px 0px'
+
+                        rootMargin:
+                            '0px 0px -60px 0px'
                     }
                 );
 
 
-            elements.forEach(element => {
+            elements.forEach(
+                element => {
 
-                observer.observe(element);
+                    observer.observe(
+                        element
+                    );
 
-            });
+                }
+            );
 
         },
 
@@ -102,55 +154,139 @@
                     '[data-parallax]'
                 );
 
-            if (!elements.length) return;
+
+            if (!elements.length) {
+                return;
+            }
+
+
+            /*
+             * على الأجهزة اللي ما فيهاش hover
+             * نخففو المؤثرات الثقيلة.
+             */
+
+            const isTouch =
+                window.matchMedia(
+                    '(hover: none)'
+                ).matches;
+
+
+            if (isTouch) {
+
+                elements.forEach(
+                    element => {
+
+                        element.style.transform =
+                            '';
+
+                    }
+                );
+
+                return;
+
+            }
+
 
             let ticking = false;
 
 
             const update = () => {
 
-                const scrollY =
-                    window.scrollY;
+                const viewportCenter =
+                    window.innerHeight / 2;
 
-                elements.forEach(element => {
 
-                    const speed =
-                        Number(
-                            element.dataset.parallax
-                        ) || 0.15;
+                elements.forEach(
+                    element => {
 
-                    const rect =
-                        element.getBoundingClientRect();
+                        /*
+                         * إذا العنصر تحيد من DOM
+                         * ما نبقاوش نخدمو عليه.
+                         */
 
-                    const center =
-                        rect.top +
-                        rect.height / 2;
+                        if (
+                            !element.isConnected
+                        ) {
 
-                    const viewportCenter =
-                        window.innerHeight / 2;
+                            return;
 
-                    const distance =
-                        center -
-                        viewportCenter;
+                        }
 
-                    const translate =
-                        distance * speed;
 
-                    element.style.transform =
-                        `translate3d(0, ${translate}px, 0)`;
+                        const speed =
+                            Number(
+                                element.dataset.parallax
+                            ) || 0.15;
 
-                });
+
+                        const rect =
+                            element.getBoundingClientRect();
+
+
+                        /*
+                         * إذا خارج بزاف على الشاشة
+                         * ما نحتاجوش نحسبوه.
+                         */
+
+                        if (
+                            rect.bottom < -200 ||
+                            rect.top >
+                                window.innerHeight + 200
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        const center =
+                            rect.top +
+                            rect.height / 2;
+
+
+                        const distance =
+                            center -
+                            viewportCenter;
+
+
+                        const translate =
+                            distance * speed;
+
+
+                        element.style.setProperty(
+                            '--velocity-parallax-y',
+                            `${translate}px`
+                        );
+
+
+                        /*
+                         * ما نفرضوش transform مباشرة
+                         * باش ما نخربوش transform
+                         * ديال CSS أو animation أخرى.
+                         */
+
+                        element.style.transform =
+                            `translate3d(
+                                0,
+                                ${translate}px,
+                                0
+                            )`;
+
+                    }
+                );
+
 
                 ticking = false;
 
             };
 
 
-            window.addEventListener(
-                'scroll',
+            const requestUpdate =
                 () => {
 
-                    if (ticking) return;
+                    if (ticking) {
+                        return;
+                    }
 
                     ticking = true;
 
@@ -158,11 +294,28 @@
                         update
                     );
 
-                },
+                };
+
+
+            window.addEventListener(
+                'scroll',
+                requestUpdate,
                 {
                     passive: true
                 }
             );
+
+
+            window.addEventListener(
+                'resize',
+                requestUpdate,
+                {
+                    passive: true
+                }
+            );
+
+
+            requestUpdate();
 
         },
 
@@ -178,53 +331,104 @@
                     '[data-magnetic]'
                 );
 
-            if (!buttons.length) return;
 
-            buttons.forEach(button => {
-
-                button.addEventListener(
-                    'mousemove',
-                    event => {
-
-                        const rect =
-                            button.getBoundingClientRect();
-
-                        const x =
-                            event.clientX -
-                            rect.left -
-                            rect.width / 2;
-
-                        const y =
-                            event.clientY -
-                            rect.top -
-                            rect.height / 2;
-
-                        const strength =
-                            Number(
-                                button.dataset.magnetic
-                            ) || 0.18;
-
-                        button.style.transform =
-                            `translate(
-                                ${x * strength}px,
-                                ${y * strength}px
-                            )`;
-
-                    }
-                );
+            if (!buttons.length) {
+                return;
+            }
 
 
-                button.addEventListener(
-                    'mouseleave',
-                    () => {
+            /*
+             * Magnetic effect غير مناسب
+             * للشاشات اللمسية.
+             */
 
-                        button.style.transform =
-                            '';
+            if (
+                window.matchMedia(
+                    '(hover: none)'
+                ).matches
+            ) {
+
+                return;
+
+            }
+
+
+            buttons.forEach(
+                button => {
+
+                    if (
+                        button.dataset.velocityMagneticReady
+                    ) {
+
+                        return;
 
                     }
-                );
 
-            });
+
+                    button.dataset.velocityMagneticReady =
+                        'true';
+
+
+                    button.addEventListener(
+                        'mousemove',
+                        event => {
+
+                            const rect =
+                                button.getBoundingClientRect();
+
+
+                            const x =
+                                event.clientX -
+                                rect.left -
+                                rect.width / 2;
+
+
+                            const y =
+                                event.clientY -
+                                rect.top -
+                                rect.height / 2;
+
+
+                            const strength =
+                                Number(
+                                    button.dataset.magnetic
+                                ) || 0.18;
+
+
+                            button.style.transform =
+                                `translate3d(
+                                    ${x * strength}px,
+                                    ${y * strength}px,
+                                    0
+                                )`;
+
+                        }
+                    );
+
+
+                    button.addEventListener(
+                        'mouseleave',
+                        () => {
+
+                            button.style.transform =
+                                '';
+
+                        }
+                    );
+
+
+                    button.addEventListener(
+                        'blur',
+                        () => {
+
+                            button.style.transform =
+                                '';
+
+                        }
+                    );
+
+                }
+            );
 
         },
 
@@ -235,66 +439,177 @@
 
         setupTiltCards() {
 
-            const cards =
-                document.querySelectorAll(
-                    '[data-tilt]'
-                );
+            /*
+             * Product cards ممكن يتولدو من products.js
+             * بعد ما animations.js يخدم.
+             *
+             * لذلك نستخدم delegation على document.
+             */
 
-            if (!cards.length) return;
+            if (
+                window.matchMedia(
+                    '(hover: none)'
+                ).matches
+            ) {
+
+                return;
+
+            }
 
 
-            cards.forEach(card => {
+            if (
+                document.documentElement.dataset
+                    .velocityTiltReady === 'true'
+            ) {
 
-                card.addEventListener(
-                    'mousemove',
-                    event => {
+                return;
 
-                        const rect =
-                            card.getBoundingClientRect();
+            }
 
-                        const x =
-                            event.clientX -
-                            rect.left;
 
-                        const y =
-                            event.clientY -
-                            rect.top;
+            document.documentElement.dataset
+                .velocityTiltReady = 'true';
 
-                        const centerX =
-                            rect.width / 2;
 
-                        const centerY =
-                            rect.height / 2;
+            document.addEventListener(
+                'mousemove',
+                event => {
 
-                        const rotateX =
-                            ((y - centerY) /
-                                centerY) * -5;
+                    const card =
+                        event.target.closest(
+                            '[data-tilt]'
+                        );
 
-                        const rotateY =
-                            ((x - centerX) /
-                                centerX) * 5;
 
-                        card.style.transform =
-                            `perspective(900px)
-                             rotateX(${rotateX}deg)
-                             rotateY(${rotateY}deg)
-                             translateY(-5px)`;
+                    if (!card) {
+                        return;
+                    }
+
+
+                    if (
+                        !card.isConnected
+                    ) {
+
+                        return;
 
                     }
-                );
 
 
-                card.addEventListener(
-                    'mouseleave',
-                    () => {
+                    const rect =
+                        card.getBoundingClientRect();
 
-                        card.style.transform =
-                            '';
+
+                    if (
+                        rect.width <= 0 ||
+                        rect.height <= 0
+                    ) {
+
+                        return;
 
                     }
-                );
 
-            });
+
+                    const x =
+                        event.clientX -
+                        rect.left;
+
+
+                    const y =
+                        event.clientY -
+                        rect.top;
+
+
+                    const centerX =
+                        rect.width / 2;
+
+
+                    const centerY =
+                        rect.height / 2;
+
+
+                    const rotateX =
+                        (
+                            (y - centerY) /
+                            centerY
+                        ) * -5;
+
+
+                    const rotateY =
+                        (
+                            (x - centerX) /
+                            centerX
+                        ) * 5;
+
+
+                    card.style.transform =
+                        `perspective(900px)
+                         rotateX(${rotateX}deg)
+                         rotateY(${rotateY}deg)
+                         translate3d(0, -5px, 0)`;
+
+                }
+            );
+
+
+            document.addEventListener(
+                'mouseleave',
+                event => {
+
+                    const card =
+                        event.target.closest?.(
+                            '[data-tilt]'
+                        );
+
+
+                    if (!card) {
+                        return;
+                    }
+
+
+                    card.style.transform =
+                        '';
+
+                },
+                true
+            );
+
+
+            document.addEventListener(
+                'mouseout',
+                event => {
+
+                    const card =
+                        event.target.closest?.(
+                            '[data-tilt]'
+                        );
+
+
+                    if (!card) {
+                        return;
+                    }
+
+
+                    const related =
+                        event.relatedTarget;
+
+
+                    if (
+                        related &&
+                        card.contains(
+                            related
+                        )
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    card.style.transform =
+                        '';
+
+                }
+            );
 
         },
 
@@ -310,7 +625,10 @@
                     '[data-navbar]'
                 );
 
-            if (!navbar) return;
+
+            if (!navbar) {
+                return;
+            }
 
 
             const updateNavbar =
@@ -345,19 +663,25 @@
         setupCursorGlow() {
 
             if (
-                window.matchMedia(
-                    '(hover: none)'
+                !window.matchMedia(
+                    '(hover: hover)'
                 ).matches
             ) {
+
                 return;
+
             }
+
 
             const glow =
                 document.querySelector(
                     '[data-cursor-glow]'
                 );
 
-            if (!glow) return;
+
+            if (!glow) {
+                return;
+            }
 
 
             let mouseX = 0;
@@ -377,34 +701,52 @@
                     mouseY =
                         event.clientY;
 
+                },
+                {
+                    passive: true
                 }
             );
 
 
-            const animate = () => {
+            /*
+             * نستعمل visibility بدل display
+             * باش يبقى transition سلس.
+             */
 
-                currentX +=
-                    (mouseX - currentX) *
-                    0.12;
-
-                currentY +=
-                    (mouseY - currentY) *
-                    0.12;
+            glow.style.willChange =
+                'transform';
 
 
-                glow.style.transform =
-                    `translate3d(
-                        ${currentX}px,
-                        ${currentY}px,
-                        0
-                    )`;
+            const animate =
+                () => {
+
+                    currentX +=
+                        (
+                            mouseX -
+                            currentX
+                        ) * 0.12;
 
 
-                requestAnimationFrame(
-                    animate
-                );
+                    currentY +=
+                        (
+                            mouseY -
+                            currentY
+                        ) * 0.12;
 
-            };
+
+                    glow.style.transform =
+                        `translate3d(
+                            ${currentX}px,
+                            ${currentY}px,
+                            0
+                        )`;
+
+
+                    requestAnimationFrame(
+                        animate
+                    );
+
+                };
 
 
             animate();
@@ -415,7 +757,7 @@
 
 
     /* =========================================================
-       INIT
+       DOM READY
     ========================================================= */
 
     if (
@@ -424,7 +766,10 @@
 
         document.addEventListener(
             'DOMContentLoaded',
-            () => AnimationEngine.init()
+            () => AnimationEngine.init(),
+            {
+                once: true
+            }
         );
 
     } else {
@@ -433,6 +778,10 @@
 
     }
 
+
+    /* =========================================================
+       GLOBAL
+    ========================================================= */
 
     window.VelocityAnimations =
         AnimationEngine;
