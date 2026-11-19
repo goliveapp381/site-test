@@ -5,7 +5,8 @@
    CART CINEMATIC UI
    ---------------------------------------------------------
    - Add To Cart animation
-   - Two full rotations
+   - EXACT 2 FULL ROTATIONS
+   - 720deg rotateY
    - Glow
    - Premium added cart modal
    - Cart modal actions
@@ -16,9 +17,100 @@
     const CartUI = {
 
         animationRunning: false,
+
         pendingProduct: null,
+
+        cartConfirmed: false,
+
         animationTimer: null,
+
         modalTimer: null,
+
+
+        /* =====================================================
+           PREPARE EXPERIENCE
+        ===================================================== */
+
+        prepareExperience(product) {
+
+            if (!product) {
+                return;
+            }
+
+            if (CartUI.animationRunning) {
+                return;
+            }
+
+            CartUI.animationRunning = true;
+
+            CartUI.pendingProduct = product;
+
+            CartUI.cartConfirmed = false;
+
+            clearTimeout(
+                CartUI.animationTimer
+            );
+
+            clearTimeout(
+                CartUI.modalTimer
+            );
+
+            CartUI.animationTimer = null;
+
+            CartUI.modalTimer = null;
+
+
+            const card =
+                CartUI.findProductCard(
+                    product.id
+                );
+
+            if (card) {
+
+                CartUI.animateCard(
+                    card
+                );
+
+            }
+
+
+            /*
+             * 2 FULL ROTATIONS
+             *
+             * CSS duration = 1400ms
+             * We wait slightly longer before
+             * showing the modal.
+             */
+
+            CartUI.animationTimer =
+                setTimeout(
+                    function () {
+
+                        CartUI.animationTimer =
+                            null;
+
+                        CartUI.animationRunning =
+                            false;
+
+                        const finishedProduct =
+                            CartUI.pendingProduct;
+
+                        CartUI.pendingProduct =
+                            null;
+
+                        if (finishedProduct) {
+
+                            CartUI.scheduleModal(
+                                finishedProduct,
+                                120
+                            );
+
+                        }
+
+                    },
+                    1420
+                );
+        },
 
 
         /* =====================================================
@@ -28,10 +120,6 @@
         handleAddToCart(button) {
 
             if (!button) {
-                return;
-            }
-
-            if (this.animationRunning) {
                 return;
             }
 
@@ -46,16 +134,27 @@
                     );
 
                 if (card) {
-                    this.animateCard(card);
+
+                    CartUI.animateCard(
+                        card
+                    );
+
                 }
 
                 return;
             }
 
+
             const product =
-                window.VelocityCore.getProductById(
-                    productId
-                );
+                window.VelocityCore &&
+                typeof window.VelocityCore.getProductById === 'function'
+
+                    ? window.VelocityCore.getProductById(
+                        productId
+                    )
+
+                    : null;
+
 
             if (!product) {
 
@@ -67,53 +166,57 @@
                 return;
             }
 
-            const card =
-                button.closest(
+
+            /*
+             * IMPORTANT:
+             *
+             * Start the visual experience BEFORE cart.js
+             * receives the click.
+             */
+
+            CartUI.prepareExperience(
+                product
+            );
+
+        },
+
+
+        /* =====================================================
+           FIND PRODUCT CARD
+        ===================================================== */
+
+        findProductCard(productId) {
+
+            const wanted =
+                String(productId);
+
+            const cards =
+                document.querySelectorAll(
                     '.product-card'
                 );
 
-            if (!card) {
+            for (
+                let i = 0;
+                i < cards.length;
+                i++
+            ) {
 
-                this.startExperience(
-                    product
-                );
+                const card =
+                    cards[i];
 
-                return;
+                if (
+                    String(
+                        card.dataset.productId || ''
+                    ) === wanted
+                ) {
+
+                    return card;
+
+                }
+
             }
 
-            this.animationRunning =
-                true;
-
-            this.pendingProduct =
-                product;
-
-            this.animateCard(card);
-
-            clearTimeout(
-                this.animationTimer
-            );
-
-            this.animationTimer =
-                setTimeout(() => {
-
-                    if (this.pendingProduct) {
-
-                        const pending =
-                            this.pendingProduct;
-
-                        this.pendingProduct =
-                            null;
-
-                        this.scheduleModal(
-                            pending
-                        );
-
-                    }
-
-                    this.animationRunning =
-                        false;
-
-                }, 1280);
+            return null;
         },
 
 
@@ -127,6 +230,11 @@
                 return;
             }
 
+
+            /*
+             * Reset previous animation.
+             */
+
             card.classList.remove(
                 'velocity-cart-spin',
                 'velocity-cart-launch'
@@ -134,10 +242,20 @@
 
             void card.offsetWidth;
 
+
+            /*
+             * EXACT TWO ROTATIONS
+             */
+
             card.classList.add(
                 'velocity-cart-spin',
                 'velocity-cart-launch'
             );
+
+
+            /* =========================================
+               GLOW
+            ========================================= */
 
             let glow =
                 card.querySelector(
@@ -162,7 +280,9 @@
                 card.appendChild(
                     glow
                 );
+
             }
+
 
             glow.classList.remove(
                 'active'
@@ -174,18 +294,27 @@
                 'active'
             );
 
-            setTimeout(() => {
 
-                card.classList.remove(
-                    'velocity-cart-spin',
-                    'velocity-cart-launch'
-                );
+            /*
+             * Cleanup AFTER full animation.
+             */
 
-                glow.classList.remove(
-                    'active'
-                );
+            setTimeout(
+                function () {
 
-            }, 1260);
+                    card.classList.remove(
+                        'velocity-cart-spin',
+                        'velocity-cart-launch'
+                    );
+
+                    glow.classList.remove(
+                        'active'
+                    );
+
+                },
+                1450
+            );
+
         },
 
 
@@ -199,82 +328,10 @@
                 return;
             }
 
-            const productId =
-                String(product.id);
-
-            let card = null;
-
-            try {
-
-                card =
-                    document.querySelector(
-                        `.product-card[data-product-id="${CSS.escape(productId)}"]`
-                    );
-
-            } catch (error) {
-
-                card = null;
-
-            }
-
-            if (!card) {
-
-                try {
-
-                    const button =
-                        document.querySelector(
-                            `[data-cart-id="${CSS.escape(productId)}"]`
-                        );
-
-                    if (button) {
-
-                        card =
-                            button.closest(
-                                '.product-card'
-                            );
-
-                    }
-
-                } catch (error) {
-
-                    card = null;
-
-                }
-            }
-
-            if (card) {
-                this.animateCard(card);
-            }
-
-            this.scheduleModal(product);
-        },
-
-
-        /* =====================================================
-           SCHEDULE MODAL
-        ===================================================== */
-
-        scheduleModal(product) {
-
-            if (!product) {
-                return;
-            }
-
-            clearTimeout(
-                this.modalTimer
+            CartUI.prepareExperience(
+                product
             );
 
-            this.modalTimer =
-                setTimeout(() => {
-
-                    this.modalTimer =
-                        null;
-
-                    this.openModal(
-                        product
-                    );
-
-                }, 120);
         },
 
 
@@ -285,34 +342,54 @@
         cartChanged() {
 
             /*
-             * IMPORTANT FIX:
+             * IMPORTANT:
              *
-             * Don't check modalTimer here.
+             * DO NOT open the modal here.
              *
-             * cart.js may fire the event while the timer
-             * already exists.
+             * cart.js can dispatch velocity:cart-changed
+             * immediately after adding the product.
+             *
+             * The animation must still finish first.
              */
 
-            if (!this.pendingProduct) {
+            CartUI.cartConfirmed =
+                true;
+
+        },
+
+
+        /* =====================================================
+           SCHEDULE MODAL
+        ===================================================== */
+
+        scheduleModal(
+            product,
+            delay = 120
+        ) {
+
+            if (!product) {
                 return;
             }
 
-            const product =
-                this.pendingProduct;
-
-            this.pendingProduct =
-                null;
-
             clearTimeout(
-                this.animationTimer
+                CartUI.modalTimer
             );
 
-            this.animationTimer =
-                null;
+            CartUI.modalTimer =
+                setTimeout(
+                    function () {
 
-            this.scheduleModal(
-                product
-            );
+                        CartUI.modalTimer =
+                            null;
+
+                        CartUI.openModal(
+                            product
+                        );
+
+                    },
+                    delay
+                );
+
         },
 
 
@@ -326,7 +403,9 @@
                 return;
             }
 
-            this.closeExistingModal();
+
+            CartUI.closeExistingModal();
+
 
             const modal =
                 document.createElement(
@@ -339,15 +418,38 @@
             modal.className =
                 'velocity-added-cart-modal';
 
+            modal.setAttribute(
+                'aria-hidden',
+                'false'
+            );
+
+
+            /* =========================================
+               PRODUCT IMAGE
+            ========================================= */
+
             const image =
-                window.VelocityCore.getProductImage(
-                    product
-                );
+                window.VelocityCore &&
+                typeof window.VelocityCore.getProductImage === 'function'
+
+                    ? window.VelocityCore.getProductImage(
+                        product
+                    )
+
+                    : '';
+
 
             const fallback =
-                window.VelocityCore.getFallbackImage();
+                window.VelocityCore &&
+                typeof window.VelocityCore.getFallbackImage === 'function'
+
+                    ? window.VelocityCore.getFallbackImage()
+
+                    : '';
+
 
             let candidates = [];
+
 
             if (
                 window.VelocityProducts &&
@@ -355,65 +457,183 @@
                 'function'
             ) {
 
-                candidates =
-                    window.VelocityProducts
-                        .getProductImageCandidates(
-                            product
-                        )
-                        .slice(1);
+                try {
+
+                    candidates =
+                        window.VelocityProducts
+                            .getProductImageCandidates(
+                                product
+                            )
+                            .slice(1);
+
+                } catch (error) {
+
+                    candidates = [];
+
+                }
+
             }
 
+
+            /* =========================================
+               TEXT DATA
+            ========================================= */
+
+            const escapeHTML =
+                window.VelocityCore &&
+                typeof window.VelocityCore.escapeHTML === 'function'
+
+                    ? window.VelocityCore.escapeHTML
+
+                    : function (value) {
+
+                        return String(value ?? '')
+                            .replace(/&/g, '&amp;')
+                            .replace(/</g, '&lt;')
+                            .replace(/>/g, '&gt;')
+                            .replace(/"/g, '&quot;')
+                            .replace(/'/g, '&#039;');
+
+                    };
+
+
+            const escapeAttribute =
+                window.VelocityCore &&
+                typeof window.VelocityCore.escapeAttribute === 'function'
+
+                    ? window.VelocityCore.escapeAttribute
+
+                    : function (value) {
+
+                        return String(value ?? '')
+                            .replace(/&/g, '&amp;')
+                            .replace(/"/g, '&quot;')
+                            .replace(/'/g, '&#039;')
+                            .replace(/</g, '&lt;')
+                            .replace(/>/g, '&gt;');
+
+                    };
+
+
             const name =
-                window.VelocityCore.escapeHTML(
+                escapeHTML(
                     product.name ||
                     'Product'
                 );
 
+
             const category =
-                window.VelocityCore.escapeHTML(
+                escapeHTML(
                     product.categoryName ||
                     product.category ||
                     'Premium Collection'
                 );
+
 
             const rating =
                 Number(
                     product.rating || 0
                 );
 
-            const stars =
+
+            let stars =
+                '★★★★★';
+
+
+            if (
                 window.VelocityProducts &&
                 typeof window.VelocityProducts.renderStars ===
                 'function'
+            ) {
 
-                    ? window.VelocityProducts.renderStars(
-                        rating
-                    )
+                try {
 
-                    : '★★★★★';
+                    stars =
+                        window.VelocityProducts.renderStars(
+                            rating
+                        );
 
-            const price =
+                } catch (error) {
+
+                    stars =
+                        '★★★★★';
+
+                }
+
+            }
+
+
+            let price =
+                `${product.price ?? ''} DH`;
+
+
+            if (
                 window.VelocityProducts &&
                 typeof window.VelocityProducts.formatPrice ===
                 'function'
+            ) {
 
-                    ? window.VelocityProducts.formatPrice(
-                        product.price,
-                        product.currency
-                    )
+                try {
 
-                    : `${product.price ?? ''} DH`;
+                    price =
+                        window.VelocityProducts.formatPrice(
+                            product.price,
+                            product.currency
+                        );
+
+                } catch (error) {
+
+                    price =
+                        `${product.price ?? ''} DH`;
+
+                }
+
+            }
+
 
             const description =
-                window.VelocityCore.escapeHTML(
+                escapeHTML(
                     product.description ||
                     'Premium product selected for your Velocity collection.'
                 );
 
+
             const productId =
-                window.VelocityCore.escapeAttribute(
+                escapeAttribute(
                     product.id
                 );
+
+
+            const safeImage =
+                escapeAttribute(
+                    image || fallback
+                );
+
+
+            const safeFallback =
+                escapeAttribute(
+                    fallback
+                );
+
+
+            const safeCandidates =
+                escapeAttribute(
+                    JSON.stringify(
+                        candidates
+                    )
+                );
+
+
+            const safeProductName =
+                escapeAttribute(
+                    product.name ||
+                    'Product'
+                );
+
+
+            /* =========================================
+               MODAL HTML
+            ========================================= */
 
             modal.innerHTML = `
 
@@ -464,6 +684,7 @@
                         aria-hidden="true"
                     ></div>
 
+
                     <button
                         type="button"
                         class="velocity-added-close"
@@ -473,7 +694,13 @@
                         ×
                     </button>
 
+
                     <div class="velocity-added-grid">
+
+
+                        <!-- =================================
+                             VISUAL
+                        ================================= -->
 
                         <div class="velocity-added-visual">
 
@@ -487,6 +714,7 @@
                                 aria-hidden="true"
                             ></div>
 
+
                             <div class="velocity-added-image-wrap">
 
                                 <div
@@ -494,17 +722,19 @@
                                     aria-hidden="true"
                                 ></div>
 
+
                                 <div class="velocity-added-image-card">
 
                                     <img
-                                        src="${window.VelocityCore.escapeAttribute(image)}"
-                                        alt="${window.VelocityCore.escapeAttribute(product.name)}"
-                                        data-image-candidates="${window.VelocityCore.escapeAttribute(JSON.stringify(candidates))}"
-                                        data-fallback="${window.VelocityCore.escapeAttribute(fallback)}"
+                                        src="${safeImage}"
+                                        alt="${safeProductName}"
+                                        data-image-candidates="${safeCandidates}"
+                                        data-fallback="${safeFallback}"
                                         data-product-id="${productId}"
                                         loading="eager"
                                         decoding="async"
                                     >
+
 
                                     <div
                                         class="velocity-added-image-shine"
@@ -512,6 +742,7 @@
                                     ></div>
 
                                 </div>
+
 
                                 <div
                                     class="velocity-added-floating-dot dot-one"
@@ -530,6 +761,7 @@
 
                             </div>
 
+
                             <div class="velocity-added-success-badge">
 
                                 <span class="velocity-added-check">
@@ -544,6 +776,11 @@
 
                         </div>
 
+
+                        <!-- =================================
+                             INFO
+                        ================================= -->
+
                         <div class="velocity-added-info">
 
                             <div class="velocity-added-kicker">
@@ -554,13 +791,16 @@
 
                             </div>
 
+
                             <h2 id="velocity-added-title">
                                 ${name}
                             </h2>
 
+
                             <p class="velocity-added-category">
                                 ${category}
                             </p>
+
 
                             <div class="velocity-added-rating">
 
@@ -578,11 +818,14 @@
 
                             </div>
 
+
                             <p class="velocity-added-description">
                                 ${description}
                             </p>
 
+
                             <div class="velocity-added-divider"></div>
+
 
                             <div class="velocity-added-meta">
 
@@ -597,6 +840,7 @@
                                     </strong>
 
                                 </div>
+
 
                                 <div class="velocity-added-status">
 
@@ -620,6 +864,7 @@
 
                             </div>
 
+
                             <div class="velocity-added-actions">
 
                                 <button
@@ -638,15 +883,19 @@
 
                                 </button>
 
+
                                 <button
                                     type="button"
                                     class="velocity-added-btn velocity-added-btn-secondary"
                                     data-added-cart-continue
                                 >
+
                                     Continue Shopping
+
                                 </button>
 
                             </div>
+
 
                             <div class="velocity-added-footer-line">
 
@@ -667,47 +916,83 @@
                 </div>
             `;
 
+
             document.body.appendChild(
                 modal
             );
 
-            window.VelocityCore.attachImageFallbacks(
-                modal
-            );
 
-            requestAnimationFrame(() => {
+            /* =========================================
+               IMAGE FALLBACK
+            ========================================= */
 
-                requestAnimationFrame(() => {
+            if (
+                window.VelocityCore &&
+                typeof window.VelocityCore.attachImageFallbacks === 'function'
+            ) {
 
-                    modal.classList.add(
-                        'active'
+                try {
+
+                    window.VelocityCore.attachImageFallbacks(
+                        modal
                     );
 
-                });
+                } catch (error) {
 
-            });
+                    console.warn(
+                        '[Velocity Store] Modal image fallback failed:',
+                        error
+                    );
+
+                }
+
+            }
+
+
+            /* =========================================
+               ANIMATION
+            ========================================= */
+
+            requestAnimationFrame(
+                function () {
+
+                    requestAnimationFrame(
+                        function () {
+
+                            modal.classList.add(
+                                'active'
+                            );
+
+                        }
+                    );
+
+                }
+            );
+
 
             document.body.classList.add(
                 'velocity-added-cart-open'
             );
 
-            modal.setAttribute(
-                'aria-hidden',
-                'false'
+
+            setTimeout(
+                function () {
+
+                    const close =
+                        modal.querySelector(
+                            '.velocity-added-close'
+                        );
+
+                    if (close) {
+
+                        close.focus();
+
+                    }
+
+                },
+                300
             );
 
-            setTimeout(() => {
-
-                const close =
-                    modal.querySelector(
-                        '.velocity-added-close'
-                    );
-
-                if (close) {
-                    close.focus();
-                }
-
-            }, 300);
         },
 
 
@@ -718,16 +1003,18 @@
         closeModal() {
 
             clearTimeout(
-                this.modalTimer
+                CartUI.modalTimer
             );
 
-            this.modalTimer =
+            CartUI.modalTimer =
                 null;
+
 
             const modal =
                 document.querySelector(
                     '#velocity-added-cart-modal'
                 );
+
 
             if (!modal) {
 
@@ -738,36 +1025,44 @@
                 return;
             }
 
+
             modal.classList.remove(
                 'active'
             );
+
 
             modal.setAttribute(
                 'aria-hidden',
                 'true'
             );
 
+
             document.body.classList.remove(
                 'velocity-added-cart-open'
             );
 
-            setTimeout(() => {
 
-                if (
-                    modal &&
-                    modal.parentNode
-                ) {
+            setTimeout(
+                function () {
 
-                    modal.remove();
+                    if (
+                        modal &&
+                        modal.parentNode
+                    ) {
 
-                }
+                        modal.remove();
 
-            }, 500);
+                    }
+
+                },
+                500
+            );
+
         },
 
 
         /* =====================================================
-           CLOSE EXISTING
+           CLOSE EXISTING MODAL
         ===================================================== */
 
         closeExistingModal() {
@@ -777,17 +1072,26 @@
                     '#velocity-added-cart-modal'
                 );
 
+
             if (old) {
+
                 old.remove();
+
             }
+
 
             document.body.classList.remove(
                 'velocity-added-cart-open'
             );
+
         }
 
     };
 
+
+    /* =========================================================
+       GLOBAL
+    ========================================================= */
 
     window.VelocityCartUI =
         CartUI;
