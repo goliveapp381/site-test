@@ -10,6 +10,8 @@
    - Search overlay
    - Mobile menu
    - Newsletter
+   - Wishlist
+   - Cart
    - Global UI events
    - Image fallback support
 ========================================================= */
@@ -19,6 +21,7 @@
     const App = {
 
         initialized: false,
+        eventsBound: false,
 
         /* =====================================================
            INIT
@@ -32,12 +35,6 @@
 
             this.initialized = true;
 
-            /*
-             * لا نعتمد على App وحده في رسم المنتجات.
-             * filters.js هو المسؤول على الفلترة والرسم.
-             * إذا لم يكن جاهزاً، نستعمل featured products كـfallback.
-             */
-
             this.initializeModules();
 
             this.bindEvents();
@@ -47,9 +44,7 @@
             this.updateYear();
 
             document.dispatchEvent(
-                new CustomEvent(
-                    'velocity:app-ready'
-                )
+                new CustomEvent('velocity:app-ready')
             );
 
         },
@@ -62,18 +57,14 @@
         initializeModules() {
 
             /*
-             * Filters module عادةً كيبدأ بوحدو.
-             * هنا فقط نتأكد أنه موجود.
+             * filters.js هو المسؤول الأساسي على
+             * rendering ديال products.
              */
 
             if (
                 window.VelocityFilters &&
                 typeof window.VelocityFilters.apply === 'function'
             ) {
-
-                /*
-                 * نخلي filters.js يتحكم في الرسم.
-                 */
 
                 window.VelocityFilters.apply();
 
@@ -82,7 +73,7 @@
 
 
             /*
-             * Fallback إذا filters.js غير موجود.
+             * Fallback إذا filters.js ما كانش حاضر.
              */
 
             this.renderProducts();
@@ -110,26 +101,38 @@
 
 
             const container =
-                document.querySelector(
-                    '#products-grid'
-                );
+                document.querySelector('#products-grid');
 
             if (!container) {
                 return;
             }
 
 
-            const featured =
-                typeof VelocityProducts.getFeaturedProducts === 'function'
-                    ? VelocityProducts.getFeaturedProducts()
-                    : VelocityProducts.getProducts();
+            let products = [];
+
+            if (
+                typeof window.VelocityProducts.getFeaturedProducts ===
+                'function'
+            ) {
+
+                products =
+                    window.VelocityProducts.getFeaturedProducts();
+
+            } else if (
+                typeof window.VelocityProducts.getProducts ===
+                'function'
+            ) {
+
+                products =
+                    window.VelocityProducts.getProducts();
+
+            }
 
 
-            VelocityProducts.renderProducts(
+            window.VelocityProducts.renderProducts(
                 container,
-                featured
+                products
             );
-
 
             this.setupImageFallbacks();
 
@@ -142,11 +145,16 @@
 
         bindEvents() {
 
-            /*
-             * نستعمل Event Delegation
-             * باش حتى العناصر اللي كتتولد من JavaScript
-             * يبقاو خدامين.
-             */
+            if (this.eventsBound) {
+                return;
+            }
+
+            this.eventsBound = true;
+
+
+            /* =================================================
+               GLOBAL CLICK DELEGATION
+            ================================================= */
 
             document.addEventListener(
                 'click',
@@ -193,12 +201,12 @@
 
 
                     /* =========================================
-                       MOBILE NAVIGATION
+                       MOBILE MENU LINK
                     ========================================= */
 
                     const mobileLink =
                         event.target.closest(
-                            '.mobile-menu a[href^="#"]'
+                            '#mobileMenu a[href^="#"], .mobile-menu a[href^="#"]'
                         );
 
                     if (mobileLink) {
@@ -293,7 +301,122 @@
 
 
                     /* =========================================
-                       WISHLIST HEADER
+                       SEARCH SUBMIT
+                    ========================================= */
+
+                    const searchSubmit =
+                        event.target.closest(
+                            '#searchSubmit'
+                        );
+
+                    if (searchSubmit) {
+
+                        event.preventDefault();
+
+                        this.performSearch();
+
+                        return;
+
+                    }
+
+
+                    /* =========================================
+                       CATEGORY FILTER
+                    ========================================= */
+
+                    const categoryButton =
+                        event.target.closest(
+                            '[data-category-filter]'
+                        );
+
+                    if (categoryButton) {
+
+                        const category =
+                            categoryButton.dataset.categoryFilter ||
+                            'all';
+
+
+                        if (
+                            window.VelocityFilters &&
+                            typeof window.VelocityFilters.setCategory ===
+                            'function'
+                        ) {
+
+                            window.VelocityFilters.setCategory(
+                                category
+                            );
+
+                        } else {
+
+                            this.fallbackCategoryFilter(
+                                category
+                            );
+
+                        }
+
+                        return;
+
+                    }
+
+
+                    /* =========================================
+                       FILTER RESET
+                    ========================================= */
+
+                    const resetButton =
+                        event.target.closest(
+                            '[data-filter-reset]'
+                        );
+
+                    if (resetButton) {
+
+                        event.preventDefault();
+
+                        if (
+                            window.VelocityFilters &&
+                            typeof window.VelocityFilters.reset ===
+                            'function'
+                        ) {
+
+                            window.VelocityFilters.reset();
+
+                        }
+
+                        return;
+
+                    }
+
+
+                    /* =========================================
+                       CART OPEN
+                    ========================================= */
+
+                    const cartOpen =
+                        event.target.closest(
+                            '[data-cart-open]'
+                        );
+
+                    if (cartOpen) {
+
+                        event.preventDefault();
+
+                        if (
+                            window.VelocityCart &&
+                            typeof window.VelocityCart.open ===
+                            'function'
+                        ) {
+
+                            window.VelocityCart.open();
+
+                        }
+
+                        return;
+
+                    }
+
+
+                    /* =========================================
+                       WISHLIST OPEN
                     ========================================= */
 
                     const wishlistOpen =
@@ -345,16 +468,173 @@
 
                     if (quickViewClose) {
 
+                        event.preventDefault();
+
                         const modal =
                             document.querySelector(
                                 '#quick-view-modal'
                             );
 
-                        this.closeQuickView(
-                            modal
-                        );
+                        this.closeQuickView(modal);
 
                         return;
+
+                    }
+
+
+                    /* =========================================
+                       QUICK VIEW ADD TO CART
+                    ========================================= */
+
+                    const quickAdd =
+                        event.target.closest(
+                            '[data-quick-add]'
+                        );
+
+                    if (quickAdd) {
+
+                        event.preventDefault();
+
+                        const productId =
+                            quickAdd.dataset.quickAdd;
+
+                        if (
+                            window.VelocityCart &&
+                            typeof window.VelocityCart.add ===
+                            'function'
+                        ) {
+
+                            window.VelocityCart.add(
+                                productId
+                            );
+
+                            const modal =
+                                document.querySelector(
+                                    '#quick-view-modal'
+                                );
+
+                            this.closeQuickView(modal);
+
+                        }
+
+                        return;
+
+                    }
+
+                }
+            );
+
+
+            /* =================================================
+               SEARCH INPUTS
+            ================================================= */
+
+            document.addEventListener(
+                'input',
+                event => {
+
+                    const input =
+                        event.target.closest(
+                            '[data-product-search]'
+                        );
+
+                    if (!input) {
+                        return;
+                    }
+
+
+                    const value =
+                        input.value.trim();
+
+
+                    /*
+                     * Synchronise جميع search inputs.
+                     */
+
+                    document
+                        .querySelectorAll(
+                            '[data-product-search]'
+                        )
+                        .forEach(
+                            otherInput => {
+
+                                if (
+                                    otherInput !== input &&
+                                    otherInput.value !== value
+                                ) {
+
+                                    otherInput.value =
+                                        value;
+
+                                }
+
+                            }
+                        );
+
+
+                    /*
+                     * Search overlay
+                     * كيبان فيه preview ديال النتائج.
+                     */
+
+                    if (
+                        input.id === 'searchInput'
+                    ) {
+
+                        this.renderSearchResults(
+                            value
+                        );
+
+                    }
+
+
+                    /*
+                     * Product filtering.
+                     */
+
+                    if (
+                        window.VelocityFilters &&
+                        typeof window.VelocityFilters.setSearch ===
+                        'function'
+                    ) {
+
+                        window.VelocityFilters.setSearch(
+                            value
+                        );
+
+                    }
+
+                }
+            );
+
+
+            /* =================================================
+               SORT
+            ================================================= */
+
+            document.addEventListener(
+                'change',
+                event => {
+
+                    const sort =
+                        event.target.closest(
+                            '[data-product-sort]'
+                        );
+
+                    if (!sort) {
+                        return;
+                    }
+
+
+                    if (
+                        window.VelocityFilters &&
+                        typeof window.VelocityFilters.setSort ===
+                        'function'
+                    ) {
+
+                        window.VelocityFilters.setSort(
+                            sort.value
+                        );
 
                     }
 
@@ -379,10 +659,12 @@
 
                         event.preventDefault();
 
+
                         const input =
                             newsletterForm.querySelector(
                                 'input[type="email"]'
                             );
+
 
                         const email =
                             input
@@ -419,8 +701,8 @@
 
 
                         /*
-                         * حالياً Demo فقط.
-                         * من بعد نقدروا نربطوها بالBackend.
+                         * Demo حاليا.
+                         * يمكن ربطها لاحقاً بالBackend.
                          */
 
                         this.showNotification(
@@ -435,6 +717,26 @@
                 );
 
             }
+
+
+            /* =================================================
+               RESIZE
+            ================================================= */
+
+            window.addEventListener(
+                'resize',
+                () => {
+
+                    if (
+                        window.innerWidth > 900
+                    ) {
+
+                        this.closeMobileMenu();
+
+                    }
+
+                }
+            );
 
 
             /* =================================================
@@ -473,10 +775,48 @@
 
                     if (
                         window.VelocityCart &&
-                        typeof window.VelocityCart.close === 'function'
+                        typeof window.VelocityCart.close ===
+                        'function'
                     ) {
 
                         window.VelocityCart.close();
+
+                    }
+
+                }
+            );
+
+
+            /* =================================================
+               PRODUCT RENDER EVENT
+            ================================================= */
+
+            document.addEventListener(
+                'velocity:products-rendered',
+                () => {
+
+                    this.setupImageFallbacks();
+
+                    /*
+                     * إعادة تفعيل animations
+                     * للعناصر التي تم توليدها ديناميكياً.
+                     */
+
+                    if (
+                        window.VelocityAnimations &&
+                        typeof window.VelocityAnimations.refresh ===
+                        'function'
+                    ) {
+
+                        window.VelocityAnimations.refresh();
+
+                    } else if (
+                        window.VelocityAnimations &&
+                        typeof window.VelocityAnimations.init ===
+                        'function'
+                    ) {
+
+                        window.VelocityAnimations.init();
 
                     }
 
@@ -519,18 +859,35 @@
 
             const input =
                 overlay.querySelector(
-                    'input'
+                    '#searchInput, input'
                 );
+
 
             if (input) {
 
-                setTimeout(() => {
+                setTimeout(
+                    () => {
 
-                    input.focus();
+                        input.focus();
 
-                }, 100);
+                        input.select();
+
+                    },
+                    100
+                );
 
             }
+
+
+            const currentValue =
+                input
+                    ? input.value.trim()
+                    : '';
+
+
+            this.renderSearchResults(
+                currentValue
+            );
 
         },
 
@@ -564,20 +921,308 @@
         },
 
 
+        performSearch() {
+
+            const input =
+                document.querySelector(
+                    '#searchInput'
+                );
+
+
+            const value =
+                input
+                    ? input.value.trim()
+                    : '';
+
+
+            if (
+                window.VelocityFilters &&
+                typeof window.VelocityFilters.setSearch ===
+                'function'
+            ) {
+
+                window.VelocityFilters.setSearch(
+                    value
+                );
+
+            }
+
+
+            const productsSection =
+                document.querySelector(
+                    '#products'
+                );
+
+
+            this.closeSearch();
+
+
+            if (productsSection) {
+
+                productsSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+
+            }
+
+        },
+
+
+        renderSearchResults(query) {
+
+            const resultsContainer =
+                document.querySelector(
+                    '#searchResults'
+                );
+
+
+            if (!resultsContainer) {
+                return;
+            }
+
+
+            const value =
+                String(
+                    query || ''
+                ).trim();
+
+
+            if (!value) {
+
+                resultsContainer.innerHTML = `
+                    <div class="search-results-empty">
+                        <span>⌕</span>
+                        <p>Search for products, shoes, fashion or tech.</p>
+                    </div>
+                `;
+
+                return;
+
+            }
+
+
+            if (
+                !window.VelocityProducts
+            ) {
+
+                resultsContainer.innerHTML = '';
+
+                return;
+
+            }
+
+
+            let products = [];
+
+
+            if (
+                typeof window.VelocityProducts.searchProducts ===
+                'function'
+            ) {
+
+                products =
+                    window.VelocityProducts.searchProducts(
+                        value
+                    );
+
+            } else if (
+                typeof window.VelocityProducts.getProducts ===
+                'function'
+            ) {
+
+                const all =
+                    window.VelocityProducts.getProducts();
+
+
+                const normalized =
+                    value.toLowerCase();
+
+
+                products =
+                    all.filter(
+                        product => {
+
+                            const name =
+                                String(
+                                    product.name || ''
+                                ).toLowerCase();
+
+
+                            const category =
+                                String(
+                                    product.categoryName ||
+                                    product.category ||
+                                    ''
+                                ).toLowerCase();
+
+
+                            return (
+                                name.includes(normalized) ||
+                                category.includes(normalized)
+                            );
+
+                        }
+                    );
+
+            }
+
+
+            products =
+                Array.isArray(products)
+                    ? products.slice(0, 6)
+                    : [];
+
+
+            if (!products.length) {
+
+                resultsContainer.innerHTML = `
+                    <div class="search-results-empty">
+                        <span>×</span>
+                        <p>No products found.</p>
+                    </div>
+                `;
+
+                return;
+
+            }
+
+
+            resultsContainer.innerHTML =
+                products
+                    .map(
+                        product => {
+
+                            const image =
+                                this.getProductImage(
+                                    product
+                                );
+
+
+                            const name =
+                                this.escapeHTML(
+                                    product.name || 'Product'
+                                );
+
+
+                            const category =
+                                this.escapeHTML(
+                                    product.categoryName ||
+                                    product.category ||
+                                    ''
+                                );
+
+
+                            const price =
+                                window.VelocityProducts &&
+                                typeof window.VelocityProducts.formatPrice ===
+                                'function'
+                                    ? window.VelocityProducts.formatPrice(
+                                        product.price,
+                                        product.currency
+                                    )
+                                    : `$${Number(
+                                        product.price || 0
+                                    ).toFixed(2)}`;
+
+
+                            return `
+                                <button
+                                    type="button"
+                                    class="search-result-item"
+                                    data-search-product-id="${this.escapeAttribute(product.id)}"
+                                >
+
+                                    <span class="search-result-image">
+
+                                        <img
+                                            src="${this.escapeAttribute(image)}"
+                                            alt="${this.escapeAttribute(product.name || '')}"
+                                            data-fallback="${this.escapeAttribute(this.getFallbackImage())}"
+                                        >
+
+                                    </span>
+
+                                    <span class="search-result-info">
+
+                                        <strong>
+                                            ${name}
+                                        </strong>
+
+                                        <small>
+                                            ${category}
+                                        </small>
+
+                                        <b>
+                                            ${price}
+                                        </b>
+
+                                    </span>
+
+                                </button>
+                            `;
+
+                        }
+                    )
+                    .join('');
+
+
+            this.attachImageFallbacks(
+                resultsContainer
+            );
+
+
+            if (
+                !resultsContainer._velocitySearchBound
+            ) {
+
+                resultsContainer._velocitySearchBound =
+                    true;
+
+
+                resultsContainer.addEventListener(
+                    'click',
+                    event => {
+
+                        const result =
+                            event.target.closest(
+                                '[data-search-product-id]'
+                            );
+
+
+                        if (!result) {
+                            return;
+                        }
+
+
+                        const productId =
+                            result.dataset.searchProductId;
+
+
+                        this.closeSearch();
+
+                        this.openQuickView(
+                            productId
+                        );
+
+                    }
+                );
+
+            }
+
+        },
+
+
         /* =====================================================
            WISHLIST
         ===================================================== */
 
         openWishlist() {
 
-            /*
-             * إذا كان wishlist module عنده drawer
-             * نستعمله مباشرة.
-             */
-
             if (
                 window.VelocityWishlist &&
-                typeof window.VelocityWishlist.open === 'function'
+                typeof window.VelocityWishlist.open ===
+                'function'
             ) {
 
                 window.VelocityWishlist.open();
@@ -587,39 +1232,69 @@
             }
 
 
-            /*
-             * إذا ما كانش drawer:
-             * نعرض المنتجات الموجودة في wishlist
-             * بطريقة بسيطة داخل رسالة.
-             */
-
             if (
-                window.VelocityWishlist &&
-                typeof window.VelocityWishlist.getProducts === 'function'
+                !window.VelocityWishlist
             ) {
 
-                const products =
-                    window.VelocityWishlist.getProducts();
-
-
-                if (!products.length) {
-
-                    this.showNotification(
-                        'قائمة المفضلة فارغة.',
-                        'info'
-                    );
-
-                    return;
-
-                }
-
-
                 this.showNotification(
-                    `لديك ${products.length} منتج في المفضلة.`,
-                    'success'
+                    'قائمة المفضلة غير متاحة حالياً.',
+                    'error'
                 );
 
+                return;
+
             }
+
+
+            if (
+                typeof window.VelocityWishlist.getProducts !==
+                'function'
+            ) {
+
+                this.showNotification(
+                    'قائمة المفضلة غير متاحة حالياً.',
+                    'error'
+                );
+
+                return;
+
+            }
+
+
+            const products =
+                window.VelocityWishlist.getProducts();
+
+
+            if (!products.length) {
+
+                this.showNotification(
+                    'قائمة المفضلة فارغة.',
+                    'info'
+                );
+
+                return;
+
+            }
+
+
+            /*
+             * إذا wishlist.js الحالي لا يحتوي drawer،
+             * نعرض المنتجات بطريقة مفيدة.
+             */
+
+            let message =
+                `Wishlist: ${products.length} product`;
+
+
+            if (products.length !== 1) {
+                message += 's';
+            }
+
+
+            this.showNotification(
+                message,
+                'success'
+            );
 
         },
 
@@ -630,9 +1305,42 @@
 
         toggleMobileMenu() {
 
-            document.body.classList.toggle(
-                'mobile-menu-open'
-            );
+            const isOpen =
+                document.body.classList.toggle(
+                    'mobile-menu-open'
+                );
+
+
+            const button =
+                document.querySelector(
+                    '[data-mobile-menu]'
+                );
+
+
+            if (button) {
+
+                button.setAttribute(
+                    'aria-expanded',
+                    String(isOpen)
+                );
+
+            }
+
+
+            const menu =
+                document.querySelector(
+                    '#mobileMenu'
+                );
+
+
+            if (menu) {
+
+                menu.setAttribute(
+                    'aria-hidden',
+                    String(!isOpen)
+                );
+
+            }
 
         },
 
@@ -641,6 +1349,107 @@
 
             document.body.classList.remove(
                 'mobile-menu-open'
+            );
+
+
+            const button =
+                document.querySelector(
+                    '[data-mobile-menu]'
+                );
+
+
+            if (button) {
+
+                button.setAttribute(
+                    'aria-expanded',
+                    'false'
+                );
+
+            }
+
+
+            const menu =
+                document.querySelector(
+                    '#mobileMenu'
+                );
+
+
+            if (menu) {
+
+                menu.setAttribute(
+                    'aria-hidden',
+                    'true'
+                );
+
+            }
+
+        },
+
+
+        /* =====================================================
+           FALLBACK CATEGORY FILTER
+        ===================================================== */
+
+        fallbackCategoryFilter(category) {
+
+            if (
+                !window.VelocityProducts
+            ) {
+                return;
+            }
+
+
+            const container =
+                document.querySelector(
+                    '#products-grid'
+                );
+
+
+            if (!container) {
+                return;
+            }
+
+
+            let products =
+                typeof window.VelocityProducts.getProducts ===
+                'function'
+                    ? window.VelocityProducts.getProducts()
+                    : [];
+
+
+            if (
+                category &&
+                category !== 'all'
+            ) {
+
+                products =
+                    products.filter(
+                        product => {
+
+                            const value =
+                                String(
+                                    product.category ||
+                                    ''
+                                ).toLowerCase();
+
+
+                            return value ===
+                                category.toLowerCase();
+
+                        }
+                    );
+
+            }
+
+
+            window.VelocityProducts.renderProducts(
+                container,
+                products
+            );
+
+
+            this.scrollTo(
+                '#products'
             );
 
         },
@@ -699,14 +1508,16 @@
         openQuickView(productId) {
 
             if (
-                !window.VelocityProducts
+                !window.VelocityProducts ||
+                typeof window.VelocityProducts.getProductById !==
+                'function'
             ) {
                 return;
             }
 
 
             const product =
-                VelocityProducts.getProductById(
+                window.VelocityProducts.getProductById(
                     productId
                 );
 
@@ -742,22 +1553,14 @@
             }
 
 
-            /*
-             * Image system:
-             * نستعمل helper إذا كان products.js
-             * كيوفره.
-             */
-
-            let imageSource =
+            const imageSource =
                 this.getProductImage(
                     product
                 );
 
 
             const fallbackImage =
-                product.imageUrl ||
-                product.fallbackImage ||
-                '';
+                this.getFallbackImage();
 
 
             const safeName =
@@ -768,7 +1571,9 @@
 
             const safeCategory =
                 this.escapeHTML(
-                    product.categoryName || ''
+                    product.categoryName ||
+                    product.category ||
+                    ''
                 );
 
 
@@ -776,6 +1581,27 @@
                 Number(
                     product.rating || 0
                 );
+
+
+            const stars =
+                typeof window.VelocityProducts.renderStars ===
+                'function'
+                    ? window.VelocityProducts.renderStars(
+                        rating
+                    )
+                    : '★★★★★';
+
+
+            const price =
+                typeof window.VelocityProducts.formatPrice ===
+                'function'
+                    ? window.VelocityProducts.formatPrice(
+                        product.price,
+                        product.currency
+                    )
+                    : `$${Number(
+                        product.price || 0
+                    ).toFixed(2)}`;
 
 
             modal.innerHTML = `
@@ -796,7 +1622,7 @@
                         class="quick-view-close"
                         type="button"
                         data-close-quick-view
-                        aria-label="إغلاق"
+                        aria-label="Close"
                     >
                         ×
                     </button>
@@ -826,33 +1652,25 @@
                             <div class="product-rating">
 
                                 <div class="stars">
-
-                                    ${VelocityProducts.renderStars(
-                                        rating
-                                    )}
-
+                                    ${stars}
                                 </div>
 
                                 <span>
-                                    ${rating}
+                                    ${rating.toFixed(1)}
                                 </span>
 
                             </div>
 
                             <div class="quick-view-price">
-
-                                ${VelocityProducts.formatPrice(
-                                    product.price,
-                                    product.currency
-                                )}
-
+                                ${price}
                             </div>
 
                             <p>
-                                منتج مميز من مجموعة
+                                Premium product from
                                 Velocity Store.
-                                تصميم عصري وجودة عالية
-                                للاستخدام اليومي.
+                                Designed with a modern
+                                aesthetic and built for
+                                everyday use.
                             </p>
 
                             <button
@@ -860,7 +1678,7 @@
                                 type="button"
                                 data-quick-add="${this.escapeAttribute(product.id)}"
                             >
-                                أضف للسلة
+                                Add to cart
                             </button>
 
                         </div>
@@ -876,19 +1694,16 @@
             );
 
 
-            requestAnimationFrame(() => {
+            requestAnimationFrame(
+                () => {
 
-                modal.classList.add(
-                    'active'
-                );
+                    modal.classList.add(
+                        'active'
+                    );
 
-            });
+                }
+            );
 
-
-            /*
-             * ما نزيدوش EventListener كل مرة
-             * بلا cleanup.
-             */
 
             if (
                 modal._velocityQuickViewHandler
@@ -917,34 +1732,6 @@
                             modal
                         );
 
-                        return;
-
-                    }
-
-
-                    const addButton =
-                        event.target.closest(
-                            '[data-quick-add]'
-                        );
-
-
-                    if (addButton) {
-
-                        if (
-                            window.VelocityCart &&
-                            typeof VelocityCart.add === 'function'
-                        ) {
-
-                            VelocityCart.add(
-                                addButton.dataset.quickAdd
-                            );
-
-                            this.closeQuickView(
-                                modal
-                            );
-
-                        }
-
                     }
 
                 };
@@ -959,86 +1746,172 @@
                 handler
             );
 
+
+            document.body.classList.add(
+                'quick-view-open'
+            );
+
         },
 
 
         /* =====================================================
-           QUICK VIEW IMAGE
+           CLOSE QUICK VIEW
+        ===================================================== */
+
+        closeQuickView(modal) {
+
+            if (!modal) {
+                return;
+            }
+
+
+            modal.classList.remove(
+                'active'
+            );
+
+
+            document.body.classList.remove(
+                'quick-view-open'
+            );
+
+
+            setTimeout(
+                () => {
+
+                    if (
+                        modal &&
+                        modal.parentNode
+                    ) {
+
+                        modal.remove();
+
+                    }
+
+                },
+                250
+            );
+
+        },
+
+
+        /* =====================================================
+           PRODUCT IMAGE
         ===================================================== */
 
         getProductImage(product) {
 
             if (!product) {
-                return '';
+                return this.getFallbackImage();
             }
 
-
-            /*
-             * إذا products.js فيه helper خاص بالصور.
-             */
 
             if (
                 window.VelocityProducts &&
-                typeof VelocityProducts.getProductImage === 'function'
+                typeof window.VelocityProducts.getProductImage ===
+                'function'
             ) {
 
-                return VelocityProducts.getProductImage(
-                    product
-                );
+                const resolved =
+                    window.VelocityProducts.getProductImage(
+                        product
+                    );
+
+
+                if (resolved) {
+                    return resolved;
+                }
 
             }
 
 
-            /*
-             * الصورة المحلية الجديدة.
-             */
+            const candidates = [
 
-            if (product.image) {
+                product.resolvedImage,
 
-                /*
-                 * إذا كانت URL كاملة
-                 */
+                product.localImage,
+
+                product.image,
+
+                product.webImage,
+
+                product.imageUrl,
+
+                product.remoteImage,
+
+                product.fallbackImage
+
+            ];
+
+
+            for (const candidate of candidates) {
 
                 if (
-                    /^https?:\/\//i.test(
-                        product.image
-                    )
+                    typeof candidate !== 'string'
+                ) {
+                    continue;
+                }
+
+
+                const value =
+                    candidate.trim();
+
+
+                if (!value) {
+                    continue;
+                }
+
+
+                if (
+                    /^https?:\/\//i.test(value) ||
+                    value.startsWith('data:image/') ||
+                    value.startsWith('/') ||
+                    value.startsWith('./') ||
+                    value.startsWith('../') ||
+                    value.startsWith('assets/')
                 ) {
 
-                    return product.image;
+                    return value;
 
                 }
 
 
-                /*
-                 * إذا كان المسار يبدأ بـ assets/
-                 */
-
-                if (
-                    product.image.startsWith(
-                        'assets/'
-                    )
-                ) {
-
-                    return product.image;
-
-                }
-
-
-                return `assets/images/${product.image}`;
+                return `assets/images/${value}`;
 
             }
 
 
-            /*
-             * Web fallback.
-             */
+            return this.getFallbackImage();
 
-            return (
-                product.imageUrl ||
-                product.fallbackImage ||
-                ''
-            );
+        },
+
+
+        /* =====================================================
+           FALLBACK IMAGE
+        ===================================================== */
+
+        getFallbackImage() {
+
+            if (
+                window.VelocityProducts &&
+                typeof window.VelocityProducts.getFallbackImage ===
+                'function'
+            ) {
+
+                return window.VelocityProducts.getFallbackImage();
+
+            }
+
+
+            return `
+                data:image/svg+xml;charset=UTF-8,
+                <svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+                    <rect width="800" height="800" fill="%23101016"/>
+                    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
+                        fill="%23ffffff" font-family="Arial" font-size="54">
+                        VELOCITY
+                    </text>
+                </svg>
+            `.replace(/\s+/g, ' ');
 
         },
 
@@ -1075,9 +1948,12 @@
                 image => {
 
                     if (
-                        image.dataset.velocityFallbackBound
+                        image.dataset.velocityFallbackBound ===
+                        'true'
                     ) {
+
                         return;
+
                     }
 
 
@@ -1095,12 +1971,9 @@
 
                             if (
                                 !fallback ||
-                                image.dataset.fallbackUsed === 'true'
+                                image.dataset.fallbackUsed ===
+                                'true'
                             ) {
-
-                                /*
-                                 * منع broken icon
-                                 */
 
                                 image.style.visibility =
                                     'hidden';
@@ -1117,9 +1990,6 @@
                             image.src =
                                 fallback;
 
-                        },
-                        {
-                            once: false
                         }
                     );
 
@@ -1172,13 +2042,15 @@
                 message;
 
 
-            requestAnimationFrame(() => {
+            requestAnimationFrame(
+                () => {
 
-                notification.classList.add(
-                    'show'
-                );
+                    notification.classList.add(
+                        'show'
+                    );
 
-            });
+                }
+            );
 
 
             clearTimeout(
@@ -1187,13 +2059,16 @@
 
 
             notification._velocityTimer =
-                setTimeout(() => {
+                setTimeout(
+                    () => {
 
-                    notification.classList.remove(
-                        'show'
-                    );
+                        notification.classList.remove(
+                            'show'
+                        );
 
-                }, 3000);
+                    },
+                    3000
+                );
 
         },
 
@@ -1207,26 +2082,11 @@
             return String(
                 value ?? ''
             )
-                .replace(
-                    /&/g,
-                    '&amp;'
-                )
-                .replace(
-                    /</g,
-                    '&lt;'
-                )
-                .replace(
-                    />/g,
-                    '&gt;'
-                )
-                .replace(
-                    /"/g,
-                    '&quot;'
-                )
-                .replace(
-                    /'/g,
-                    '&#039;'
-                );
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
 
         },
 
