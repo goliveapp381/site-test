@@ -12,6 +12,8 @@
    - Newsletter
    - Wishlist
    - Cart
+   - Cinematic Add To Cart animation
+   - Added To Cart premium modal
    - Global UI events
    - Smart image fallback
    - Image manifest synchronization
@@ -35,6 +37,15 @@
         initialized: false,
         eventsBound: false,
 
+        /* =====================================================
+           CART CINEMATIC STATE
+        ===================================================== */
+
+        cartAnimationRunning: false,
+        pendingCartProduct: null,
+        cartAnimationTimer: null,
+        cartModalTimer: null,
+
 
         /* =====================================================
            INIT
@@ -52,19 +63,13 @@
 
                 /*
                  * Bind events first.
-                 * This guarantees that events emitted
-                 * during module initialization are captured.
                  */
 
                 this.bindEvents();
 
 
                 /*
-                 * Initialize Cart + Wishlist BEFORE
-                 * rendering products.
-                 *
-                 * This is important because product cards
-                 * need to know which products are favorites.
+                 * Initialize modules.
                  */
 
                 this.initializeModules();
@@ -93,7 +98,7 @@
             } finally {
 
                 /*
-                 * Whatever happens, loader must disappear.
+                 * Loader must always disappear.
                  */
 
                 this.hidePageLoader();
@@ -255,10 +260,8 @@
 
             /*
              * -----------------------------------------------
-             * PRODUCTS
+             * PRODUCTS / FILTERS
              * -----------------------------------------------
-             *
-             * Filters owns product rendering.
              */
 
             if (
@@ -368,6 +371,47 @@
             document.addEventListener(
                 'click',
                 event => {
+
+                    /* =========================================
+                       ADD TO CART CINEMATIC EFFECT
+                       -----------------------------------------
+                       IMPORTANT:
+                       We DO NOT add product here.
+
+                       cart.js remains responsible for adding
+                       the product.
+
+                       We only start the visual experience.
+                    ========================================= */
+
+                    const addButton =
+                        event.target.closest(
+                            '.add-cart-button, [data-cart-id]'
+                        );
+
+
+                    if (
+                        addButton &&
+                        !addButton.closest(
+                            '.quick-view-modal'
+                        ) &&
+                        !addButton.closest(
+                            '#quick-view-modal'
+                        )
+                    ) {
+
+                        this.handleAddToCartVisual(
+                            addButton
+                        );
+
+                        /*
+                         * Do NOT preventDefault.
+                         *
+                         * cart.js must receive the click.
+                         */
+
+                    }
+
 
                     /* =========================================
                        MOBILE MENU OPEN
@@ -576,7 +620,7 @@
 
 
                         /*
-                         * Category card → scroll to products.
+                         * Category card → scroll.
                          */
 
                         if (
@@ -790,6 +834,21 @@
                             quickAdd.dataset.quickAdd;
 
 
+                        /*
+                         * Close quick view first.
+                         */
+
+                        this.closeQuickView(
+                            document.querySelector(
+                                '#quick-view-modal'
+                            )
+                        );
+
+
+                        /*
+                         * Trigger cart through Cart module.
+                         */
+
                         if (
                             window.VelocityCart &&
                             typeof window.VelocityCart.add ===
@@ -800,15 +859,122 @@
                                 productId
                             );
 
+
+                            /*
+                             * Start cinematic experience
+                             * using product data.
+                             */
+
+                            const fakeButton =
+                                document.querySelector(
+                                    `[data-cart-id="${CSS.escape(String(productId))}"]`
+                                );
+
+
+                            if (fakeButton) {
+
+                                this.handleAddToCartVisual(
+                                    fakeButton
+                                );
+
+                            } else {
+
+                                const product =
+                                    this.getProductById(
+                                        productId
+                                    );
+
+
+                                this.startAddedToCartExperience(
+                                    product
+                                );
+
+                            }
+
                         }
 
 
-                        this.closeQuickView(
-                            document.querySelector(
-                                '#quick-view-modal'
-                            )
+                        return;
+
+                    }
+
+
+                    /* =========================================
+                       ADDED MODAL CLOSE
+                    ========================================= */
+
+                    const addedClose =
+                        event.target.closest(
+                            '[data-added-cart-close]'
                         );
 
+
+                    if (addedClose) {
+
+                        event.preventDefault();
+
+                        this.closeAddedToCartModal();
+
+                        return;
+
+                    }
+
+
+                    /* =========================================
+                       VIEW CART FROM ADDED MODAL
+                    ========================================= */
+
+                    const addedViewCart =
+                        event.target.closest(
+                            '[data-added-cart-view]'
+                        );
+
+
+                    if (addedViewCart) {
+
+                        event.preventDefault();
+
+                        this.closeAddedToCartModal();
+
+
+                        setTimeout(
+                            () => {
+
+                                if (
+                                    window.VelocityCart &&
+                                    typeof window.VelocityCart.open ===
+                                    'function'
+                                ) {
+
+                                    window.VelocityCart.open();
+
+                                }
+
+                            },
+                            220
+                        );
+
+
+                        return;
+
+                    }
+
+
+                    /* =========================================
+                       CONTINUE SHOPPING
+                    ========================================= */
+
+                    const addedContinue =
+                        event.target.closest(
+                            '[data-added-cart-continue]'
+                        );
+
+
+                    if (addedContinue) {
+
+                        event.preventDefault();
+
+                        this.closeAddedToCartModal();
 
                         return;
 
@@ -867,7 +1033,7 @@
 
 
                     /*
-                     * Search overlay results.
+                     * Search overlay.
                      */
 
                     if (
@@ -882,7 +1048,7 @@
 
 
                     /*
-                     * Main products filter.
+                     * Main filter.
                      */
 
                     if (
@@ -1044,6 +1210,9 @@
                     );
 
 
+                    this.closeAddedToCartModal();
+
+
                     if (
                         window.VelocityCart &&
                         typeof window.VelocityCart.close ===
@@ -1066,16 +1235,8 @@
                 'velocity:products-rendered',
                 () => {
 
-                    /*
-                     * Rebind image fallback after every render.
-                     */
-
                     this.setupImageFallbacks();
 
-
-                    /*
-                     * Re-run animations for dynamic cards.
-                     */
 
                     if (
                         window.VelocityAnimations &&
@@ -1104,16 +1265,6 @@
 
             /* =================================================
                IMAGE MANIFEST READY
-               -------------------------------------------------
-               This is VERY important.
-
-               First page render can happen before
-               image-manifest.json finishes loading.
-
-               When manifest arrives:
-               → re-render products
-               → each imageId gets its real image
-               → no manual product editing needed
             ================================================= */
 
             document.addEventListener(
@@ -1153,11 +1304,6 @@
                     }
 
 
-                    /*
-                     * Search overlay may also contain
-                     * product images.
-                     */
-
                     const searchInput =
                         document.querySelector(
                             '#searchInput'
@@ -1189,11 +1335,6 @@
             document.addEventListener(
                 'velocity:products-ready',
                 () => {
-
-                    /*
-                     * If filters did not render yet,
-                     * render now.
-                     */
 
                     const grid =
                         document.querySelector(
@@ -1258,7 +1399,991 @@
 
                     this.setupImageFallbacks();
 
+
+                    /*
+                     * If cart.js emits this event after a normal
+                     * Add To Cart click, finish the cinematic
+                     * experience.
+                     */
+
+                    if (
+                        this.pendingCartProduct &&
+                        !this.cartModalTimer
+                    ) {
+
+                        const product =
+                            this.pendingCartProduct;
+
+
+                        this.pendingCartProduct =
+                            null;
+
+
+                        this.scheduleAddedToCartModal(
+                            product
+                        );
+
+                    }
+
                 }
+            );
+
+        },
+
+
+        /* =====================================================
+           ADD TO CART VISUAL EXPERIENCE
+        ===================================================== */
+
+        handleAddToCartVisual(button) {
+
+            if (
+                this.cartAnimationRunning
+            ) {
+
+                return;
+
+            }
+
+
+            if (!button) {
+                return;
+            }
+
+
+            /*
+             * Product ID can come from:
+             *
+             * data-cart-id
+             */
+
+            const productId =
+                button.dataset.cartId;
+
+
+            if (!productId) {
+
+                /*
+                 * Still allow a generic visual effect
+                 * if the product ID is unavailable.
+                 */
+
+                const card =
+                    button.closest(
+                        '.product-card'
+                    );
+
+
+                if (card) {
+
+                    this.animateProductCard(
+                        card
+                    );
+
+                }
+
+
+                return;
+
+            }
+
+
+            const product =
+                this.getProductById(
+                    productId
+                );
+
+
+            if (!product) {
+
+                console.warn(
+                    '[Velocity Store] Product not found:',
+                    productId
+                );
+
+
+                return;
+
+            }
+
+
+            const card =
+                button.closest(
+                    '.product-card'
+                );
+
+
+            if (!card) {
+
+                this.startAddedToCartExperience(
+                    product
+                );
+
+                return;
+
+            }
+
+
+            this.cartAnimationRunning =
+                true;
+
+
+            this.pendingCartProduct =
+                product;
+
+
+            /*
+             * Start spectacular card animation.
+             */
+
+            this.animateProductCard(
+                card
+            );
+
+
+            /*
+             * Safety fallback.
+             *
+             * If cart.js does not emit velocity:cart-changed,
+             * the modal still opens after the animation.
+             */
+
+            clearTimeout(
+                this.cartAnimationTimer
+            );
+
+
+            this.cartAnimationTimer =
+                setTimeout(
+                    () => {
+
+                        if (
+                            this.pendingCartProduct
+                        ) {
+
+                            const pending =
+                                this.pendingCartProduct;
+
+
+                            this.pendingCartProduct =
+                                null;
+
+
+                            this.scheduleAddedToCartModal(
+                                pending
+                            );
+
+                        }
+
+                    },
+                    1350
+                );
+
+        },
+
+
+        /* =====================================================
+           PRODUCT CARD ROTATION
+           ===================================================== */
+
+        animateProductCard(card) {
+
+            if (!card) {
+                return;
+            }
+
+
+            /*
+             * Restart animation even if user previously
+             * clicked the same card.
+             */
+
+            card.classList.remove(
+                'velocity-cart-spin'
+            );
+
+
+            card.classList.remove(
+                'velocity-cart-launch'
+            );
+
+
+            /*
+             * Force browser reflow.
+             */
+
+            void card.offsetWidth;
+
+
+            card.classList.add(
+                'velocity-cart-spin'
+            );
+
+
+            card.classList.add(
+                'velocity-cart-launch'
+            );
+
+
+            /*
+             * Add temporary glow layer.
+             */
+
+            let glow =
+                card.querySelector(
+                    '.velocity-cart-glow'
+                );
+
+
+            if (!glow) {
+
+                glow =
+                    document.createElement(
+                        'div'
+                    );
+
+
+                glow.className =
+                    'velocity-cart-glow';
+
+
+                glow.setAttribute(
+                    'aria-hidden',
+                    'true'
+                );
+
+
+                card.appendChild(
+                    glow
+                );
+
+            }
+
+
+            glow.classList.remove(
+                'active'
+            );
+
+
+            void glow.offsetWidth;
+
+
+            glow.classList.add(
+                'active'
+            );
+
+
+            /*
+             * Remove classes after animation.
+             */
+
+            setTimeout(
+                () => {
+
+                    card.classList.remove(
+                        'velocity-cart-spin'
+                    );
+
+                    card.classList.remove(
+                        'velocity-cart-launch'
+                    );
+
+                    if (glow) {
+
+                        glow.classList.remove(
+                            'active'
+                        );
+
+                    }
+
+                    this.cartAnimationRunning =
+                        false;
+
+                },
+                1250
+            );
+
+        },
+
+
+        /* =====================================================
+           START ADDED TO CART EXPERIENCE
+        ===================================================== */
+
+        startAddedToCartExperience(product) {
+
+            if (!product) {
+                return;
+            }
+
+
+            /*
+             * If product card exists, animate it.
+             */
+
+            const productId =
+                String(
+                    product.id
+                );
+
+
+            let card = null;
+
+
+            try {
+
+                card =
+                    document.querySelector(
+                        `.product-card[data-product-id="${CSS.escape(productId)}"]`
+                    );
+
+            } catch (error) {
+
+                card = null;
+
+            }
+
+
+            if (!card) {
+
+                try {
+
+                    card =
+                        document.querySelector(
+                            `[data-cart-id="${CSS.escape(productId)}"]`
+                        )?.closest(
+                            '.product-card'
+                        ) || null;
+
+                } catch (error) {
+
+                    card = null;
+
+                }
+
+            }
+
+
+            if (card) {
+
+                this.animateProductCard(
+                    card
+                );
+
+            }
+
+
+            this.scheduleAddedToCartModal(
+                product
+            );
+
+        },
+
+
+        /* =====================================================
+           SCHEDULE ADDED MODAL
+        ===================================================== */
+
+        scheduleAddedToCartModal(product) {
+
+            if (!product) {
+                return;
+            }
+
+
+            clearTimeout(
+                this.cartModalTimer
+            );
+
+
+            this.cartModalTimer =
+                setTimeout(
+                    () => {
+
+                        this.cartModalTimer =
+                            null;
+
+                        this.openAddedToCartModal(
+                            product
+                        );
+
+                    },
+                    120
+                );
+
+        },
+
+
+        /* =====================================================
+           OPEN ADDED TO CART MODAL
+        ===================================================== */
+
+        openAddedToCartModal(product) {
+
+            if (!product) {
+                return;
+            }
+
+
+            /*
+             * Close quick view if somehow still open.
+             */
+
+            this.closeQuickView(
+                document.querySelector(
+                    '#quick-view-modal'
+                )
+            );
+
+
+            let modal =
+                document.querySelector(
+                    '#velocity-added-cart-modal'
+                );
+
+
+            if (!modal) {
+
+                modal =
+                    document.createElement(
+                        'div'
+                    );
+
+
+                modal.id =
+                    'velocity-added-cart-modal';
+
+
+                modal.className =
+                    'velocity-added-cart-modal';
+
+
+                document.body.appendChild(
+                    modal
+                );
+
+            }
+
+
+            const image =
+                this.getProductImage(
+                    product
+                );
+
+
+            const fallback =
+                this.getFallbackImage();
+
+
+            let candidates = [];
+
+
+            if (
+                window.VelocityProducts &&
+                typeof window.VelocityProducts.getProductImageCandidates ===
+                'function'
+            ) {
+
+                candidates =
+                    window.VelocityProducts
+                        .getProductImageCandidates(
+                            product
+                        )
+                        .slice(1);
+
+            }
+
+
+            const name =
+                this.escapeHTML(
+                    product.name ||
+                    'Product'
+                );
+
+
+            const category =
+                this.escapeHTML(
+                    product.categoryName ||
+                    product.category ||
+                    'Premium Collection'
+                );
+
+
+            const rating =
+                Number(
+                    product.rating || 0
+                );
+
+
+            const stars =
+                window.VelocityProducts &&
+                typeof window.VelocityProducts.renderStars ===
+                'function'
+
+                    ? window.VelocityProducts.renderStars(
+                        rating
+                    )
+
+                    : '★★★★★';
+
+
+            const price =
+                window.VelocityProducts &&
+                typeof window.VelocityProducts.formatPrice ===
+                'function'
+
+                    ? window.VelocityProducts.formatPrice(
+                        product.price,
+                        product.currency
+                    )
+
+                    : `${product.price ?? ''} DH`;
+
+
+            const productDescription =
+                this.escapeHTML(
+                    product.description ||
+                    'Premium product selected for your Velocity collection.'
+                );
+
+
+            const productId =
+                this.escapeAttribute(
+                    product.id
+                );
+
+
+            modal.innerHTML = `
+
+                <div
+                    class="velocity-added-backdrop"
+                    data-added-cart-close
+                    aria-hidden="true"
+                ></div>
+
+
+                <div
+                    class="velocity-added-shell"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="velocity-added-title"
+                >
+
+                    <!-- =====================================
+                         ANIMATED BACKGROUND
+                    ====================================== -->
+
+                    <div
+                        class="velocity-added-noise"
+                        aria-hidden="true"
+                    ></div>
+
+
+                    <div
+                        class="velocity-added-grid-bg"
+                        aria-hidden="true"
+                    ></div>
+
+
+                    <div
+                        class="velocity-added-orb velocity-added-orb-one"
+                        aria-hidden="true"
+                    ></div>
+
+
+                    <div
+                        class="velocity-added-orb velocity-added-orb-two"
+                        aria-hidden="true"
+                    ></div>
+
+
+                    <div
+                        class="velocity-added-orb velocity-added-orb-three"
+                        aria-hidden="true"
+                    ></div>
+
+
+                    <div
+                        class="velocity-added-wave velocity-added-wave-one"
+                        aria-hidden="true"
+                    ></div>
+
+
+                    <div
+                        class="velocity-added-wave velocity-added-wave-two"
+                        aria-hidden="true"
+                    ></div>
+
+
+                    <button
+                        type="button"
+                        class="velocity-added-close"
+                        data-added-cart-close
+                        aria-label="Close"
+                    >
+                        <span>×</span>
+                    </button>
+
+
+                    <!-- =====================================
+                         CONTENT
+                    ====================================== -->
+
+                    <div class="velocity-added-grid">
+
+                        <!-- =================================
+                             LEFT / PRODUCT VISUAL
+                        ================================== -->
+
+                        <div class="velocity-added-visual">
+
+                            <div
+                                class="velocity-added-ring velocity-added-ring-one"
+                                aria-hidden="true"
+                            ></div>
+
+
+                            <div
+                                class="velocity-added-ring velocity-added-ring-two"
+                                aria-hidden="true"
+                            ></div>
+
+
+                            <div class="velocity-added-image-wrap">
+
+                                <div
+                                    class="velocity-added-image-glow"
+                                    aria-hidden="true"
+                                ></div>
+
+
+                                <div class="velocity-added-image-card">
+
+                                    <img
+                                        src="${this.escapeAttribute(image)}"
+                                        alt="${this.escapeAttribute(product.name)}"
+                                        data-image-candidates="${this.escapeAttribute(JSON.stringify(candidates))}"
+                                        data-fallback="${this.escapeAttribute(fallback)}"
+                                        data-product-id="${productId}"
+                                        loading="eager"
+                                        decoding="async"
+                                    >
+
+
+                                    <div
+                                        class="velocity-added-image-shine"
+                                        aria-hidden="true"
+                                    ></div>
+
+                                </div>
+
+
+                                <div
+                                    class="velocity-added-floating-dot dot-one"
+                                    aria-hidden="true"
+                                ></div>
+
+
+                                <div
+                                    class="velocity-added-floating-dot dot-two"
+                                    aria-hidden="true"
+                                ></div>
+
+
+                                <div
+                                    class="velocity-added-floating-dot dot-three"
+                                    aria-hidden="true"
+                                ></div>
+
+                            </div>
+
+
+                            <div
+                                class="velocity-added-success-badge"
+                            >
+
+                                <span class="velocity-added-check">
+                                    ✓
+                                </span>
+
+                                <span>
+                                    ADDED
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================
+                             RIGHT / PRODUCT INFO
+                        ================================== -->
+
+                        <div class="velocity-added-info">
+
+                            <div class="velocity-added-kicker">
+
+                                <span class="velocity-added-kicker-dot"></span>
+
+                                ADDED TO CART
+
+                            </div>
+
+
+                            <h2
+                                id="velocity-added-title"
+                            >
+                                ${name}
+                            </h2>
+
+
+                            <p class="velocity-added-category">
+                                ${category}
+                            </p>
+
+
+                            <div class="velocity-added-rating">
+
+                                <span class="velocity-added-stars">
+                                    ${stars}
+                                </span>
+
+                                <span class="velocity-added-rating-number">
+                                    ${rating > 0 ? rating.toFixed(1) : 'New'}
+                                </span>
+
+                            </div>
+
+
+                            <p class="velocity-added-description">
+                                ${productDescription}
+                            </p>
+
+
+                            <div class="velocity-added-divider"></div>
+
+
+                            <div class="velocity-added-meta">
+
+                                <div class="velocity-added-price-box">
+
+                                    <span>
+                                        PRICE
+                                    </span>
+
+                                    <strong>
+                                        ${price}
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="velocity-added-status">
+
+                                    <span class="velocity-added-status-icon">
+                                        ✓
+                                    </span>
+
+                                    <div>
+
+                                        <strong>
+                                            Ready in cart
+                                        </strong>
+
+                                        <small>
+                                            1 item added
+                                        </small>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="velocity-added-actions">
+
+                                <button
+                                    type="button"
+                                    class="velocity-added-btn velocity-added-btn-primary"
+                                    data-added-cart-view
+                                >
+
+                                    <span>
+                                        View Cart
+                                    </span>
+
+                                    <span class="velocity-added-btn-arrow">
+                                        →
+                                    </span>
+
+                                </button>
+
+
+                                <button
+                                    type="button"
+                                    class="velocity-added-btn velocity-added-btn-secondary"
+                                    data-added-cart-continue
+                                >
+
+                                    Continue Shopping
+
+                                </button>
+
+                            </div>
+
+
+                            <div class="velocity-added-footer-line">
+
+                                <span></span>
+
+                                <small>
+                                    VELOCITY STORE
+                                </small>
+
+                                <span></span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+
+            this.attachImageFallbacks(
+                modal
+            );
+
+
+            /*
+             * Open.
+             */
+
+            requestAnimationFrame(
+                () => {
+
+                    requestAnimationFrame(
+                        () => {
+
+                            modal.classList.add(
+                                'active'
+                            );
+
+                        }
+                    );
+
+                }
+            );
+
+
+            document.body.classList.add(
+                'velocity-added-cart-open'
+            );
+
+
+            /*
+             * Accessibility.
+             */
+
+            modal.setAttribute(
+                'aria-hidden',
+                'false'
+            );
+
+
+            /*
+             * Focus close button.
+             */
+
+            setTimeout(
+                () => {
+
+                    const close =
+                        modal.querySelector(
+                            '.velocity-added-close'
+                        );
+
+
+                    if (close) {
+
+                        close.focus();
+
+                    }
+
+                },
+                300
+            );
+
+        },
+
+
+        /* =====================================================
+           CLOSE ADDED TO CART MODAL
+        ===================================================== */
+
+        closeAddedToCartModal() {
+
+            clearTimeout(
+                this.cartModalTimer
+            );
+
+
+            this.cartModalTimer =
+                null;
+
+
+            const modal =
+                document.querySelector(
+                    '#velocity-added-cart-modal'
+                );
+
+
+            if (!modal) {
+
+                document.body.classList.remove(
+                    'velocity-added-cart-open'
+                );
+
+
+                return;
+
+            }
+
+
+            modal.classList.remove(
+                'active'
+            );
+
+
+            modal.setAttribute(
+                'aria-hidden',
+                'true'
+            );
+
+
+            document.body.classList.remove(
+                'velocity-added-cart-open'
+            );
+
+
+            setTimeout(
+                () => {
+
+                    if (
+                        modal &&
+                        modal.parentNode
+                    ) {
+
+                        modal.remove();
+
+                    }
+
+                },
+                500
             );
 
         },
@@ -1380,10 +2505,6 @@
                     ? input.value.trim()
                     : '';
 
-
-            /*
-             * Synchronize filter.
-             */
 
             if (
                 window.VelocityFilters &&
@@ -1636,20 +2757,11 @@
                 }
 
 
-                /*
-                 * Keep current behavior:
-                 * show count without inventing a new drawer.
-                 */
-
                 this.showNotification(
                     `لديك ${products.length} منتج في المفضلة.`,
                     'success'
                 );
 
-
-                /*
-                 * Move user to products section.
-                 */
 
                 this.scrollTo(
                     '#products'
@@ -2072,7 +3184,6 @@
 
                     <div class="quick-view-grid">
 
-
                         <div class="quick-view-image">
 
                             <img
@@ -2204,6 +3315,30 @@
 
 
         /* =====================================================
+           GET PRODUCT
+        ===================================================== */
+
+        getProductById(productId) {
+
+            if (
+                !window.VelocityProducts ||
+                typeof window.VelocityProducts.getProductById !==
+                'function'
+            ) {
+
+                return null;
+
+            }
+
+
+            return window.VelocityProducts.getProductById(
+                productId
+            );
+
+        },
+
+
+        /* =====================================================
            PRODUCT IMAGE
         ===================================================== */
 
@@ -2215,7 +3350,7 @@
 
 
             /*
-             * Main Products module resolver.
+             * Main Products resolver.
              */
 
             if (
@@ -2348,19 +3483,6 @@
 
         /* =====================================================
            IMAGE FALLBACK SYSTEM
-           -----------------------------------------------------
-           IMPORTANT:
-
-           If local image fails:
-               candidate 1
-                    ↓
-               candidate 2
-                    ↓
-               web image
-                    ↓
-               fallback SVG
-
-           This works independently for every product card.
         ===================================================== */
 
         setupImageFallbacks() {
@@ -2404,10 +3526,6 @@
                         'true';
 
 
-                    /*
-                     * Prepare candidate list.
-                     */
-
                     let candidates = [];
 
 
@@ -2449,7 +3567,7 @@
 
 
                     /*
-                     * Legacy web fallback support.
+                     * Legacy fallback.
                      */
 
                     const legacyWebFallback =
@@ -2471,10 +3589,6 @@
 
                     }
 
-
-                    /*
-                     * Store candidates.
-                     */
 
                     image._velocityImageCandidates =
                         candidates;
@@ -2498,12 +3612,6 @@
                                     image._velocityImageIndex || 0
                                 );
 
-
-                            /*
-                             * ---------------------------------
-                             * Try next image.
-                             * ---------------------------------
-                             */
 
                             if (
                                 nextIndex < list.length
@@ -2535,12 +3643,6 @@
                             }
 
 
-                            /*
-                             * ---------------------------------
-                             * Final fallback.
-                             * ---------------------------------
-                             */
-
                             if (
                                 image.dataset.fallbackUsed !==
                                 'true'
@@ -2567,11 +3669,6 @@
 
                             }
 
-
-                            /*
-                             * If even the fallback fails,
-                             * hide the broken image.
-                             */
 
                             image.style.visibility =
                                 'hidden';
