@@ -3,6 +3,15 @@
 /* =========================================================
    VELOCITY STORE
    SEARCH / FILTER / SORT SYSTEM
+   ---------------------------------------------------------
+   - Search
+   - Category filtering
+   - Price filtering
+   - Sorting
+   - Empty state
+   - Result count
+   - Dynamic product rendering
+   - Safe initialization
 ========================================================= */
 
 (function () {
@@ -22,6 +31,9 @@
     };
 
 
+    let initialized = false;
+
+
     /* =====================================================
        NORMALIZE CATEGORY
     ===================================================== */
@@ -33,26 +45,55 @@
                 .trim()
                 .toLowerCase();
 
+
         const aliases = {
 
             all: 'all',
 
             fashion: 'fashion',
+
             clothing: 'fashion',
 
+            clothes: 'fashion',
+
+            apparel: 'fashion',
+
+
             shoes: 'shoes',
+
+            sneaker: 'shoes',
+
             sneakers: 'shoes',
 
+            footwear: 'shoes',
+
+
             tech: 'tech',
+
             technology: 'tech',
+
             electronics: 'tech',
 
+            electronic: 'tech',
+
+
             accessories: 'accessories',
-            bags: 'accessories'
+
+            accessory: 'accessories',
+
+            bags: 'accessories',
+
+            bag: 'accessories'
 
         };
 
-        return aliases[value] || value || 'all';
+
+        return (
+            aliases[value] ||
+            value ||
+            'all'
+        );
+
     }
 
 
@@ -70,10 +111,34 @@
 
 
     /* =====================================================
-       GET FILTERED PRODUCTS
+       NORMALIZE PRICE
     ===================================================== */
 
-    function getFilteredProducts() {
+    function normalizePrice(value, fallback) {
+
+        const number =
+            Number(value);
+
+
+        if (
+            Number.isFinite(number)
+        ) {
+
+            return number;
+
+        }
+
+
+        return fallback;
+
+    }
+
+
+    /* =====================================================
+       GET ALL PRODUCTS
+    ===================================================== */
+
+    function getAllProducts() {
 
         if (
             !window.VelocityProducts ||
@@ -86,9 +151,160 @@
         }
 
 
-        let result =
+        const products =
             window.VelocityProducts
                 .getProducts();
+
+
+        return Array.isArray(products)
+            ? [...products]
+            : [];
+
+    }
+
+
+    /* =====================================================
+       SEARCH MATCH
+    ===================================================== */
+
+    function productMatchesSearch(
+        product,
+        query
+    ) {
+
+        if (!query) {
+
+            return true;
+
+        }
+
+
+        const searchableFields = [
+
+            product.name,
+
+            product.categoryName,
+
+            product.category,
+
+            product.description,
+
+            product.brand,
+
+            product.tags,
+
+            product.sku
+
+        ];
+
+
+        const searchableText =
+            searchableFields
+                .map(value => {
+
+                    if (
+                        Array.isArray(value)
+                    ) {
+
+                        return value.join(' ');
+
+                    }
+
+                    return String(
+                        value || ''
+                    );
+
+                })
+                .join(' ')
+                .toLowerCase();
+
+
+        return searchableText.includes(
+            query
+        );
+
+    }
+
+
+    /* =====================================================
+       CATEGORY MATCH
+    ===================================================== */
+
+    function productMatchesCategory(
+        product,
+        category
+    ) {
+
+        if (
+            !category ||
+            category === 'all'
+        ) {
+
+            return true;
+
+        }
+
+
+        const productCategory =
+            normalizeCategory(
+                product.category
+            );
+
+
+        return (
+            productCategory ===
+            category
+        );
+
+    }
+
+
+    /* =====================================================
+       PRICE MATCH
+    ===================================================== */
+
+    function productMatchesPrice(
+        product,
+        minPrice,
+        maxPrice
+    ) {
+
+        const price =
+            Number(product.price);
+
+
+        if (
+            !Number.isFinite(price)
+        ) {
+
+            return false;
+
+        }
+
+
+        return (
+            price >= minPrice &&
+            price <= maxPrice
+        );
+
+    }
+
+
+    /* =====================================================
+       GET FILTERED PRODUCTS
+    ===================================================== */
+
+    function getFilteredProducts() {
+
+        let result =
+            getAllProducts();
+
+
+        if (!result.length) {
+
+            return [];
+
+        }
 
 
         /* =================================================
@@ -96,34 +312,21 @@
         ================================================= */
 
         const query =
-            normalizeSearch(state.query);
+            normalizeSearch(
+                state.query
+            );
+
 
         if (query) {
 
             result =
-                result.filter(product => {
-
-                    const name =
-                        String(product.name || '')
-                            .toLowerCase();
-
-                    const categoryName =
-                        String(
-                            product.categoryName || ''
-                        ).toLowerCase();
-
-                    const category =
-                        String(
-                            product.category || ''
-                        ).toLowerCase();
-
-                    return (
-                        name.includes(query) ||
-                        categoryName.includes(query) ||
-                        category.includes(query)
-                    );
-
-                });
+                result.filter(
+                    product =>
+                        productMatchesSearch(
+                            product,
+                            query
+                        )
+                );
 
         }
 
@@ -137,25 +340,20 @@
                 state.category
             );
 
+
         if (
             category &&
             category !== 'all'
         ) {
 
             result =
-                result.filter(product => {
-
-                    const productCategory =
-                        normalizeCategory(
-                            product.category
-                        );
-
-                    return (
-                        productCategory ===
-                        category
-                    );
-
-                });
+                result.filter(
+                    product =>
+                        productMatchesCategory(
+                            product,
+                            category
+                        )
+                );
 
         }
 
@@ -165,43 +363,73 @@
         ================================================= */
 
         const minPrice =
-            Number.isFinite(
-                Number(state.minPrice)
-            )
-                ? Number(state.minPrice)
-                : 0;
+            Math.max(
+                0,
+                normalizePrice(
+                    state.minPrice,
+                    0
+                )
+            );
+
+
+        const maxPriceRaw =
+            normalizePrice(
+                state.maxPrice,
+                Infinity
+            );
+
 
         const maxPrice =
-            Number.isFinite(
-                Number(state.maxPrice)
-            )
-                ? Number(state.maxPrice)
-                : Infinity;
+            maxPriceRaw >= minPrice
+                ? maxPriceRaw
+                : minPrice;
 
 
         result =
-            result.filter(product => {
-
-                const price =
-                    Number(product.price);
-
-                if (!Number.isFinite(price)) {
-                    return false;
-                }
-
-                return (
-                    price >= minPrice &&
-                    price <= maxPrice
-                );
-
-            });
+            result.filter(
+                product =>
+                    productMatchesPrice(
+                        product,
+                        minPrice,
+                        maxPrice
+                    )
+            );
 
 
         /* =================================================
            SORT
         ================================================= */
 
-        switch (state.sort) {
+        sortProducts(
+            result,
+            state.sort
+        );
+
+
+        return result;
+
+    }
+
+
+    /* =====================================================
+       SORT PRODUCTS
+    ===================================================== */
+
+    function sortProducts(
+        products,
+        sort
+    ) {
+
+        if (
+            !Array.isArray(products)
+        ) {
+
+            return;
+
+        }
+
+
+        switch (sort) {
 
             /* ---------------------------------------------
                PRICE LOW → HIGH
@@ -209,7 +437,7 @@
 
             case 'price-low':
 
-                result.sort(
+                products.sort(
                     (a, b) =>
                         Number(a.price || 0) -
                         Number(b.price || 0)
@@ -224,7 +452,7 @@
 
             case 'price-high':
 
-                result.sort(
+                products.sort(
                     (a, b) =>
                         Number(b.price || 0) -
                         Number(a.price || 0)
@@ -239,10 +467,44 @@
 
             case 'rating':
 
-                result.sort(
-                    (a, b) =>
-                        Number(b.rating || 0) -
-                        Number(a.rating || 0)
+                products.sort(
+                    (a, b) => {
+
+                        const ratingA =
+                            Number(
+                                a.rating || 0
+                            );
+
+
+                        const ratingB =
+                            Number(
+                                b.rating || 0
+                            );
+
+
+                        if (
+                            ratingA !==
+                            ratingB
+                        ) {
+
+                            return (
+                                ratingB -
+                                ratingA
+                            );
+
+                        }
+
+
+                        return (
+                            Number(
+                                b.reviews || 0
+                            ) -
+                            Number(
+                                a.reviews || 0
+                            )
+                        );
+
+                    }
                 );
 
                 break;
@@ -254,14 +516,20 @@
 
             case 'newest':
 
-                result.sort(
+                products.sort(
                     (a, b) => {
 
                         const newestA =
-                            Boolean(a.newest);
+                            Boolean(
+                                a.newest
+                            );
+
 
                         const newestB =
-                            Boolean(b.newest);
+                            Boolean(
+                                b.newest
+                            );
+
 
                         if (
                             newestA !==
@@ -269,16 +537,60 @@
                         ) {
 
                             return (
-                                Number(newestB) -
-                                Number(newestA)
+                                Number(
+                                    newestB
+                                ) -
+                                Number(
+                                    newestA
+                                )
                             );
 
                         }
 
-                        return String(b.id || '')
-                            .localeCompare(
-                                String(a.id || '')
+
+                        /*
+                         * إذا كان عندنا createdAt
+                         * نستعمله أولاً.
+                         */
+
+                        const dateA =
+                            Date.parse(
+                                a.createdAt ||
+                                ''
                             );
+
+
+                        const dateB =
+                            Date.parse(
+                                b.createdAt ||
+                                ''
+                            );
+
+
+                        if (
+                            Number.isFinite(
+                                dateA
+                            ) &&
+                            Number.isFinite(
+                                dateB
+                            )
+                        ) {
+
+                            return (
+                                dateB -
+                                dateA
+                            );
+
+                        }
+
+
+                        return String(
+                            b.id || ''
+                        ).localeCompare(
+                            String(
+                                a.id || ''
+                            )
+                        );
 
                     }
                 );
@@ -294,14 +606,20 @@
 
             default:
 
-                result.sort(
+                products.sort(
                     (a, b) => {
 
                         const featuredA =
-                            Boolean(a.featured);
+                            Boolean(
+                                a.featured
+                            );
+
 
                         const featuredB =
-                            Boolean(b.featured);
+                            Boolean(
+                                b.featured
+                            );
+
 
                         if (
                             featuredA !==
@@ -309,15 +627,49 @@
                         ) {
 
                             return (
-                                Number(featuredB) -
-                                Number(featuredA)
+                                Number(
+                                    featuredB
+                                ) -
+                                Number(
+                                    featuredA
+                                )
                             );
 
                         }
 
+
+                        const ratingA =
+                            Number(
+                                a.rating || 0
+                            );
+
+
+                        const ratingB =
+                            Number(
+                                b.rating || 0
+                            );
+
+
+                        if (
+                            ratingA !==
+                            ratingB
+                        ) {
+
+                            return (
+                                ratingB -
+                                ratingA
+                            );
+
+                        }
+
+
                         return (
-                            Number(b.rating || 0) -
-                            Number(a.rating || 0)
+                            Number(
+                                b.reviews || 0
+                            ) -
+                            Number(
+                                a.reviews || 0
+                            )
                         );
 
                     }
@@ -326,9 +678,6 @@
                 break;
 
         }
-
-
-        return result;
 
     }
 
@@ -348,21 +697,27 @@
                 '#products-grid'
             );
 
-        if (!container) {
-            return;
-        }
 
+        if (container) {
 
-        if (
-            window.VelocityProducts &&
-            typeof window.VelocityProducts
-                .renderProducts === 'function'
-        ) {
+            if (
+                window.VelocityProducts &&
+                typeof window.VelocityProducts
+                    .renderProducts === 'function'
+            ) {
 
-            window.VelocityProducts.renderProducts(
-                container,
-                filteredProducts
-            );
+                window.VelocityProducts.renderProducts(
+                    container,
+                    filteredProducts
+                );
+
+            } else {
+
+                console.warn(
+                    '[Velocity Filters] Products renderer is not ready.'
+                );
+
+            }
 
         }
 
@@ -377,6 +732,14 @@
         );
 
 
+        updateCategoryUI();
+
+
+        /*
+         * بعد إعادة رسم المنتجات
+         * نرجعو حالة Wishlist.
+         */
+
         if (
             window.VelocityWishlist &&
             typeof window.VelocityWishlist
@@ -386,6 +749,27 @@
             window.VelocityWishlist.updateUI();
 
         }
+
+
+        /*
+         * نعطي فرصة لـApp أو modules أخرى
+         * باش يتعاملو مع Cards الجديدة.
+         */
+
+        document.dispatchEvent(
+            new CustomEvent(
+                'velocity:products-filtered',
+                {
+                    detail: {
+                        products:
+                            filteredProducts,
+
+                        count:
+                            filteredProducts.length
+                    }
+                }
+            )
+        );
 
     }
 
@@ -399,6 +783,7 @@
         state.query =
             String(query || '');
 
+
         apply();
 
     }
@@ -411,7 +796,10 @@
     function setCategory(category) {
 
         state.category =
-            normalizeCategory(category);
+            normalizeCategory(
+                category
+            );
+
 
         updateCategoryUI();
 
@@ -424,28 +812,37 @@
        PRICE
     ===================================================== */
 
-    function setPrice(min, max) {
+    function setPrice(
+        min,
+        max
+    ) {
 
         const normalizedMin =
-            Number(min);
+            normalizePrice(
+                min,
+                0
+            );
+
 
         const normalizedMax =
-            Number(max);
+            normalizePrice(
+                max,
+                Infinity
+            );
 
 
         state.minPrice =
-            Number.isFinite(normalizedMin)
-                ? Math.max(0, normalizedMin)
-                : 0;
+            Math.max(
+                0,
+                normalizedMin
+            );
 
 
         state.maxPrice =
-            Number.isFinite(normalizedMax)
-                ? Math.max(
-                    state.minPrice,
-                    normalizedMax
-                )
-                : Infinity;
+            normalizedMax >=
+            state.minPrice
+                ? normalizedMax
+                : state.minPrice;
 
 
         apply();
@@ -462,16 +859,22 @@
         const allowedSorts = [
 
             'featured',
+
             'price-low',
+
             'price-high',
+
             'rating',
+
             'newest'
 
         ];
 
 
         state.sort =
-            allowedSorts.includes(sort)
+            allowedSorts.includes(
+                sort
+            )
                 ? sort
                 : 'featured';
 
@@ -497,33 +900,36 @@
             .querySelectorAll(
                 '[data-category-filter]'
             )
-            .forEach(button => {
+            .forEach(
+                button => {
 
-                const buttonCategory =
-                    normalizeCategory(
-                        button.dataset.categoryFilter
+                    const buttonCategory =
+                        normalizeCategory(
+                            button.dataset
+                                .categoryFilter
+                        );
+
+
+                    const active =
+                        buttonCategory ===
+                        currentCategory;
+
+
+                    button.classList.toggle(
+                        'active',
+                        active
                     );
 
 
-                const active =
-                    buttonCategory ===
-                    currentCategory;
+                    button.setAttribute(
+                        'aria-pressed',
+                        active
+                            ? 'true'
+                            : 'false'
+                    );
 
-
-                button.classList.toggle(
-                    'active',
-                    active
-                );
-
-
-                button.setAttribute(
-                    'aria-pressed',
-                    active
-                        ? 'true'
-                        : 'false'
-                );
-
-            });
+                }
+            );
 
     }
 
@@ -532,18 +938,29 @@
        RESULT COUNT
     ===================================================== */
 
-    function updateResultsCount(count) {
+    function updateResultsCount(
+        count
+    ) {
+
+        const safeCount =
+            Math.max(
+                0,
+                Number(count) || 0
+            );
+
 
         document
             .querySelectorAll(
                 '[data-products-count]'
             )
-            .forEach(element => {
+            .forEach(
+                element => {
 
-                element.textContent =
-                    Number(count) || 0;
+                    element.textContent =
+                        safeCount;
 
-            });
+                }
+            );
 
     }
 
@@ -552,7 +969,9 @@
        EMPTY STATE
     ===================================================== */
 
-    function updateEmptyState(count) {
+    function updateEmptyState(
+        count
+    ) {
 
         const emptyElement =
             document.querySelector(
@@ -565,8 +984,20 @@
         }
 
 
-        emptyElement.hidden =
+        const hasProducts =
             Number(count) > 0;
+
+
+        emptyElement.hidden =
+            hasProducts;
+
+
+        emptyElement.setAttribute(
+            'aria-hidden',
+            hasProducts
+                ? 'true'
+                : 'false'
+        );
 
     }
 
@@ -577,55 +1008,57 @@
 
     function reset() {
 
-        state.query = '';
+        state.query =
+            '';
 
-        state.category = 'all';
+        state.category =
+            'all';
 
-        state.minPrice = 0;
+        state.minPrice =
+            0;
 
-        state.maxPrice = Infinity;
+        state.maxPrice =
+            Infinity;
 
-        state.sort = 'featured';
+        state.sort =
+            'featured';
 
 
         /* ---------------------------------------------
-           CLEAR SEARCH INPUTS
+           SEARCH INPUTS
         --------------------------------------------- */
 
-        const searchInputs =
-            document.querySelectorAll(
+        document
+            .querySelectorAll(
                 '[data-product-search]'
+            )
+            .forEach(
+                input => {
+
+                    input.value =
+                        '';
+
+                }
             );
 
 
-        searchInputs.forEach(input => {
-
-            input.value = '';
-
-        });
-
-
         /* ---------------------------------------------
-           RESET SORT
+           SORT
         --------------------------------------------- */
 
-        const sortSelect =
-            document.querySelector(
+        document
+            .querySelectorAll(
                 '[data-product-sort]'
+            )
+            .forEach(
+                select => {
+
+                    select.value =
+                        'featured';
+
+                }
             );
 
-
-        if (sortSelect) {
-
-            sortSelect.value =
-                'featured';
-
-        }
-
-
-        /* ---------------------------------------------
-           UPDATE UI
-        --------------------------------------------- */
 
         updateCategoryUI();
 
@@ -635,10 +1068,42 @@
 
 
     /* =====================================================
+       CATEGORY SCROLL
+    ===================================================== */
+
+    function scrollToProducts() {
+
+        const productsSection =
+            document.querySelector(
+                '#products'
+            );
+
+
+        if (!productsSection) {
+            return;
+        }
+
+
+        productsSection.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+
+    }
+
+
+    /* =====================================================
        EVENTS
     ===================================================== */
 
     function bindEvents() {
+
+        if (initialized) {
+            return;
+        }
+
+
+        initialized = true;
 
 
         /* =================================================
@@ -691,16 +1156,14 @@
 
 
                 setCategory(
-                    button.dataset.categoryFilter
+                    button.dataset
+                        .categoryFilter
                 );
 
 
                 /*
-                 * Category cards and filter buttons
-                 * both use data-category-filter.
-                 *
-                 * When a category card is clicked,
-                 * automatically scroll to products.
+                 * Category card:
+                 * نرجعو المستخدم للمنتجات.
                  */
 
                 if (
@@ -709,20 +1172,7 @@
                     )
                 ) {
 
-                    const productsSection =
-                        document.querySelector(
-                            '#products'
-                        );
-
-
-                    if (productsSection) {
-
-                        productsSection.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-
-                    }
+                    scrollToProducts();
 
                 }
 
@@ -792,6 +1242,22 @@
 
     function init() {
 
+        if (
+            document.body.dataset
+                .velocityFiltersInitialized ===
+            'true'
+        ) {
+
+            return;
+
+        }
+
+
+        document.body.dataset
+            .velocityFiltersInitialized =
+            'true';
+
+
         bindEvents();
 
         updateCategoryUI();
@@ -803,7 +1269,7 @@
 
     /* =====================================================
        GLOBAL API
-    ================================================= */
+    ===================================================== */
 
     window.VelocityFilters = {
 
@@ -827,7 +1293,9 @@
 
         updateCategoryUI,
 
-        updateResultsCount
+        updateResultsCount,
+
+        updateEmptyState
 
     };
 
@@ -837,13 +1305,16 @@
     ===================================================== */
 
     if (
-        document.readyState === 'loading'
+        document.readyState ===
+        'loading'
     ) {
 
         document.addEventListener(
             'DOMContentLoaded',
             init,
-            { once: true }
+            {
+                once: true
+            }
         );
 
     } else {
