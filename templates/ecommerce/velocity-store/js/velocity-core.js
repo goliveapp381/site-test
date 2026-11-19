@@ -11,6 +11,7 @@
    - Image fallback system
    - HTML escaping
    - Footer year
+   - Safe module helpers
 ========================================================= */
 
 (function () {
@@ -74,9 +75,12 @@
 
         renderProducts() {
 
+            const Products =
+                window.VelocityProducts;
+
             if (
-                !window.VelocityProducts ||
-                typeof window.VelocityProducts.renderProducts !==
+                !Products ||
+                typeof Products.renderProducts !==
                 'function'
             ) {
 
@@ -88,7 +92,9 @@
             }
 
             const container =
-                document.querySelector('#products-grid');
+                document.querySelector(
+                    '#products-grid'
+                );
 
             if (!container) {
                 return;
@@ -97,21 +103,21 @@
             let productList = [];
 
             if (
-                typeof window.VelocityProducts.getProducts ===
+                typeof Products.getProducts ===
                 'function'
             ) {
 
                 productList =
-                    window.VelocityProducts.getProducts();
+                    Products.getProducts() || [];
 
             }
 
-            window.VelocityProducts.renderProducts(
+            Products.renderProducts(
                 container,
                 productList
             );
 
-            this.setupImageFallbacks();
+            Core.setupImageFallbacks();
         },
 
 
@@ -121,16 +127,19 @@
 
         getProductById(productId) {
 
+            const Products =
+                window.VelocityProducts;
+
             if (
-                !window.VelocityProducts ||
-                typeof window.VelocityProducts.getProductById !==
+                !Products ||
+                typeof Products.getProductById !==
                 'function'
             ) {
 
                 return null;
             }
 
-            return window.VelocityProducts.getProductById(
+            return Products.getProductById(
                 productId
             );
         },
@@ -143,17 +152,20 @@
         getProductImage(product) {
 
             if (!product) {
-                return this.getFallbackImage();
+                return Core.getFallbackImage();
             }
 
+            const Products =
+                window.VelocityProducts;
+
             if (
-                window.VelocityProducts &&
-                typeof window.VelocityProducts.getProductImage ===
+                Products &&
+                typeof Products.getProductImage ===
                 'function'
             ) {
 
                 const resolved =
-                    window.VelocityProducts.getProductImage(
+                    Products.getProductImage(
                         product
                     );
 
@@ -178,7 +190,9 @@
 
             ];
 
-            for (const candidate of candidates) {
+            for (
+                const candidate of candidates
+            ) {
 
                 if (
                     typeof candidate !== 'string'
@@ -198,7 +212,7 @@
                 return value;
             }
 
-            return this.getFallbackImage();
+            return Core.getFallbackImage();
         },
 
 
@@ -208,14 +222,17 @@
 
         getFallbackImage() {
 
+            const Products =
+                window.VelocityProducts;
+
             if (
-                window.VelocityProducts &&
-                typeof window.VelocityProducts.getFallbackImage ===
+                Products &&
+                typeof Products.getFallbackImage ===
                 'function'
             ) {
 
                 const fallback =
-                    window.VelocityProducts.getFallbackImage();
+                    Products.getFallbackImage();
 
                 if (fallback) {
                     return fallback;
@@ -262,7 +279,7 @@
 
         setupImageFallbacks() {
 
-            this.attachImageFallbacks(
+            Core.attachImageFallbacks(
                 document
             );
         },
@@ -397,7 +414,7 @@
 
                             const fallback =
                                 image.dataset.fallback ||
-                                this.getFallbackImage();
+                                Core.getFallbackImage();
 
                             image.dataset.fallbackUsed =
                                 'true';
@@ -443,7 +460,7 @@
 
         escapeAttribute(value) {
 
-            return this.escapeHTML(value);
+            return Core.escapeHTML(value);
         },
 
 
@@ -463,11 +480,153 @@
                         new Date().getFullYear();
 
                 });
+        },
+
+
+        /* =====================================================
+           SAFE PRODUCT IMAGE CANDIDATES
+        ===================================================== */
+
+        getProductImageCandidates(product) {
+
+            const Products =
+                window.VelocityProducts;
+
+            if (
+                Products &&
+                typeof Products.getProductImageCandidates ===
+                'function'
+            ) {
+
+                const result =
+                    Products.getProductImageCandidates(
+                        product
+                    );
+
+                if (Array.isArray(result)) {
+                    return result;
+                }
+            }
+
+            return [];
+        },
+
+
+        /* =====================================================
+           FORMAT PRICE
+        ===================================================== */
+
+        formatPrice(product) {
+
+            if (!product) {
+                return '';
+            }
+
+            const Products =
+                window.VelocityProducts;
+
+            if (
+                Products &&
+                typeof Products.formatPrice ===
+                'function'
+            ) {
+
+                return Products.formatPrice(
+                    product.price,
+                    product.currency
+                );
+            }
+
+            return `${product.price ?? 0} DH`;
+        },
+
+
+        /* =====================================================
+           RATING
+        ===================================================== */
+
+        renderStars(rating) {
+
+            const Products =
+                window.VelocityProducts;
+
+            if (
+                Products &&
+                typeof Products.renderStars ===
+                'function'
+            ) {
+
+                return Products.renderStars(
+                    Number(rating || 0)
+                );
+            }
+
+            return '★★★★★';
+        },
+
+
+        /* =====================================================
+           FIND PRODUCT CARD
+        ===================================================== */
+
+        findProductCard(productId) {
+
+            if (!productId) {
+                return null;
+            }
+
+            const selector =
+                `[data-product-id="${CSS.escape(String(productId))}"]`;
+
+            try {
+
+                const direct =
+                    document.querySelector(
+                        selector
+                    );
+
+                if (direct) {
+                    return direct.closest(
+                        '.product-card'
+                    ) || direct;
+                }
+
+            } catch (error) {
+                // Continue with fallback search.
+            }
+
+            const cards =
+                document.querySelectorAll(
+                    '.product-card'
+                );
+
+            for (
+                const card of cards
+            ) {
+
+                const id =
+                    card.dataset.productId ||
+                    card.dataset.id ||
+                    card.querySelector(
+                        '[data-cart-id]'
+                    )?.dataset.cartId;
+
+                if (
+                    String(id || '') ===
+                    String(productId)
+                ) {
+
+                    return card;
+                }
+            }
+
+            return null;
         }
 
     };
 
 
-    window.VelocityCore = Core;
+    window.VelocityCore =
+        Core;
 
 })();
