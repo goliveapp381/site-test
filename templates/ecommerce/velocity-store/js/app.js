@@ -15,6 +15,7 @@
    - Global UI events
    - Image fallback support
    - Page loader protection
+   - Dynamic product rendering support
 ========================================================= */
 
 (function () {
@@ -57,14 +58,14 @@
             } finally {
 
                 /*
-                 * مهم جداً:
-                 * مهما وقع في JS، الصفحة ما تبقاش عالقة
-                 * في VELOCITY loader.
+                 * مهم:
+                 * مهما وقع شي error، loader خاصو يختفي.
                  */
 
                 this.hidePageLoader();
 
             }
+
 
             document.dispatchEvent(
                 new CustomEvent(
@@ -86,14 +87,11 @@
                     '#pageLoader'
                 );
 
+
             if (!loader) {
                 return;
             }
 
-
-            /*
-             * نبدأ بإخفائه بصرياً.
-             */
 
             loader.classList.add(
                 'loaded'
@@ -114,16 +112,10 @@
                 'loading'
             );
 
-
             document.body.classList.remove(
                 'page-loading'
             );
 
-
-            /*
-             * إذا CSS ديال القالب ما عندوش
-             * class مناسب، نخليه يختفي مباشرة.
-             */
 
             setTimeout(
                 () => {
@@ -132,18 +124,19 @@
                         return;
                     }
 
-                    loader.style.opacity = '0';
-                    loader.style.visibility = 'hidden';
-                    loader.style.pointerEvents = 'none';
+                    loader.style.opacity =
+                        '0';
+
+                    loader.style.visibility =
+                        'hidden';
+
+                    loader.style.pointerEvents =
+                        'none';
 
                 },
                 350
             );
 
-
-            /*
-             * حذف loader من DOM من بعد animation.
-             */
 
             setTimeout(
                 () => {
@@ -171,8 +164,8 @@
         initializeModules() {
 
             /*
-             * Filters هو المسؤول على rendering
-             * ديال products.
+             * Filters هو المسؤول الرئيسي
+             * على rendering ديال products.
              */
 
             if (
@@ -191,7 +184,7 @@
 
 
             /*
-             * Cart initialization.
+             * CART
              */
 
             if (
@@ -206,7 +199,7 @@
 
 
             /*
-             * Wishlist initialization.
+             * WISHLIST
              */
 
             if (
@@ -223,7 +216,7 @@
 
 
         /* =====================================================
-           PRODUCTS FALLBACK
+           PRODUCTS FALLBACK RENDER
         ===================================================== */
 
         renderProducts() {
@@ -301,13 +294,14 @@
                 event => {
 
                     /* =========================================
-                       MOBILE MENU
+                       MOBILE MENU OPEN
                     ========================================= */
 
                     const menuButton =
                         event.target.closest(
                             '[data-mobile-menu]'
                         );
+
 
                     if (menuButton) {
 
@@ -320,10 +314,15 @@
                     }
 
 
+                    /* =========================================
+                       MOBILE MENU CLOSE
+                    ========================================= */
+
                     const mobileClose =
                         event.target.closest(
                             '#mobileMenuClose, [data-mobile-menu-close]'
                         );
+
 
                     if (mobileClose) {
 
@@ -336,10 +335,15 @@
                     }
 
 
+                    /* =========================================
+                       MOBILE MENU LINK
+                    ========================================= */
+
                     const mobileLink =
                         event.target.closest(
                             '#mobileMenu a[href^="#"], .mobile-menu a[href^="#"]'
                         );
+
 
                     if (mobileLink) {
 
@@ -349,13 +353,14 @@
 
 
                     /* =========================================
-                       SCROLL
+                       SCROLL LINKS
                     ========================================= */
 
                     const scrollButton =
                         event.target.closest(
                             '[data-scroll-to]'
                         );
+
 
                     if (scrollButton) {
 
@@ -379,6 +384,7 @@
                             '[data-search-open]'
                         );
 
+
                     if (searchOpen) {
 
                         event.preventDefault();
@@ -399,6 +405,7 @@
                             '#closeSearch, [data-search-close]'
                         );
 
+
                     if (searchClose) {
 
                         event.preventDefault();
@@ -418,6 +425,7 @@
                         document.querySelector(
                             '#searchOverlay'
                         );
+
 
                     if (
                         searchOverlay &&
@@ -440,6 +448,7 @@
                             '#searchSubmit'
                         );
 
+
                     if (searchSubmit) {
 
                         event.preventDefault();
@@ -452,7 +461,7 @@
 
 
                     /* =========================================
-                       CATEGORY
+                       CATEGORY FILTER
                     ========================================= */
 
                     const categoryButton =
@@ -460,9 +469,11 @@
                             '[data-category-filter]'
                         );
 
+
                     if (categoryButton) {
 
                         event.preventDefault();
+
 
                         const category =
                             categoryButton.dataset.categoryFilter ||
@@ -487,13 +498,32 @@
 
                         }
 
+
+                        /*
+                         * إلا كانت category card،
+                         * نمشيو مباشرة للمنتجات.
+                         */
+
+                        if (
+                            categoryButton.classList.contains(
+                                'category-card'
+                            )
+                        ) {
+
+                            this.scrollTo(
+                                '#products'
+                            );
+
+                        }
+
+
                         return;
 
                     }
 
 
                     /* =========================================
-                       RESET
+                       FILTER RESET
                     ========================================= */
 
                     const resetButton =
@@ -501,9 +531,11 @@
                             '[data-filter-reset]'
                         );
 
+
                     if (resetButton) {
 
                         event.preventDefault();
+
 
                         if (
                             window.VelocityFilters &&
@@ -515,13 +547,14 @@
 
                         }
 
+
                         return;
 
                     }
 
 
                     /* =========================================
-                       CART
+                       CART OPEN
                     ========================================= */
 
                     const cartOpen =
@@ -529,9 +562,11 @@
                             '[data-cart-open]'
                         );
 
+
                     if (cartOpen) {
 
                         event.preventDefault();
+
 
                         if (
                             window.VelocityCart &&
@@ -543,19 +578,21 @@
 
                         }
 
+
                         return;
 
                     }
 
 
                     /* =========================================
-                       WISHLIST
+                       WISHLIST OPEN
                     ========================================= */
 
                     const wishlistOpen =
                         event.target.closest(
                             '[data-wishlist-open]'
                         );
+
 
                     if (wishlistOpen) {
 
@@ -577,13 +614,47 @@
                             '.quick-view-button[data-product-id]'
                         );
 
+
                     if (quickView) {
 
                         event.preventDefault();
 
+
                         this.openQuickView(
                             quickView.dataset.productId
                         );
+
+
+                        return;
+
+                    }
+
+
+                    /* =========================================
+                       SEARCH RESULT
+                    ========================================= */
+
+                    const searchResult =
+                        event.target.closest(
+                            '[data-search-product-id]'
+                        );
+
+
+                    if (searchResult) {
+
+                        event.preventDefault();
+
+
+                        const productId =
+                            searchResult.dataset.searchProductId;
+
+
+                        this.closeSearch();
+
+                        this.openQuickView(
+                            productId
+                        );
+
 
                         return;
 
@@ -599,9 +670,11 @@
                             '[data-close-quick-view]'
                         );
 
+
                     if (quickViewClose) {
 
                         event.preventDefault();
+
 
                         this.closeQuickView(
                             document.querySelector(
@@ -609,13 +682,14 @@
                             )
                         );
 
+
                         return;
 
                     }
 
 
                     /* =========================================
-                       QUICK VIEW ADD
+                       QUICK VIEW ADD TO CART
                     ========================================= */
 
                     const quickAdd =
@@ -623,9 +697,11 @@
                             '[data-quick-add]'
                         );
 
+
                     if (quickAdd) {
 
                         event.preventDefault();
+
 
                         const productId =
                             quickAdd.dataset.quickAdd;
@@ -650,6 +726,7 @@
                             )
                         );
 
+
                         return;
 
                     }
@@ -659,7 +736,7 @@
 
 
             /* =================================================
-               SEARCH INPUT
+               INPUT EVENTS
             ================================================= */
 
             document.addEventListener(
@@ -671,6 +748,7 @@
                             '[data-product-search]'
                         );
 
+
                     if (!input) {
                         return;
                     }
@@ -679,6 +757,10 @@
                     const value =
                         input.value.trim();
 
+
+                    /*
+                     * Synchronize search inputs.
+                     */
 
                     document
                         .querySelectorAll(
@@ -701,6 +783,10 @@
                         );
 
 
+                    /*
+                     * Search overlay results.
+                     */
+
                     if (
                         input.id === 'searchInput'
                     ) {
@@ -711,6 +797,10 @@
 
                     }
 
+
+                    /*
+                     * Products filter.
+                     */
 
                     if (
                         window.VelocityFilters &&
@@ -740,6 +830,7 @@
                         event.target.closest(
                             '[data-product-sort]'
                         );
+
 
                     if (!sort) {
                         return;
@@ -803,6 +894,7 @@
                                 'error'
                             );
 
+
                             return;
 
                         }
@@ -843,7 +935,7 @@
 
 
             /* =================================================
-               ESC
+               ESCAPE KEY
             ================================================= */
 
             document.addEventListener(
@@ -891,8 +983,18 @@
                 'velocity:products-rendered',
                 () => {
 
+                    /*
+                     * إعادة تفعيل image fallback
+                     * بعد كل render.
+                     */
+
                     this.setupImageFallbacks();
 
+
+                    /*
+                     * إعادة تشغيل animations
+                     * للـ products الجديدة.
+                     */
 
                     if (
                         window.VelocityAnimations &&
@@ -903,6 +1005,42 @@
                         window.VelocityAnimations.refresh();
 
                     }
+
+                }
+            );
+
+
+            /* =================================================
+               WISHLIST CHANGED
+            ================================================= */
+
+            document.addEventListener(
+                'velocity:wishlist-changed',
+                () => {
+
+                    if (
+                        window.VelocityWishlist &&
+                        typeof window.VelocityWishlist.updateUI ===
+                        'function'
+                    ) {
+
+                        window.VelocityWishlist.updateUI();
+
+                    }
+
+                }
+            );
+
+
+            /* =================================================
+               CART CHANGED
+            ================================================= */
+
+            document.addEventListener(
+                'velocity:cart-changed',
+                () => {
+
+                    this.setupImageFallbacks();
 
                 }
             );
@@ -1042,6 +1180,7 @@
 
             this.closeSearch();
 
+
             this.scrollTo(
                 '#products'
             );
@@ -1111,7 +1250,9 @@
                 container.innerHTML = `
                     <div class="search-results-empty">
                         <span>×</span>
-                        <p>No products found.</p>
+                        <p>
+                            No products found.
+                        </p>
                     </div>
                 `;
 
@@ -1129,6 +1270,10 @@
                                 this.getProductImage(
                                     product
                                 );
+
+
+                            const fallback =
+                                this.getFallbackImage();
 
 
                             const name =
@@ -1149,10 +1294,12 @@
                                 window.VelocityProducts &&
                                 typeof window.VelocityProducts.formatPrice ===
                                 'function'
+
                                     ? window.VelocityProducts.formatPrice(
                                         product.price,
                                         product.currency
                                     )
+
                                     : `${product.price} DH`;
 
 
@@ -1168,7 +1315,7 @@
                                         <img
                                             src="${this.escapeAttribute(image)}"
                                             alt="${this.escapeAttribute(product.name)}"
-                                            data-fallback="${this.escapeAttribute(this.getFallbackImage())}"
+                                            data-fallback="${this.escapeAttribute(fallback)}"
                                         >
 
                                     </span>
@@ -1201,43 +1348,6 @@
                 container
             );
 
-
-            if (
-                !container._velocitySearchBound
-            ) {
-
-                container._velocitySearchBound =
-                    true;
-
-
-                container.addEventListener(
-                    'click',
-                    event => {
-
-                        const result =
-                            event.target.closest(
-                                '[data-search-product-id]'
-                            );
-
-
-                        if (!result) {
-                            return;
-                        }
-
-
-                        const id =
-                            result.dataset.searchProductId;
-
-
-                        this.closeSearch();
-
-                        this.openQuickView(id);
-
-                    }
-                );
-
-            }
-
         },
 
 
@@ -1264,6 +1374,7 @@
                         'info'
                     );
 
+
                     return;
 
                 }
@@ -1273,6 +1384,7 @@
                     `لديك ${products.length} منتج في المفضلة.`,
                     'success'
                 );
+
 
                 return;
 
@@ -1409,13 +1521,27 @@
 
                 products =
                     products.filter(
-                        product =>
-                            String(
-                                product.category
-                            ).toLowerCase() ===
-                            String(
-                                category
-                            ).toLowerCase()
+                        product => {
+
+                            const productCategory =
+                                String(
+                                    product.category ||
+                                    ''
+                                )
+                                    .toLowerCase()
+                                    .trim();
+
+
+                            return (
+                                productCategory ===
+                                String(
+                                    category
+                                )
+                                    .toLowerCase()
+                                    .trim()
+                            );
+
+                        }
                     );
 
             }
@@ -1462,6 +1588,7 @@
                     selector
                 );
 
+
                 return;
 
             }
@@ -1472,9 +1599,40 @@
             }
 
 
-            element.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
+            const header =
+                document.querySelector(
+                    '#mainHeader'
+                );
+
+
+            const headerHeight =
+                header
+                    ? header.offsetHeight
+                    : 0;
+
+
+            const rect =
+                element.getBoundingClientRect();
+
+
+            const targetPosition =
+                window.scrollY +
+                rect.top -
+                headerHeight -
+                20;
+
+
+            window.scrollTo({
+
+                top:
+                    Math.max(
+                        0,
+                        targetPosition
+                    ),
+
+                behavior:
+                    'smooth'
+
             });
 
         },
@@ -1519,11 +1677,14 @@
                         'div'
                     );
 
+
                 modal.id =
                     'quick-view-modal';
 
+
                 modal.className =
                     'quick-view-modal';
+
 
                 document.body.appendChild(
                     modal
@@ -1563,19 +1724,27 @@
 
 
             const stars =
-                window.VelocityProducts.renderStars
+                window.VelocityProducts &&
+                typeof window.VelocityProducts.renderStars ===
+                'function'
+
                     ? window.VelocityProducts.renderStars(
                         rating
                     )
+
                     : '★★★★★';
 
 
             const price =
-                window.VelocityProducts.formatPrice
+                window.VelocityProducts &&
+                typeof window.VelocityProducts.formatPrice ===
+                'function'
+
                     ? window.VelocityProducts.formatPrice(
                         product.price,
                         product.currency
                     )
+
                     : `${product.price} DH`;
 
 
@@ -1586,21 +1755,26 @@
                     data-close-quick-view
                 ></div>
 
+
                 <div
                     class="quick-view-content"
                     role="dialog"
                     aria-modal="true"
+                    aria-label="Product quick view"
                 >
 
                     <button
                         class="quick-view-close"
                         type="button"
                         data-close-quick-view
+                        aria-label="Close"
                     >
                         ×
                     </button>
 
+
                     <div class="quick-view-grid">
+
 
                         <div class="quick-view-image">
 
@@ -1612,15 +1786,18 @@
 
                         </div>
 
+
                         <div class="quick-view-info">
 
                             <span class="product-category">
                                 ${category}
                             </span>
 
+
                             <h2>
                                 ${name}
                             </h2>
+
 
                             <div class="product-rating">
 
@@ -1634,14 +1811,17 @@
 
                             </div>
 
+
                             <div class="quick-view-price">
                                 ${price}
                             </div>
+
 
                             <p>
                                 Premium product from
                                 Velocity Store.
                             </p>
+
 
                             <button
                                 class="btn btn-primary"
@@ -1656,6 +1836,7 @@
                     </div>
 
                 </div>
+
             `;
 
 
@@ -1733,24 +1914,38 @@
             }
 
 
+            /*
+             * المنتجات module هو المصدر الرئيسي
+             * لحل الصورة.
+             */
+
             if (
                 window.VelocityProducts &&
                 typeof window.VelocityProducts.getProductImage ===
                 'function'
             ) {
 
-                const image =
+                const resolved =
                     window.VelocityProducts.getProductImage(
                         product
                     );
 
 
-                if (image) {
-                    return image;
+                if (
+                    typeof resolved === 'string' &&
+                    resolved.trim()
+                ) {
+
+                    return resolved.trim();
+
                 }
 
             }
 
+
+            /*
+             * Fallback candidates.
+             */
 
             const candidates = [
 
@@ -1806,18 +2001,27 @@
                 'function'
             ) {
 
-                return window.VelocityProducts.getFallbackImage();
+                const fallback =
+                    window.VelocityProducts.getFallbackImage();
+
+
+                if (fallback) {
+                    return fallback;
+                }
 
             }
 
 
-            return 'data:image/svg+xml;charset=UTF-8,' +
+            return (
+                'data:image/svg+xml;charset=UTF-8,' +
                 encodeURIComponent(`
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="800"
                         height="800"
+                        viewBox="0 0 800 800"
                     >
+
                         <rect
                             width="800"
                             height="800"
@@ -1825,8 +2029,8 @@
                         />
 
                         <text
-                            x="50%"
-                            y="50%"
+                            x="400"
+                            y="400"
                             text-anchor="middle"
                             dominant-baseline="middle"
                             fill="#ffffff"
@@ -1837,7 +2041,8 @@
                         </text>
 
                     </svg>
-                `);
+                `)
+            );
 
         },
 
@@ -1865,7 +2070,7 @@
             const images =
                 container.querySelectorAll
                     ? container.querySelectorAll(
-                        'img[data-fallback]'
+                        'img'
                     )
                     : [];
 
@@ -1891,6 +2096,46 @@
                         'error',
                         () => {
 
+                            /*
+                             * المرحلة 1:
+                             * إذا عندنا web fallback،
+                             * جربوه أولاً.
+                             */
+
+                            const webFallback =
+                                image.dataset.webFallback ||
+                                image.dataset.webImage ||
+                                image.dataset.remoteImage;
+
+
+                            if (
+                                webFallback &&
+                                image.dataset.webFallbackUsed !==
+                                'true'
+                            ) {
+
+                                image.dataset.webFallbackUsed =
+                                    'true';
+
+
+                                image.src =
+                                    webFallback;
+
+
+                                image.style.visibility =
+                                    'visible';
+
+
+                                return;
+
+                            }
+
+
+                            /*
+                             * المرحلة 2:
+                             * fallback النهائي.
+                             */
+
                             if (
                                 image.dataset.fallbackUsed ===
                                 'true'
@@ -1898,6 +2143,7 @@
 
                                 image.style.visibility =
                                     'hidden';
+
 
                                 return;
 
@@ -1913,6 +2159,7 @@
                                 image.style.visibility =
                                     'hidden';
 
+
                                 return;
 
                             }
@@ -1924,6 +2171,10 @@
 
                             image.src =
                                 fallback;
+
+
+                            image.style.visibility =
+                                'visible';
 
                         }
                     );
@@ -1956,11 +2207,14 @@
                         'div'
                     );
 
+
                 notification.id =
                     'velocity-notification';
 
+
                 notification.className =
                     'velocity-notification';
+
 
                 document.body.appendChild(
                     notification
@@ -2017,14 +2271,33 @@
             return String(
                 value ?? ''
             )
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
+                .replace(
+                    /&/g,
+                    '&amp;'
+                )
+                .replace(
+                    /</g,
+                    '&lt;'
+                )
+                .replace(
+                    />/g,
+                    '&gt;'
+                )
+                .replace(
+                    /"/g,
+                    '&quot;'
+                )
+                .replace(
+                    /'/g,
+                    '&#039;'
+                );
 
         },
 
+
+        /* =====================================================
+           ATTRIBUTE ESCAPE
+        ===================================================== */
 
         escapeAttribute(value) {
 
