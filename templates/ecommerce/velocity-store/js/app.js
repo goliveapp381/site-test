@@ -10,6 +10,9 @@
    - VelocityCore
    - VelocityCartUI
    - VelocityUI
+   - VelocityCart
+   - VelocityWishlist
+   - VelocityFilters
 ========================================================= */
 
 (function () {
@@ -26,24 +29,35 @@
 
         init() {
 
-            if (this.initialized) {
+            if (App.initialized) {
                 return;
             }
 
-            this.initialized =
-                true;
+            App.initialized = true;
 
             try {
 
-                this.bindEvents();
+                App.bindEvents();
 
-                this.initializeModules();
+                App.initializeModules();
 
-                window.VelocityCore
-                    .setupImageFallbacks();
+                if (
+                    window.VelocityCore &&
+                    typeof window.VelocityCore.setupImageFallbacks === 'function'
+                ) {
 
-                window.VelocityCore
-                    .updateYear();
+                    window.VelocityCore.setupImageFallbacks();
+
+                }
+
+                if (
+                    window.VelocityCore &&
+                    typeof window.VelocityCore.updateYear === 'function'
+                ) {
+
+                    window.VelocityCore.updateYear();
+
+                }
 
             } catch (error) {
 
@@ -54,8 +68,14 @@
 
             } finally {
 
-                window.VelocityCore
-                    .hidePageLoader();
+                if (
+                    window.VelocityCore &&
+                    typeof window.VelocityCore.hidePageLoader === 'function'
+                ) {
+
+                    window.VelocityCore.hidePageLoader();
+
+                }
 
             }
 
@@ -68,15 +88,18 @@
 
 
         /* =====================================================
-           MODULES
+           MODULE INITIALIZATION
         ===================================================== */
 
         initializeModules() {
 
+            /* =========================================
+               CART
+            ========================================= */
+
             if (
                 window.VelocityCart &&
-                typeof window.VelocityCart.init ===
-                'function'
+                typeof window.VelocityCart.init === 'function'
             ) {
 
                 try {
@@ -94,10 +117,13 @@
             }
 
 
+            /* =========================================
+               WISHLIST
+            ========================================= */
+
             if (
                 window.VelocityWishlist &&
-                typeof window.VelocityWishlist.init ===
-                'function'
+                typeof window.VelocityWishlist.init === 'function'
             ) {
 
                 try {
@@ -115,10 +141,13 @@
             }
 
 
+            /* =========================================
+               PRODUCTS / FILTERS
+            ========================================= */
+
             if (
                 window.VelocityFilters &&
-                typeof window.VelocityFilters.apply ===
-                'function'
+                typeof window.VelocityFilters.apply === 'function'
             ) {
 
                 try {
@@ -132,15 +161,23 @@
                         error
                     );
 
-                    window.VelocityCore
-                        .renderProducts();
+                    if (
+                        window.VelocityCore &&
+                        typeof window.VelocityCore.renderProducts === 'function'
+                    ) {
+
+                        window.VelocityCore.renderProducts();
+
+                    }
 
                 }
 
-            } else {
+            } else if (
+                window.VelocityCore &&
+                typeof window.VelocityCore.renderProducts === 'function'
+            ) {
 
-                window.VelocityCore
-                    .renderProducts();
+                window.VelocityCore.renderProducts();
 
             }
         },
@@ -152,12 +189,11 @@
 
         bindEvents() {
 
-            if (this.eventsBound) {
+            if (App.eventsBound) {
                 return;
             }
 
-            this.eventsBound =
-                true;
+            App.eventsBound = true;
 
 
             /* =================================================
@@ -166,8 +202,7 @@
 
             document.addEventListener(
                 'click',
-                event => {
-
+                function (event) {
 
                     /* =========================================
                        ADD TO CART
@@ -180,22 +215,32 @@
 
                     if (
                         addButton &&
-                        !addButton.closest(
-                            '#quick-view-modal'
-                        )
+                        !addButton.closest('#quick-view-modal') &&
+                        !addButton.closest('#velocity-added-cart-modal')
                     ) {
 
                         /*
-                         * We don't prevent the event.
+                         * IMPORTANT:
+                         * We do NOT preventDefault().
                          *
-                         * cart.js remains responsible
-                         * for adding the product.
+                         * cart.js remains responsible for
+                         * adding the product.
+                         *
+                         * CartUI starts the visual animation
+                         * immediately before cart.js handles
+                         * the actual cart operation.
                          */
 
-                        window.VelocityCartUI
-                            .handleAddToCart(
+                        if (
+                            window.VelocityCartUI &&
+                            typeof window.VelocityCartUI.handleAddToCart === 'function'
+                        ) {
+
+                            window.VelocityCartUI.handleAddToCart(
                                 addButton
                             );
+
+                        }
                     }
 
 
@@ -212,8 +257,14 @@
 
                         event.preventDefault();
 
-                        window.VelocityUI
-                            .toggleMobileMenu();
+                        if (
+                            window.VelocityUI &&
+                            typeof window.VelocityUI.toggleMobileMenu === 'function'
+                        ) {
+
+                            window.VelocityUI.toggleMobileMenu();
+
+                        }
 
                         return;
                     }
@@ -228,8 +279,14 @@
 
                         event.preventDefault();
 
-                        window.VelocityUI
-                            .closeMobileMenu();
+                        if (
+                            window.VelocityUI &&
+                            typeof window.VelocityUI.closeMobileMenu === 'function'
+                        ) {
+
+                            window.VelocityUI.closeMobileMenu();
+
+                        }
 
                         return;
                     }
@@ -242,8 +299,14 @@
 
                     if (mobileLink) {
 
-                        window.VelocityUI
-                            .closeMobileMenu();
+                        if (
+                            window.VelocityUI &&
+                            typeof window.VelocityUI.closeMobileMenu === 'function'
+                        ) {
+
+                            window.VelocityUI.closeMobileMenu();
+
+                        }
                     }
 
 
@@ -260,9 +323,16 @@
 
                         event.preventDefault();
 
-                        window.VelocityUI.scrollTo(
-                            scrollButton.dataset.scrollTo
-                        );
+                        if (
+                            window.VelocityUI &&
+                            typeof window.VelocityUI.scrollTo === 'function'
+                        ) {
+
+                            window.VelocityUI.scrollTo(
+                                scrollButton.dataset.scrollTo
+                            );
+
+                        }
 
                         return;
                     }
@@ -281,8 +351,14 @@
 
                         event.preventDefault();
 
-                        window.VelocityUI
-                            .openSearch();
+                        if (
+                            window.VelocityUI &&
+                            typeof window.VelocityUI.openSearch === 'function'
+                        ) {
+
+                            window.VelocityUI.openSearch();
+
+                        }
 
                         return;
                     }
@@ -301,8 +377,14 @@
 
                         event.preventDefault();
 
-                        window.VelocityUI
-                            .closeSearch();
+                        if (
+                            window.VelocityUI &&
+                            typeof window.VelocityUI.closeSearch === 'function'
+                        ) {
+
+                            window.VelocityUI.closeSearch();
+
+                        }
 
                         return;
                     }
@@ -315,12 +397,17 @@
 
                     if (
                         searchOverlay &&
-                        event.target ===
-                        searchOverlay
+                        event.target === searchOverlay
                     ) {
 
-                        window.VelocityUI
-                            .closeSearch();
+                        if (
+                            window.VelocityUI &&
+                            typeof window.VelocityUI.closeSearch === 'function'
+                        ) {
+
+                            window.VelocityUI.closeSearch();
+
+                        }
 
                         return;
                     }
@@ -339,8 +426,14 @@
 
                         event.preventDefault();
 
-                        window.VelocityUI
-                            .performSearch();
+                        if (
+                            window.VelocityUI &&
+                            typeof window.VelocityUI.performSearch === 'function'
+                        ) {
+
+                            window.VelocityUI.performSearch();
+
+                        }
 
                         return;
                     }
@@ -365,36 +458,39 @@
 
                         if (
                             window.VelocityFilters &&
-                            typeof window.VelocityFilters.setCategory ===
-                            'function'
+                            typeof window.VelocityFilters.setCategory === 'function'
                         ) {
 
-                            window.VelocityFilters
-                                .setCategory(
-                                    category
-                                );
+                            window.VelocityFilters.setCategory(
+                                category
+                            );
 
-                        } else {
+                        } else if (
+                            window.VelocityUI &&
+                            typeof window.VelocityUI.fallbackCategoryFilter === 'function'
+                        ) {
 
-                            window.VelocityUI
-                                .fallbackCategoryFilter(
-                                    category
-                                );
+                            window.VelocityUI.fallbackCategoryFilter(
+                                category
+                            );
+
                         }
 
                         if (
-                            categoryButton.classList.contains(
-                                'category-card'
-                            ) ||
-                            categoryButton.closest(
-                                '.category-card'
-                            )
+                            categoryButton.classList.contains('category-card') ||
+                            categoryButton.closest('.category-card')
                         ) {
 
-                            window.VelocityUI
-                                .scrollTo(
+                            if (
+                                window.VelocityUI &&
+                                typeof window.VelocityUI.scrollTo === 'function'
+                            ) {
+
+                                window.VelocityUI.scrollTo(
                                     '#products'
                                 );
+
+                            }
                         }
 
                         return;
@@ -416,16 +512,18 @@
 
                         if (
                             window.VelocityFilters &&
-                            typeof window.VelocityFilters.reset ===
-                            'function'
+                            typeof window.VelocityFilters.reset === 'function'
                         ) {
 
                             window.VelocityFilters.reset();
 
-                        } else {
+                        } else if (
+                            window.VelocityCore &&
+                            typeof window.VelocityCore.renderProducts === 'function'
+                        ) {
 
-                            window.VelocityCore
-                                .renderProducts();
+                            window.VelocityCore.renderProducts();
+
                         }
 
                         return;
@@ -447,11 +545,11 @@
 
                         if (
                             window.VelocityCart &&
-                            typeof window.VelocityCart.open ===
-                            'function'
+                            typeof window.VelocityCart.open === 'function'
                         ) {
 
                             window.VelocityCart.open();
+
                         }
 
                         return;
@@ -471,8 +569,14 @@
 
                         event.preventDefault();
 
-                        window.VelocityUI
-                            .openWishlist();
+                        if (
+                            window.VelocityUI &&
+                            typeof window.VelocityUI.openWishlist === 'function'
+                        ) {
+
+                            window.VelocityUI.openWishlist();
+
+                        }
 
                         return;
                     }
@@ -491,10 +595,16 @@
 
                         event.preventDefault();
 
-                        window.VelocityUI
-                            .openQuickView(
+                        if (
+                            window.VelocityUI &&
+                            typeof window.VelocityUI.openQuickView === 'function'
+                        ) {
+
+                            window.VelocityUI.openQuickView(
                                 quickView.dataset.productId
                             );
+
+                        }
 
                         return;
                     }
@@ -516,13 +626,25 @@
                         const productId =
                             searchResult.dataset.searchProductId;
 
-                        window.VelocityUI
-                            .closeSearch();
+                        if (
+                            window.VelocityUI &&
+                            typeof window.VelocityUI.closeSearch === 'function'
+                        ) {
 
-                        window.VelocityUI
-                            .openQuickView(
+                            window.VelocityUI.closeSearch();
+
+                        }
+
+                        if (
+                            window.VelocityUI &&
+                            typeof window.VelocityUI.openQuickView === 'function'
+                        ) {
+
+                            window.VelocityUI.openQuickView(
                                 productId
                             );
+
+                        }
 
                         return;
                     }
@@ -541,12 +663,18 @@
 
                         event.preventDefault();
 
-                        window.VelocityUI
-                            .closeQuickView(
+                        if (
+                            window.VelocityUI &&
+                            typeof window.VelocityUI.closeQuickView === 'function'
+                        ) {
+
+                            window.VelocityUI.closeQuickView(
                                 document.querySelector(
                                     '#quick-view-modal'
                                 )
                             );
+
+                        }
 
                         return;
                     }
@@ -569,50 +697,68 @@
                             quickAdd.dataset.quickAdd;
 
                         const product =
-                            window.VelocityCore
-                                .getProductById(
-                                    productId
-                                );
+                            window.VelocityCore &&
+                            typeof window.VelocityCore.getProductById === 'function'
 
-                        window.VelocityUI
-                            .closeQuickView(
+                                ? window.VelocityCore.getProductById(
+                                    productId
+                                )
+
+                                : null;
+
+                        if (
+                            window.VelocityUI &&
+                            typeof window.VelocityUI.closeQuickView === 'function'
+                        ) {
+
+                            window.VelocityUI.closeQuickView(
                                 document.querySelector(
                                     '#quick-view-modal'
                                 )
                             );
 
+                        }
+
+                        /*
+                         * IMPORTANT:
+                         *
+                         * Prepare the animation BEFORE cart.add().
+                         *
+                         * Some cart implementations dispatch
+                         * velocity:cart-changed immediately.
+                         */
+
+                        if (
+                            product &&
+                            window.VelocityCartUI &&
+                            typeof window.VelocityCartUI.prepareExperience === 'function'
+                        ) {
+
+                            window.VelocityCartUI.prepareExperience(
+                                product
+                            );
+
+                        }
+
                         if (
                             window.VelocityCart &&
-                            typeof window.VelocityCart.add ===
-                            'function'
+                            typeof window.VelocityCart.add === 'function'
                         ) {
 
                             window.VelocityCart.add(
                                 productId
                             );
-                        }
 
-                        if (product) {
+                        } else if (
+                            product &&
+                            window.VelocityCartUI &&
+                            typeof window.VelocityCartUI.startExperience === 'function'
+                        ) {
 
-                            const fakeButton =
-                                document.querySelector(
-                                    `[data-cart-id="${CSS.escape(String(productId))}"]`
-                                );
+                            window.VelocityCartUI.startExperience(
+                                product
+                            );
 
-                            if (fakeButton) {
-
-                                window.VelocityCartUI
-                                    .handleAddToCart(
-                                        fakeButton
-                                    );
-
-                            } else {
-
-                                window.VelocityCartUI
-                                    .startExperience(
-                                        product
-                                    );
-                            }
                         }
 
                         return;
@@ -632,8 +778,14 @@
 
                         event.preventDefault();
 
-                        window.VelocityCartUI
-                            .closeModal();
+                        if (
+                            window.VelocityCartUI &&
+                            typeof window.VelocityCartUI.closeModal === 'function'
+                        ) {
+
+                            window.VelocityCartUI.closeModal();
+
+                        }
 
                         return;
                     }
@@ -652,18 +804,24 @@
 
                         event.preventDefault();
 
-                        window.VelocityCartUI
-                            .closeModal();
+                        if (
+                            window.VelocityCartUI &&
+                            typeof window.VelocityCartUI.closeModal === 'function'
+                        ) {
+
+                            window.VelocityCartUI.closeModal();
+
+                        }
 
                         setTimeout(() => {
 
                             if (
                                 window.VelocityCart &&
-                                typeof window.VelocityCart.open ===
-                                'function'
+                                typeof window.VelocityCart.open === 'function'
                             ) {
 
                                 window.VelocityCart.open();
+
                             }
 
                         }, 220);
@@ -685,8 +843,14 @@
 
                         event.preventDefault();
 
-                        window.VelocityCartUI
-                            .closeModal();
+                        if (
+                            window.VelocityCartUI &&
+                            typeof window.VelocityCartUI.closeModal === 'function'
+                        ) {
+
+                            window.VelocityCartUI.closeModal();
+
+                        }
 
                         return;
                     }
@@ -696,12 +860,12 @@
 
 
             /* =================================================
-               INPUT
+               SEARCH INPUT
             ================================================= */
 
             document.addEventListener(
                 'input',
-                event => {
+                function (event) {
 
                     const input =
                         event.target.closest(
@@ -719,40 +883,42 @@
                         .querySelectorAll(
                             '[data-product-search]'
                         )
-                        .forEach(other => {
+                        .forEach(function (other) {
 
                             if (
                                 other !== input &&
                                 other.value !== value
                             ) {
 
-                                other.value =
-                                    value;
+                                other.value = value;
+
                             }
 
                         });
 
                     if (
-                        input.id === 'searchInput'
+                        input.id === 'searchInput' &&
+                        window.VelocityUI &&
+                        typeof window.VelocityUI.renderSearchResults === 'function'
                     ) {
 
-                        window.VelocityUI
-                            .renderSearchResults(
-                                value
-                            );
+                        window.VelocityUI.renderSearchResults(
+                            value
+                        );
+
                     }
 
                     if (
                         window.VelocityFilters &&
-                        typeof window.VelocityFilters.setSearch ===
-                        'function'
+                        typeof window.VelocityFilters.setSearch === 'function'
                     ) {
 
-                        window.VelocityFilters
-                            .setSearch(
-                                value
-                            );
+                        window.VelocityFilters.setSearch(
+                            value
+                        );
+
                     }
+
                 }
             );
 
@@ -763,7 +929,7 @@
 
             document.addEventListener(
                 'change',
-                event => {
+                function (event) {
 
                     const sort =
                         event.target.closest(
@@ -776,15 +942,15 @@
 
                     if (
                         window.VelocityFilters &&
-                        typeof window.VelocityFilters.setSort ===
-                        'function'
+                        typeof window.VelocityFilters.setSort === 'function'
                     ) {
 
-                        window.VelocityFilters
-                            .setSort(
-                                sort.value
-                            );
+                        window.VelocityFilters.setSort(
+                            sort.value
+                        );
+
                     }
+
                 }
             );
 
@@ -802,7 +968,7 @@
 
                 newsletterForm.addEventListener(
                     'submit',
-                    event => {
+                    function (event) {
 
                         event.preventDefault();
 
@@ -817,26 +983,40 @@
                                 : '';
 
                         if (
-                            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
-                                .test(email)
+                            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+                                email
+                            )
                         ) {
 
-                            window.VelocityUI
-                                .showNotification(
+                            if (
+                                window.VelocityUI &&
+                                typeof window.VelocityUI.showNotification === 'function'
+                            ) {
+
+                                window.VelocityUI.showNotification(
                                     'المرجو إدخال بريد إلكتروني صحيح.',
                                     'error'
                                 );
 
+                            }
+
                             return;
                         }
 
-                        window.VelocityUI
-                            .showNotification(
+                        if (
+                            window.VelocityUI &&
+                            typeof window.VelocityUI.showNotification === 'function'
+                        ) {
+
+                            window.VelocityUI.showNotification(
                                 'تم تسجيل بريدك الإلكتروني بنجاح.',
                                 'success'
                             );
 
+                        }
+
                         newsletterForm.reset();
+
                     }
                 );
             }
@@ -848,14 +1028,16 @@
 
             window.addEventListener(
                 'resize',
-                () => {
+                function () {
 
                     if (
-                        window.innerWidth > 900
+                        window.innerWidth > 900 &&
+                        window.VelocityUI &&
+                        typeof window.VelocityUI.closeMobileMenu === 'function'
                     ) {
 
-                        window.VelocityUI
-                            .closeMobileMenu();
+                        window.VelocityUI.closeMobileMenu();
+
                     }
 
                 }
@@ -868,38 +1050,61 @@
 
             document.addEventListener(
                 'keydown',
-                event => {
+                function (event) {
 
-                    if (
-                        event.key !== 'Escape'
-                    ) {
+                    if (event.key !== 'Escape') {
                         return;
                     }
 
-                    window.VelocityUI
-                        .closeMobileMenu();
+                    if (
+                        window.VelocityUI &&
+                        typeof window.VelocityUI.closeMobileMenu === 'function'
+                    ) {
 
-                    window.VelocityUI
-                        .closeSearch();
+                        window.VelocityUI.closeMobileMenu();
 
-                    window.VelocityUI
-                        .closeQuickView(
+                    }
+
+                    if (
+                        window.VelocityUI &&
+                        typeof window.VelocityUI.closeSearch === 'function'
+                    ) {
+
+                        window.VelocityUI.closeSearch();
+
+                    }
+
+                    if (
+                        window.VelocityUI &&
+                        typeof window.VelocityUI.closeQuickView === 'function'
+                    ) {
+
+                        window.VelocityUI.closeQuickView(
                             document.querySelector(
                                 '#quick-view-modal'
                             )
                         );
 
-                    window.VelocityCartUI
-                        .closeModal();
+                    }
+
+                    if (
+                        window.VelocityCartUI &&
+                        typeof window.VelocityCartUI.closeModal === 'function'
+                    ) {
+
+                        window.VelocityCartUI.closeModal();
+
+                    }
 
                     if (
                         window.VelocityCart &&
-                        typeof window.VelocityCart.close ===
-                        'function'
+                        typeof window.VelocityCart.close === 'function'
                     ) {
 
                         window.VelocityCart.close();
+
                     }
+
                 }
             );
 
@@ -910,15 +1115,20 @@
 
             document.addEventListener(
                 'velocity:products-rendered',
-                () => {
+                function () {
 
-                    window.VelocityCore
-                        .setupImageFallbacks();
+                    if (
+                        window.VelocityCore &&
+                        typeof window.VelocityCore.setupImageFallbacks === 'function'
+                    ) {
+
+                        window.VelocityCore.setupImageFallbacks();
+
+                    }
 
                     if (
                         window.VelocityAnimations &&
-                        typeof window.VelocityAnimations.refresh ===
-                        'function'
+                        typeof window.VelocityAnimations.refresh === 'function'
                     ) {
 
                         try {
@@ -933,7 +1143,9 @@
                             );
 
                         }
+
                     }
+
                 }
             );
 
@@ -944,7 +1156,7 @@
 
             document.addEventListener(
                 'velocity:image-manifest-ready',
-                () => {
+                function () {
 
                     console.log(
                         '[Velocity Store] Image manifest ready.'
@@ -952,8 +1164,7 @@
 
                     if (
                         window.VelocityFilters &&
-                        typeof window.VelocityFilters.apply ===
-                        'function'
+                        typeof window.VelocityFilters.apply === 'function'
                     ) {
 
                         try {
@@ -967,15 +1178,26 @@
                                 error
                             );
 
-                            window.VelocityCore
-                                .renderProducts();
+                            if (
+                                window.VelocityCore &&
+                                typeof window.VelocityCore.renderProducts === 'function'
+                            ) {
+
+                                window.VelocityCore.renderProducts();
+
+                            }
+
                         }
 
-                    } else {
+                    } else if (
+                        window.VelocityCore &&
+                        typeof window.VelocityCore.renderProducts === 'function'
+                    ) {
 
-                        window.VelocityCore
-                            .renderProducts();
+                        window.VelocityCore.renderProducts();
+
                     }
+
 
                     const searchInput =
                         document.querySelector(
@@ -984,17 +1206,27 @@
 
                     if (
                         searchInput &&
-                        searchInput.value.trim()
+                        searchInput.value.trim() &&
+                        window.VelocityUI &&
+                        typeof window.VelocityUI.renderSearchResults === 'function'
                     ) {
 
-                        window.VelocityUI
-                            .renderSearchResults(
-                                searchInput.value.trim()
-                            );
+                        window.VelocityUI.renderSearchResults(
+                            searchInput.value.trim()
+                        );
+
                     }
 
-                    window.VelocityCore
-                        .setupImageFallbacks();
+
+                    if (
+                        window.VelocityCore &&
+                        typeof window.VelocityCore.setupImageFallbacks === 'function'
+                    ) {
+
+                        window.VelocityCore.setupImageFallbacks();
+
+                    }
+
                 }
             );
 
@@ -1005,7 +1237,7 @@
 
             document.addEventListener(
                 'velocity:products-ready',
-                () => {
+                function () {
 
                     const grid =
                         document.querySelector(
@@ -1019,18 +1251,22 @@
 
                         if (
                             window.VelocityFilters &&
-                            typeof window.VelocityFilters.apply ===
-                            'function'
+                            typeof window.VelocityFilters.apply === 'function'
                         ) {
 
                             window.VelocityFilters.apply();
 
-                        } else {
+                        } else if (
+                            window.VelocityCore &&
+                            typeof window.VelocityCore.renderProducts === 'function'
+                        ) {
 
-                            window.VelocityCore
-                                .renderProducts();
+                            window.VelocityCore.renderProducts();
+
                         }
+
                     }
+
                 }
             );
 
@@ -1041,17 +1277,17 @@
 
             document.addEventListener(
                 'velocity:wishlist-changed',
-                () => {
+                function () {
 
                     if (
                         window.VelocityWishlist &&
-                        typeof window.VelocityWishlist.updateUI ===
-                        'function'
+                        typeof window.VelocityWishlist.updateUI === 'function'
                     ) {
 
-                        window.VelocityWishlist
-                            .updateUI();
+                        window.VelocityWishlist.updateUI();
+
                     }
+
                 }
             );
 
@@ -1062,23 +1298,33 @@
 
             document.addEventListener(
                 'velocity:cart-changed',
-                () => {
+                function () {
 
-                    window.VelocityCore
-                        .setupImageFallbacks();
+                    if (
+                        window.VelocityCore &&
+                        typeof window.VelocityCore.setupImageFallbacks === 'function'
+                    ) {
+
+                        window.VelocityCore.setupImageFallbacks();
+
+                    }
 
                     /*
-                     * FIXED:
+                     * DO NOT open the modal here.
                      *
-                     * No longer checking:
-                     *
-                     * !modalTimer
-                     *
-                     * because that could prevent the modal.
+                     * CartUI controls the timing.
+                     * The product must finish 720deg first.
                      */
 
-                    window.VelocityCartUI
-                        .cartChanged();
+                    if (
+                        window.VelocityCartUI &&
+                        typeof window.VelocityCartUI.cartChanged === 'function'
+                    ) {
+
+                        window.VelocityCartUI.cartChanged();
+
+                    }
+
                 }
             );
 
@@ -1087,18 +1333,27 @@
     };
 
 
+    /*
+     * IMPORTANT:
+     * Expose App BEFORE DOM ready / init.
+     * app.js no longer overwrites another VelocityApp
+     * after initialization.
+     */
+
+    window.VelocityApp = App;
+
+
     /* =========================================================
        DOM READY
     ========================================================= */
 
     if (
-        document.readyState ===
-        'loading'
+        document.readyState === 'loading'
     ) {
 
         document.addEventListener(
             'DOMContentLoaded',
-            () => {
+            function () {
 
                 App.init();
 
@@ -1113,9 +1368,5 @@
         App.init();
 
     }
-
-
-    window.VelocityApp =
-        App;
 
 })();
