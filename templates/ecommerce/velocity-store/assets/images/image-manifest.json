@@ -1,13 +1,13 @@
 {
   "version": 1,
   "products": {
-    "image-1": "1795121095470.jpg",
-    "image-2": "1795121131917.jpg",
-    "image-3": "1795121171448.jpg",
-    "image-4": "1795121173980.jpg",
-    "image-5": "1795121176798.jpg",
-    "image-6": "1795121179646.jpg",
-    "image-7": "1795121216792.jpg",
-    "image-8": "1795121733546.jpg"
+    "image-1": "products/1795121095470.jpg",
+    "image-2": "products/1795121131917.jpg",
+    "image-3": "products/1795121171448.jpg",
+    "image-4": "products/1795121173980.jpg",
+    "image-5": "products/1795121176798.jpg",
+    "image-6": "products/1795121179646.jpg",
+    "image-7": "products/1795121216792.jpg",
+    "image-8": "products/1795121733546.jpg"
   }
 }
