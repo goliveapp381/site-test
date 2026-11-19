@@ -13,9 +13,19 @@
    - Wishlist
    - Cart
    - Global UI events
-   - Image fallback support
+   - Smart image fallback
+   - Image manifest synchronization
    - Page loader protection
    - Dynamic product rendering support
+
+   IMAGE PRIORITY:
+   1. resolvedImage
+   2. localImage
+   3. image-manifest.json
+   4. legacy image
+   5. webImage
+   6. remoteImage
+   7. generated fallback
 ========================================================= */
 
 (function () {
@@ -40,11 +50,36 @@
 
             try {
 
-                this.initializeModules();
+                /*
+                 * Bind events first.
+                 * This guarantees that events emitted
+                 * during module initialization are captured.
+                 */
 
                 this.bindEvents();
 
+
+                /*
+                 * Initialize Cart + Wishlist BEFORE
+                 * rendering products.
+                 *
+                 * This is important because product cards
+                 * need to know which products are favorites.
+                 */
+
+                this.initializeModules();
+
+
+                /*
+                 * Initial image fallback scan.
+                 */
+
                 this.setupImageFallbacks();
+
+
+                /*
+                 * Footer year.
+                 */
 
                 this.updateYear();
 
@@ -58,8 +93,7 @@
             } finally {
 
                 /*
-                 * مهم:
-                 * مهما وقع شي error، loader خاصو يختفي.
+                 * Whatever happens, loader must disappear.
                  */
 
                 this.hidePageLoader();
@@ -164,27 +198,9 @@
         initializeModules() {
 
             /*
-             * Filters هو المسؤول الرئيسي
-             * على rendering ديال products.
-             */
-
-            if (
-                window.VelocityFilters &&
-                typeof window.VelocityFilters.apply ===
-                'function'
-            ) {
-
-                window.VelocityFilters.apply();
-
-            } else {
-
-                this.renderProducts();
-
-            }
-
-
-            /*
+             * -----------------------------------------------
              * CART
+             * -----------------------------------------------
              */
 
             if (
@@ -193,13 +209,26 @@
                 'function'
             ) {
 
-                window.VelocityCart.init();
+                try {
+
+                    window.VelocityCart.init();
+
+                } catch (error) {
+
+                    console.error(
+                        '[Velocity Store] Cart initialization error:',
+                        error
+                    );
+
+                }
 
             }
 
 
             /*
+             * -----------------------------------------------
              * WISHLIST
+             * -----------------------------------------------
              */
 
             if (
@@ -208,7 +237,54 @@
                 'function'
             ) {
 
-                window.VelocityWishlist.init();
+                try {
+
+                    window.VelocityWishlist.init();
+
+                } catch (error) {
+
+                    console.error(
+                        '[Velocity Store] Wishlist initialization error:',
+                        error
+                    );
+
+                }
+
+            }
+
+
+            /*
+             * -----------------------------------------------
+             * PRODUCTS
+             * -----------------------------------------------
+             *
+             * Filters owns product rendering.
+             */
+
+            if (
+                window.VelocityFilters &&
+                typeof window.VelocityFilters.apply ===
+                'function'
+            ) {
+
+                try {
+
+                    window.VelocityFilters.apply();
+
+                } catch (error) {
+
+                    console.error(
+                        '[Velocity Store] Filter rendering error:',
+                        error
+                    );
+
+                    this.renderProducts();
+
+                }
+
+            } else {
+
+                this.renderProducts();
 
             }
 
@@ -247,7 +323,7 @@
             }
 
 
-            let products = [];
+            let productList = [];
 
 
             if (
@@ -255,7 +331,7 @@
                 'function'
             ) {
 
-                products =
+                productList =
                     window.VelocityProducts.getProducts();
 
             }
@@ -263,7 +339,7 @@
 
             window.VelocityProducts.renderProducts(
                 container,
-                products
+                productList
             );
 
 
@@ -500,13 +576,15 @@
 
 
                         /*
-                         * إلا كانت category card،
-                         * نمشيو مباشرة للمنتجات.
+                         * Category card → scroll to products.
                          */
 
                         if (
                             categoryButton.classList.contains(
                                 'category-card'
+                            ) ||
+                            categoryButton.closest(
+                                '.category-card'
                             )
                         ) {
 
@@ -544,6 +622,10 @@
                         ) {
 
                             window.VelocityFilters.reset();
+
+                        } else {
+
+                            this.renderProducts();
 
                         }
 
@@ -650,6 +732,7 @@
 
 
                         this.closeSearch();
+
 
                         this.openQuickView(
                             productId
@@ -759,7 +842,7 @@
 
 
                     /*
-                     * Synchronize search inputs.
+                     * Synchronize all search inputs.
                      */
 
                     document
@@ -799,7 +882,7 @@
 
 
                     /*
-                     * Products filter.
+                     * Main products filter.
                      */
 
                     if (
@@ -984,16 +1067,14 @@
                 () => {
 
                     /*
-                     * إعادة تفعيل image fallback
-                     * بعد كل render.
+                     * Rebind image fallback after every render.
                      */
 
                     this.setupImageFallbacks();
 
 
                     /*
-                     * إعادة تشغيل animations
-                     * للـ products الجديدة.
+                     * Re-run animations for dynamic cards.
                      */
 
                     if (
@@ -1002,7 +1083,142 @@
                         'function'
                     ) {
 
-                        window.VelocityAnimations.refresh();
+                        try {
+
+                            window.VelocityAnimations.refresh();
+
+                        } catch (error) {
+
+                            console.warn(
+                                '[Velocity Store] Animation refresh failed:',
+                                error
+                            );
+
+                        }
+
+                    }
+
+                }
+            );
+
+
+            /* =================================================
+               IMAGE MANIFEST READY
+               -------------------------------------------------
+               This is VERY important.
+
+               First page render can happen before
+               image-manifest.json finishes loading.
+
+               When manifest arrives:
+               → re-render products
+               → each imageId gets its real image
+               → no manual product editing needed
+            ================================================= */
+
+            document.addEventListener(
+                'velocity:image-manifest-ready',
+                () => {
+
+                    console.log(
+                        '[Velocity Store] Image manifest ready. Refreshing products.'
+                    );
+
+
+                    if (
+                        window.VelocityFilters &&
+                        typeof window.VelocityFilters.apply ===
+                        'function'
+                    ) {
+
+                        try {
+
+                            window.VelocityFilters.apply();
+
+                        } catch (error) {
+
+                            console.error(
+                                '[Velocity Store] Failed to refresh products after manifest:',
+                                error
+                            );
+
+                            this.renderProducts();
+
+                        }
+
+                    } else {
+
+                        this.renderProducts();
+
+                    }
+
+
+                    /*
+                     * Search overlay may also contain
+                     * product images.
+                     */
+
+                    const searchInput =
+                        document.querySelector(
+                            '#searchInput'
+                        );
+
+
+                    if (
+                        searchInput &&
+                        searchInput.value.trim()
+                    ) {
+
+                        this.renderSearchResults(
+                            searchInput.value.trim()
+                        );
+
+                    }
+
+
+                    this.setupImageFallbacks();
+
+                }
+            );
+
+
+            /* =================================================
+               PRODUCTS READY
+            ================================================= */
+
+            document.addEventListener(
+                'velocity:products-ready',
+                () => {
+
+                    /*
+                     * If filters did not render yet,
+                     * render now.
+                     */
+
+                    const grid =
+                        document.querySelector(
+                            '#products-grid'
+                        );
+
+
+                    if (
+                        grid &&
+                        !grid.children.length
+                    ) {
+
+                        if (
+                            window.VelocityFilters &&
+                            typeof window.VelocityFilters.apply ===
+                            'function'
+                        ) {
+
+                            window.VelocityFilters.apply();
+
+                        } else {
+
+                            this.renderProducts();
+
+                        }
 
                     }
 
@@ -1165,6 +1381,10 @@
                     : '';
 
 
+            /*
+             * Synchronize filter.
+             */
+
             if (
                 window.VelocityFilters &&
                 typeof window.VelocityFilters.setSearch ===
@@ -1215,11 +1435,14 @@
 
                 container.innerHTML = `
                     <div class="search-results-empty">
+
                         <span>⌕</span>
+
                         <p>
                             Search for products, shoes,
                             fashion or tech.
                         </p>
+
                     </div>
                 `;
 
@@ -1242,17 +1465,20 @@
             const results =
                 window.VelocityProducts
                     .searchProducts(value)
-                    .slice(0, 6);
+                    .slice(0, 8);
 
 
             if (!results.length) {
 
                 container.innerHTML = `
                     <div class="search-results-empty">
+
                         <span>×</span>
+
                         <p>
                             No products found.
                         </p>
+
                     </div>
                 `;
 
@@ -1274,6 +1500,25 @@
 
                             const fallback =
                                 this.getFallbackImage();
+
+
+                            let candidates = [];
+
+
+                            if (
+                                window.VelocityProducts &&
+                                typeof window.VelocityProducts.getProductImageCandidates ===
+                                'function'
+                            ) {
+
+                                candidates =
+                                    window.VelocityProducts
+                                        .getProductImageCandidates(
+                                            product
+                                        )
+                                        .slice(1);
+
+                            }
 
 
                             const name =
@@ -1303,6 +1548,14 @@
                                     : `${product.price} DH`;
 
 
+                            const candidatesAttribute =
+                                this.escapeAttribute(
+                                    JSON.stringify(
+                                        candidates
+                                    )
+                                );
+
+
                             return `
                                 <button
                                     type="button"
@@ -1315,7 +1568,10 @@
                                         <img
                                             src="${this.escapeAttribute(image)}"
                                             alt="${this.escapeAttribute(product.name)}"
+                                            data-image-candidates="${candidatesAttribute}"
                                             data-fallback="${this.escapeAttribute(fallback)}"
+                                            loading="lazy"
+                                            decoding="async"
                                         >
 
                                     </span>
@@ -1380,9 +1636,23 @@
                 }
 
 
+                /*
+                 * Keep current behavior:
+                 * show count without inventing a new drawer.
+                 */
+
                 this.showNotification(
                     `لديك ${products.length} منتج في المفضلة.`,
                     'success'
+                );
+
+
+                /*
+                 * Move user to products section.
+                 */
+
+                this.scrollTo(
+                    '#products'
                 );
 
 
@@ -1444,6 +1714,10 @@
 
         },
 
+
+        /* =====================================================
+           CLOSE MOBILE MENU
+        ===================================================== */
 
         closeMobileMenu() {
 
@@ -1510,7 +1784,7 @@
             }
 
 
-            let products =
+            let productList =
                 window.VelocityProducts.getProducts();
 
 
@@ -1519,8 +1793,16 @@
                 category !== 'all'
             ) {
 
-                products =
-                    products.filter(
+                const normalized =
+                    String(
+                        category
+                    )
+                        .toLowerCase()
+                        .trim();
+
+
+                productList =
+                    productList.filter(
                         product => {
 
                             const productCategory =
@@ -1534,11 +1816,7 @@
 
                             return (
                                 productCategory ===
-                                String(
-                                    category
-                                )
-                                    .toLowerCase()
-                                    .trim()
+                                normalized
                             );
 
                         }
@@ -1549,7 +1827,7 @@
 
             window.VelocityProducts.renderProducts(
                 container,
-                products
+                productList
             );
 
 
@@ -1703,6 +1981,25 @@
                 this.getFallbackImage();
 
 
+            let candidates = [];
+
+
+            if (
+                window.VelocityProducts &&
+                typeof window.VelocityProducts.getProductImageCandidates ===
+                'function'
+            ) {
+
+                candidates =
+                    window.VelocityProducts
+                        .getProductImageCandidates(
+                            product
+                        )
+                        .slice(1);
+
+            }
+
+
             const name =
                 this.escapeHTML(
                     product.name
@@ -1781,7 +2078,10 @@
                             <img
                                 src="${this.escapeAttribute(image)}"
                                 alt="${this.escapeAttribute(product.name)}"
+                                data-image-candidates="${this.escapeAttribute(JSON.stringify(candidates))}"
                                 data-fallback="${this.escapeAttribute(fallback)}"
+                                loading="eager"
+                                decoding="async"
                             >
 
                         </div>
@@ -1915,8 +2215,7 @@
 
 
             /*
-             * المنتجات module هو المصدر الرئيسي
-             * لحل الصورة.
+             * Main Products module resolver.
              */
 
             if (
@@ -1944,7 +2243,7 @@
 
 
             /*
-             * Fallback candidates.
+             * Local / remote fallback.
              */
 
             const candidates = [
@@ -2049,6 +2348,19 @@
 
         /* =====================================================
            IMAGE FALLBACK SYSTEM
+           -----------------------------------------------------
+           IMPORTANT:
+
+           If local image fails:
+               candidate 1
+                    ↓
+               candidate 2
+                    ↓
+               web image
+                    ↓
+               fallback SVG
+
+           This works independently for every product card.
         ===================================================== */
 
         setupImageFallbacks() {
@@ -2092,34 +2404,159 @@
                         'true';
 
 
+                    /*
+                     * Prepare candidate list.
+                     */
+
+                    let candidates = [];
+
+
+                    if (
+                        image.dataset.imageCandidates
+                    ) {
+
+                        try {
+
+                            const parsed =
+                                JSON.parse(
+                                    image.dataset.imageCandidates
+                                );
+
+
+                            if (
+                                Array.isArray(parsed)
+                            ) {
+
+                                candidates =
+                                    parsed.filter(
+                                        value =>
+                                            typeof value === 'string' &&
+                                            value.trim()
+                                    );
+
+                            }
+
+                        } catch (error) {
+
+                            console.warn(
+                                '[Velocity Store] Invalid image candidates:',
+                                error
+                            );
+
+                        }
+
+                    }
+
+
+                    /*
+                     * Legacy web fallback support.
+                     */
+
+                    const legacyWebFallback =
+                        image.dataset.webFallback ||
+                        image.dataset.webImage ||
+                        image.dataset.remoteImage;
+
+
+                    if (
+                        legacyWebFallback &&
+                        !candidates.includes(
+                            legacyWebFallback
+                        )
+                    ) {
+
+                        candidates.push(
+                            legacyWebFallback
+                        );
+
+                    }
+
+
+                    /*
+                     * Store candidates.
+                     */
+
+                    image._velocityImageCandidates =
+                        candidates;
+
+
+                    image._velocityImageIndex =
+                        0;
+
+
                     image.addEventListener(
                         'error',
                         () => {
 
+                            const list =
+                                image._velocityImageCandidates ||
+                                [];
+
+
+                            let nextIndex =
+                                Number(
+                                    image._velocityImageIndex || 0
+                                );
+
+
                             /*
-                             * المرحلة 1:
-                             * إذا عندنا web fallback،
-                             * جربوه أولاً.
+                             * ---------------------------------
+                             * Try next image.
+                             * ---------------------------------
                              */
 
-                            const webFallback =
-                                image.dataset.webFallback ||
-                                image.dataset.webImage ||
-                                image.dataset.remoteImage;
+                            if (
+                                nextIndex < list.length
+                            ) {
 
+                                const nextImage =
+                                    list[nextIndex];
+
+
+                                image._velocityImageIndex =
+                                    nextIndex + 1;
+
+
+                                if (
+                                    nextImage &&
+                                    nextImage !== image.src
+                                ) {
+
+                                    image.src =
+                                        nextImage;
+
+                                    image.style.visibility =
+                                        'visible';
+
+                                    return;
+
+                                }
+
+                            }
+
+
+                            /*
+                             * ---------------------------------
+                             * Final fallback.
+                             * ---------------------------------
+                             */
 
                             if (
-                                webFallback &&
-                                image.dataset.webFallbackUsed !==
+                                image.dataset.fallbackUsed !==
                                 'true'
                             ) {
 
-                                image.dataset.webFallbackUsed =
+                                const fallback =
+                                    image.dataset.fallback ||
+                                    this.getFallbackImage();
+
+
+                                image.dataset.fallbackUsed =
                                     'true';
 
 
                                 image.src =
-                                    webFallback;
+                                    fallback;
 
 
                                 image.style.visibility =
@@ -2132,49 +2569,12 @@
 
 
                             /*
-                             * المرحلة 2:
-                             * fallback النهائي.
+                             * If even the fallback fails,
+                             * hide the broken image.
                              */
 
-                            if (
-                                image.dataset.fallbackUsed ===
-                                'true'
-                            ) {
-
-                                image.style.visibility =
-                                    'hidden';
-
-
-                                return;
-
-                            }
-
-
-                            const fallback =
-                                image.dataset.fallback;
-
-
-                            if (!fallback) {
-
-                                image.style.visibility =
-                                    'hidden';
-
-
-                                return;
-
-                            }
-
-
-                            image.dataset.fallbackUsed =
-                                'true';
-
-
-                            image.src =
-                                fallback;
-
-
                             image.style.visibility =
-                                'visible';
+                                'hidden';
 
                         }
                     );
