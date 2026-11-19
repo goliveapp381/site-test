@@ -1,0 +1,23 @@
+{
+  "id": "velocity-store",
+  "name": "Velocity Store",
+  "category": "ecommerce",
+  "projectType": "ecommerce",
+  "version": "1.0.0",
+  "engine": "html",
+  "description": "متجر إلكتروني عصري بتصميم Premium وتجربة تسوق تفاعلية وأنيميشن متقدم.",
+  "thumbnail": "",
+  "preview": "",
+  "features": {
+    "responsive": true,
+    "animations": true,
+    "darkMode": true,
+    "shoppingCart": true,
+    "wishlist": true,
+    "productSearch": true,
+    "productFilter": true,
+    "productModal": true,
+    "localStorage": true,
+    "editor": true
+  }
+}
