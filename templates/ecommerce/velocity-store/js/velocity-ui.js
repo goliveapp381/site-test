@@ -11,6 +11,7 @@
    - Categories
    - Notifications
    - Scroll
+   - Add To Cart Experience Bridge
 ========================================================= */
 
 (function () {
@@ -33,7 +34,9 @@
                 return;
             }
 
-            overlay.classList.add('active');
+            overlay.classList.add(
+                'active'
+            );
 
             overlay.setAttribute(
                 'aria-hidden',
@@ -60,7 +63,7 @@
 
             }
 
-            this.renderSearchResults(
+            UI.renderSearchResults(
                 input
                     ? input.value.trim()
                     : ''
@@ -117,9 +120,9 @@
                 );
             }
 
-            this.closeSearch();
+            UI.closeSearch();
 
-            this.scrollTo(
+            UI.scrollTo(
                 '#products'
             );
         },
@@ -161,9 +164,12 @@
                 return;
             }
 
+            const Products =
+                window.VelocityProducts;
+
             if (
-                !window.VelocityProducts ||
-                typeof window.VelocityProducts.searchProducts !==
+                !Products ||
+                typeof Products.searchProducts !==
                 'function'
             ) {
 
@@ -171,7 +177,7 @@
             }
 
             const results =
-                window.VelocityProducts
+                Products
                     .searchProducts(value)
                     .slice(0, 8);
 
@@ -199,52 +205,41 @@
                     .map(product => {
 
                         const image =
-                            window.VelocityCore.getProductImage(
-                                product
-                            );
+                            window.VelocityCore
+                                .getProductImage(
+                                    product
+                                );
 
                         const fallback =
-                            window.VelocityCore.getFallbackImage();
+                            window.VelocityCore
+                                .getFallbackImage();
 
-                        let candidates = [];
-
-                        if (
-                            window.VelocityProducts &&
-                            typeof window.VelocityProducts.getProductImageCandidates ===
-                            'function'
-                        ) {
-
-                            candidates =
-                                window.VelocityProducts
-                                    .getProductImageCandidates(
-                                        product
-                                    )
-                                    .slice(1);
-                        }
+                        const candidates =
+                            window.VelocityCore
+                                .getProductImageCandidates(
+                                    product
+                                )
+                                .slice(1);
 
                         const name =
-                            window.VelocityCore.escapeHTML(
-                                product.name
-                            );
+                            window.VelocityCore
+                                .escapeHTML(
+                                    product.name
+                                );
 
                         const category =
-                            window.VelocityCore.escapeHTML(
-                                product.categoryName ||
-                                product.category ||
-                                ''
-                            );
+                            window.VelocityCore
+                                .escapeHTML(
+                                    product.categoryName ||
+                                    product.category ||
+                                    ''
+                                );
 
                         const price =
-                            window.VelocityProducts &&
-                            typeof window.VelocityProducts.formatPrice ===
-                            'function'
-
-                                ? window.VelocityProducts.formatPrice(
-                                    product.price,
-                                    product.currency
-                                )
-
-                                : `${product.price} DH`;
+                            window.VelocityCore
+                                .formatPrice(
+                                    product
+                                );
 
                         return `
 
@@ -318,6 +313,7 @@
                     'aria-expanded',
                     String(open)
                 );
+
             }
 
             const menu =
@@ -331,6 +327,7 @@
                     'aria-hidden',
                     String(!open)
                 );
+
             }
         },
 
@@ -352,6 +349,7 @@
                     'aria-expanded',
                     'false'
                 );
+
             }
 
             const menu =
@@ -365,6 +363,7 @@
                     'aria-hidden',
                     'true'
                 );
+
             }
         },
 
@@ -437,6 +436,78 @@
 
 
         /* =====================================================
+           ADD TO CART EXPERIENCE
+           -----------------------------------------------------
+           Important:
+           VelocityCartUI owns the visual animation.
+           This bridge makes every UI entry point use
+           the same experience.
+        ===================================================== */
+
+        prepareAddToCart(productId) {
+
+            if (!productId) {
+                return null;
+            }
+
+            const product =
+                window.VelocityCore.getProductById(
+                    productId
+                );
+
+            if (!product) {
+                return null;
+            }
+
+            const CartUI =
+                window.VelocityCartUI;
+
+            if (
+                CartUI &&
+                typeof CartUI.prepareExperience ===
+                'function'
+            ) {
+
+                CartUI.prepareExperience(
+                    product
+                );
+
+            } else if (
+                CartUI &&
+                typeof CartUI.handleAddToCart ===
+                'function'
+            ) {
+
+                const card =
+                    window.VelocityCore
+                        .findProductCard(
+                            productId
+                        );
+
+                if (card) {
+
+                    const button =
+                        card.querySelector(
+                            '[data-cart-id]'
+                        );
+
+                    if (button) {
+
+                        CartUI.handleAddToCart(
+                            button
+                        );
+
+                    }
+
+                }
+
+            }
+
+            return product;
+        },
+
+
+        /* =====================================================
            QUICK VIEW
         ===================================================== */
 
@@ -482,21 +553,12 @@
             const fallback =
                 window.VelocityCore.getFallbackImage();
 
-            let candidates = [];
-
-            if (
-                window.VelocityProducts &&
-                typeof window.VelocityProducts.getProductImageCandidates ===
-                'function'
-            ) {
-
-                candidates =
-                    window.VelocityProducts
-                        .getProductImageCandidates(
-                            product
-                        )
-                        .slice(1);
-            }
+            const candidates =
+                window.VelocityCore
+                    .getProductImageCandidates(
+                        product
+                    )
+                    .slice(1);
 
             const name =
                 window.VelocityCore.escapeHTML(
@@ -516,27 +578,19 @@
                 );
 
             const stars =
-                window.VelocityProducts &&
-                typeof window.VelocityProducts.renderStars ===
-                'function'
-
-                    ? window.VelocityProducts.renderStars(
-                        rating
-                    )
-
-                    : '★★★★★';
+                window.VelocityCore.renderStars(
+                    rating
+                );
 
             const price =
-                window.VelocityProducts &&
-                typeof window.VelocityProducts.formatPrice ===
-                'function'
+                window.VelocityCore.formatPrice(
+                    product
+                );
 
-                    ? window.VelocityProducts.formatPrice(
-                        product.price,
-                        product.currency
-                    )
-
-                    : `${product.price} DH`;
+            const productIdSafe =
+                window.VelocityCore.escapeAttribute(
+                    product.id
+                );
 
             modal.innerHTML = `
 
@@ -610,7 +664,7 @@
                             <button
                                 class="btn btn-primary"
                                 type="button"
-                                data-quick-add="${window.VelocityCore.escapeAttribute(product.id)}"
+                                data-quick-add="${productIdSafe}"
                             >
                                 Add to cart
                             </button>
@@ -675,18 +729,21 @@
 
         openWishlist() {
 
+            const Wishlist =
+                window.VelocityWishlist;
+
             if (
-                window.VelocityWishlist &&
-                typeof window.VelocityWishlist.getProducts ===
+                Wishlist &&
+                typeof Wishlist.getProducts ===
                 'function'
             ) {
 
                 const products =
-                    window.VelocityWishlist.getProducts();
+                    Wishlist.getProducts();
 
                 if (!products.length) {
 
-                    this.showNotification(
+                    UI.showNotification(
                         'قائمة المفضلة فارغة.',
                         'info'
                     );
@@ -694,19 +751,19 @@
                     return;
                 }
 
-                this.showNotification(
+                UI.showNotification(
                     `لديك ${products.length} منتج في المفضلة.`,
                     'success'
                 );
 
-                this.scrollTo(
+                UI.scrollTo(
                     '#products'
                 );
 
                 return;
             }
 
-            this.showNotification(
+            UI.showNotification(
                 'قائمة المفضلة غير متاحة حالياً.',
                 'error'
             );
@@ -780,9 +837,10 @@
 
         fallbackCategoryFilter(category) {
 
-            if (
-                !window.VelocityProducts
-            ) {
+            const Products =
+                window.VelocityProducts;
+
+            if (!Products) {
                 return;
             }
 
@@ -795,8 +853,18 @@
                 return;
             }
 
+            if (
+                typeof Products.getProducts !==
+                'function' ||
+                typeof Products.renderProducts !==
+                'function'
+            ) {
+
+                return;
+            }
+
             let productList =
-                window.VelocityProducts.getProducts();
+                Products.getProducts() || [];
 
             if (
                 category &&
@@ -828,20 +896,156 @@
                     );
             }
 
-            window.VelocityProducts.renderProducts(
+            Products.renderProducts(
                 container,
                 productList
             );
 
-            this.scrollTo(
+            window.VelocityCore
+                .setupImageFallbacks();
+
+            UI.scrollTo(
                 '#products'
             );
+        },
+
+
+        /* =====================================================
+           SEARCH RESULT CLICK
+        ===================================================== */
+
+        openSearchProduct(productId) {
+
+            if (!productId) {
+                return;
+            }
+
+            UI.closeSearch();
+
+            UI.openQuickView(
+                productId
+            );
+        },
+
+
+        /* =====================================================
+           CLOSE ALL OVERLAYS
+        ===================================================== */
+
+        closeAllOverlays() {
+
+            UI.closeSearch();
+            UI.closeMobileMenu();
+
+            const quickView =
+                document.querySelector(
+                    '#quick-view-modal'
+                );
+
+            if (quickView) {
+                UI.closeQuickView(
+                    quickView
+                );
+            }
         }
 
     };
 
 
+    /* =========================================================
+       GLOBAL MODULE
+    ========================================================= */
+
     window.VelocityUI =
         UI;
+
+
+    /* =========================================================
+       UI → CART BRIDGE
+       ---------------------------------------------------------
+       This listener catches Quick View add-to-cart buttons.
+       Normal product cards continue to be handled by app.js /
+       velocity-cart-ui.js.
+    ========================================================= */
+
+    document.addEventListener(
+        'click',
+        function (event) {
+
+            const quickAdd =
+                event.target.closest(
+                    '[data-quick-add]'
+                );
+
+            if (!quickAdd) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            const productId =
+                quickAdd.dataset.quickAdd;
+
+            if (!productId) {
+                return;
+            }
+
+            const product =
+                window.VelocityCore.getProductById(
+                    productId
+                );
+
+            if (!product) {
+                return;
+            }
+
+            /*
+             * IMPORTANT:
+             * Prepare the 720° animation BEFORE adding
+             * the product to the cart.
+             */
+            UI.prepareAddToCart(
+                productId
+            );
+
+            /*
+             * Close quick view after preparing animation.
+             */
+            const modal =
+                quickAdd.closest(
+                    '#quick-view-modal'
+                );
+
+            if (modal) {
+
+                UI.closeQuickView(
+                    modal
+                );
+
+            }
+
+            /*
+             * Add the actual product.
+             */
+            setTimeout(() => {
+
+                if (
+                    window.VelocityCart &&
+                    typeof window.VelocityCart.add ===
+                    'function'
+                ) {
+
+                    window.VelocityCart.add(
+                        productId
+                    );
+
+                }
+
+            }, 20);
+
+        },
+        true
+    );
 
 })();
