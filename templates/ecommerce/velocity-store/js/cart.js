@@ -3,6 +3,14 @@
 /* =========================================================
    VELOCITY STORE
    SHOPPING CART
+   ---------------------------------------------------------
+   - LocalStorage cart
+   - Add / remove / quantity
+   - Dynamic cart drawer
+   - Product image fallback
+   - Cart badges
+   - Checkout event
+   - Safe initialization
 ========================================================= */
 
 (function () {
@@ -11,7 +19,12 @@
         'velocity-store-cart';
 
 
-    let cart = loadCart();
+    let cart =
+        loadCart();
+
+
+    let initialized =
+        false;
 
 
     /* =====================================================
@@ -27,14 +40,58 @@
                     STORAGE_KEY
                 );
 
-            if (!saved) return [];
+
+            if (!saved) {
+                return [];
+            }
+
 
             const parsed =
-                JSON.parse(saved);
+                JSON.parse(
+                    saved
+                );
 
-            return Array.isArray(parsed)
-                ? parsed
-                : [];
+
+            if (
+                !Array.isArray(
+                    parsed
+                )
+            ) {
+
+                return [];
+
+            }
+
+
+            /*
+             * تنظيف البيانات القديمة
+             * أو corrupted cart data.
+             */
+
+            return parsed
+                .filter(
+                    item =>
+                        item &&
+                        typeof item.productId ===
+                            'string' &&
+                        Number(item.quantity) > 0
+                )
+                .map(
+                    item => ({
+                        productId:
+                            item.productId,
+
+                        quantity:
+                            Math.max(
+                                1,
+                                Math.floor(
+                                    Number(
+                                        item.quantity
+                                    )
+                                )
+                            )
+                    })
+                );
 
         } catch (error) {
 
@@ -42,6 +99,7 @@
                 '[Velocity Cart] Could not load cart.',
                 error
             );
+
 
             return [];
 
@@ -56,8 +114,13 @@
 
             localStorage.setItem(
                 STORAGE_KEY,
-                JSON.stringify(cart)
+                JSON.stringify(
+                    cart
+                )
             );
+
+
+            return true;
 
         } catch (error) {
 
@@ -66,7 +129,38 @@
                 error
             );
 
+
+            return false;
+
         }
+
+    }
+
+
+    /* =====================================================
+       PRODUCT
+    ===================================================== */
+
+    function getProduct(
+        productId
+    ) {
+
+        if (
+            !window.VelocityProducts ||
+            typeof window.VelocityProducts
+                .getProductById !==
+                'function'
+        ) {
+
+            return null;
+
+        }
+
+
+        return window.VelocityProducts
+            .getProductById(
+                productId
+            );
 
     }
 
@@ -75,16 +169,16 @@
        ADD
     ===================================================== */
 
-    function add(productId, quantity = 1) {
-
-        if (!window.VelocityProducts) {
-            return false;
-        }
+    function add(
+        productId,
+        quantity = 1
+    ) {
 
         const product =
-            VelocityProducts.getProductById(
+            getProduct(
                 productId
             );
+
 
         if (!product) {
 
@@ -93,32 +187,103 @@
                 productId
             );
 
+
             return false;
+
         }
+
+
+        const normalizedQuantity =
+            Math.max(
+                1,
+                Math.floor(
+                    Number(quantity) || 1
+                )
+            );
 
 
         const existing =
             cart.find(
-                item => item.productId === productId
+                item =>
+                    item.productId ===
+                    String(productId)
             );
 
 
         if (existing) {
 
-            existing.quantity += quantity;
+            existing.quantity +=
+                normalizedQuantity;
 
         } else {
 
             cart.push({
 
-                productId: product.id,
+                productId:
+                    String(
+                        product.id
+                    ),
 
-                quantity: Math.max(
-                    1,
-                    Number(quantity) || 1
-                )
+                quantity:
+                    normalizedQuantity
 
             });
+
+        }
+
+
+        /*
+         * Stock protection.
+         */
+
+        if (
+            Number.isFinite(
+                Number(product.stock)
+            ) &&
+            Number(product.stock) >= 0
+        ) {
+
+            const item =
+                cart.find(
+                    entry =>
+                        entry.productId ===
+                        String(product.id)
+                );
+
+
+            if (item) {
+
+                item.quantity =
+                    Math.min(
+                        item.quantity,
+                        Number(
+                            product.stock
+                        )
+                    );
+
+
+                if (
+                    item.quantity <= 0
+                ) {
+
+                    cart =
+                        cart.filter(
+                            entry =>
+                                entry.productId !==
+                                String(product.id)
+                        );
+
+                    saveCart();
+
+                    render();
+
+                    emitChange();
+
+                    return false;
+
+                }
+
+            }
 
         }
 
@@ -131,7 +296,10 @@
 
         emitChange();
 
-        showAddedMessage(product);
+        showAddedMessage(
+            product
+        );
+
 
         return true;
 
@@ -142,12 +310,31 @@
        REMOVE
     ===================================================== */
 
-    function remove(productId) {
+    function remove(
+        productId
+    ) {
+
+        const before =
+            cart.length;
+
 
         cart =
             cart.filter(
-                item => item.productId !== productId
+                item =>
+                    item.productId !==
+                    String(productId)
             );
+
+
+        if (
+            cart.length ===
+            before
+        ) {
+
+            return;
+
+        }
+
 
         saveCart();
 
@@ -169,26 +356,84 @@
 
         const item =
             cart.find(
-                item => item.productId === productId
+                entry =>
+                    entry.productId ===
+                    String(productId)
             );
 
-        if (!item) return;
 
-        const value =
+        if (!item) {
+            return;
+        }
+
+
+        let value =
             Math.floor(
                 Number(quantity)
             );
 
 
-        if (!Number.isFinite(value) || value <= 0) {
+        if (
+            !Number.isFinite(
+                value
+            ) ||
+            value <= 0
+        ) {
 
-            remove(productId);
+            remove(
+                productId
+            );
 
             return;
+
         }
 
 
-        item.quantity = value;
+        const product =
+            getProduct(
+                productId
+            );
+
+
+        /*
+         * Respect stock if available.
+         */
+
+        if (
+            product &&
+            Number.isFinite(
+                Number(product.stock)
+            ) &&
+            Number(product.stock) >= 0
+        ) {
+
+            value =
+                Math.min(
+                    value,
+                    Number(
+                        product.stock
+                    )
+                );
+
+        }
+
+
+        if (
+            value <= 0
+        ) {
+
+            remove(
+                productId
+            );
+
+            return;
+
+        }
+
+
+        item.quantity =
+            value;
+
 
         saveCart();
 
@@ -205,7 +450,13 @@
 
     function clear() {
 
+        if (!cart.length) {
+            return;
+        }
+
+
         cart = [];
+
 
         saveCart();
 
@@ -223,8 +474,37 @@
     function getTotalItems() {
 
         return cart.reduce(
-            (total, item) =>
-                total + item.quantity,
+            (
+                total,
+                item
+            ) => {
+
+                const quantity =
+                    Number(
+                        item.quantity
+                    );
+
+
+                if (
+                    !Number.isFinite(
+                        quantity
+                    )
+                ) {
+
+                    return total;
+
+                }
+
+
+                return (
+                    total +
+                    Math.max(
+                        0,
+                        quantity
+                    )
+                );
+
+            },
             0
         );
 
@@ -237,24 +517,67 @@
 
     function getTotalPrice() {
 
-        if (!window.VelocityProducts) {
+        if (
+            !window.VelocityProducts
+        ) {
+
             return 0;
+
         }
 
+
         return cart.reduce(
-            (total, item) => {
+            (
+                total,
+                item
+            ) => {
 
                 const product =
-                    VelocityProducts.getProductById(
+                    getProduct(
                         item.productId
                     );
 
+
                 if (!product) {
+
                     return total;
+
                 }
 
-                return total +
-                    (product.price * item.quantity);
+
+                const price =
+                    Number(
+                        product.price
+                    );
+
+
+                const quantity =
+                    Number(
+                        item.quantity
+                    );
+
+
+                if (
+                    !Number.isFinite(
+                        price
+                    ) ||
+                    !Number.isFinite(
+                        quantity
+                    )
+                ) {
+
+                    return total;
+
+                }
+
+
+                return (
+                    total +
+                    (
+                        price *
+                        quantity
+                    )
+                );
 
             },
             0
@@ -269,23 +592,122 @@
 
     function getCart() {
 
-        return cart.map(item => {
+        return cart
+            .map(
+                item => {
 
-            const product =
-                VelocityProducts.getProductById(
-                    item.productId
+                    const product =
+                        getProduct(
+                            item.productId
+                        );
+
+
+                    return {
+
+                        ...item,
+
+                        product
+
+                    };
+
+                }
+            )
+            .filter(
+                item =>
+                    Boolean(
+                        item.product
+                    )
+            );
+
+    }
+
+
+    /* =====================================================
+       PRODUCT IMAGE
+    ===================================================== */
+
+    function getProductImage(
+        product
+    ) {
+
+        if (!product) {
+            return '';
+        }
+
+
+        /*
+         * الأفضل:
+         * products.js يكون فيه getProductImage().
+         */
+
+        if (
+            window.VelocityProducts &&
+            typeof window.VelocityProducts
+                .getProductImage ===
+                'function'
+        ) {
+
+            return window.VelocityProducts
+                .getProductImage(
+                    product
                 );
 
-            return {
+        }
 
-                ...item,
 
-                product
+        /*
+         * URL مباشرة.
+         */
 
-            };
+        if (
+            product.image &&
+            /^https?:\/\//i.test(
+                product.image
+            )
+        ) {
 
-        }).filter(
-            item => item.product
+            return product.image;
+
+        }
+
+
+        /*
+         * Local path.
+         */
+
+        if (
+            product.image
+        ) {
+
+            if (
+                String(
+                    product.image
+                ).startsWith(
+                    'assets/'
+                )
+            ) {
+
+                return product.image;
+
+            }
+
+
+            return (
+                `assets/images/` +
+                product.image
+            );
+
+        }
+
+
+        /*
+         * Web fallback.
+         */
+
+        return (
+            product.imageUrl ||
+            product.fallbackImage ||
+            ''
         );
 
     }
@@ -302,20 +724,31 @@
                 '#cart-drawer'
             );
 
+
         const overlay =
             document.querySelector(
                 '#cart-overlay'
             );
 
 
-        if (!drawer) return;
+        if (!drawer) {
+            return;
+        }
 
 
-        drawer.classList.add('active');
+        drawer.classList.add(
+            'active'
+        );
+
 
         if (overlay) {
-            overlay.classList.add('active');
+
+            overlay.classList.add(
+                'active'
+            );
+
         }
+
 
         document.body.classList.add(
             'cart-open'
@@ -335,6 +768,7 @@
                 '#cart-drawer'
             );
 
+
         const overlay =
             document.querySelector(
                 '#cart-overlay'
@@ -342,12 +776,22 @@
 
 
         if (drawer) {
-            drawer.classList.remove('active');
+
+            drawer.classList.remove(
+                'active'
+            );
+
         }
 
+
         if (overlay) {
-            overlay.classList.remove('active');
+
+            overlay.classList.remove(
+                'active'
+            );
+
         }
+
 
         document.body.classList.remove(
             'cart-open'
@@ -367,28 +811,45 @@
                 '#cart-drawer'
             )
         ) {
+
             return;
+
         }
 
 
         const overlay =
-            document.createElement('div');
+            document.createElement(
+                'div'
+            );
+
 
         overlay.id =
             'cart-overlay';
+
 
         overlay.className =
             'cart-overlay';
 
 
         const drawer =
-            document.createElement('aside');
+            document.createElement(
+                'aside'
+            );
+
 
         drawer.id =
             'cart-drawer';
 
+
         drawer.className =
             'cart-drawer';
+
+
+        drawer.setAttribute(
+            'aria-hidden',
+            'true'
+        );
+
 
         drawer.innerHTML = `
 
@@ -438,6 +899,7 @@
 
                 </div>
 
+
                 <button
                     type="button"
                     class="btn btn-primary cart-checkout"
@@ -445,6 +907,7 @@
                 >
                     إتمام الطلب
                 </button>
+
 
                 <button
                     type="button"
@@ -455,12 +918,18 @@
                 </button>
 
             </div>
+
         `;
 
 
-        document.body.appendChild(overlay);
+        document.body.appendChild(
+            overlay
+        );
 
-        document.body.appendChild(drawer);
+
+        document.body.appendChild(
+            drawer
+        );
 
 
         overlay.addEventListener(
@@ -484,88 +953,142 @@
        DRAWER EVENTS
     ===================================================== */
 
-    function handleDrawerClick(event) {
+    function handleDrawerClick(
+        event
+    ) {
+
+        /* ---------------------------------------------
+           CLOSE
+        --------------------------------------------- */
 
         const closeButton =
             event.target.closest(
                 '[data-cart-close]'
             );
 
+
         if (closeButton) {
 
             close();
 
             return;
+
         }
 
+
+        /* ---------------------------------------------
+           CLEAR
+        --------------------------------------------- */
 
         const clearButton =
             event.target.closest(
                 '[data-cart-clear]'
             );
 
+
         if (clearButton) {
 
             clear();
 
             return;
+
         }
 
+
+        /* ---------------------------------------------
+           CHECKOUT
+        --------------------------------------------- */
 
         const checkoutButton =
             event.target.closest(
                 '[data-cart-checkout]'
             );
 
+
         if (checkoutButton) {
 
             checkout();
 
             return;
+
         }
 
+
+        /* ---------------------------------------------
+           REMOVE
+        --------------------------------------------- */
 
         const removeButton =
             event.target.closest(
                 '[data-cart-remove]'
             );
 
+
         if (removeButton) {
 
             remove(
-                removeButton.dataset.cartRemove
+                removeButton.dataset
+                    .cartRemove
             );
 
             return;
+
         }
 
+
+        /* ---------------------------------------------
+           QUANTITY
+        --------------------------------------------- */
 
         const quantityButton =
             event.target.closest(
                 '[data-cart-quantity]'
             );
 
+
         if (quantityButton) {
 
             const productId =
-                quantityButton.dataset.productId;
+                quantityButton.dataset
+                    .productId;
+
 
             const change =
                 Number(
-                    quantityButton.dataset.cartQuantity
+                    quantityButton.dataset
+                        .cartQuantity
                 );
+
+
+            if (
+                !productId ||
+                !Number.isFinite(
+                    change
+                )
+            ) {
+
+                return;
+
+            }
+
 
             const item =
                 cart.find(
-                    item =>
-                        item.productId === productId
+                    entry =>
+                        entry.productId ===
+                        productId
                 );
 
-            if (!item) return;
+
+            if (!item) {
+                return;
+            }
+
 
             updateQuantity(
                 productId,
-                item.quantity + change
+                item.quantity +
+                    change
             );
 
         }
@@ -579,10 +1102,14 @@
 
     function render() {
 
+        updateCartBadges();
+
+
         const itemsContainer =
             document.querySelector(
                 '#cart-items'
             );
+
 
         const totalElement =
             document.querySelector(
@@ -590,10 +1117,29 @@
             );
 
 
-        updateCartBadges();
+        const drawer =
+            document.querySelector(
+                '#cart-drawer'
+            );
 
 
-        if (!itemsContainer) return;
+        if (drawer) {
+
+            drawer.setAttribute(
+                'aria-hidden',
+                drawer.classList.contains(
+                    'active'
+                )
+                    ? 'false'
+                    : 'true'
+            );
+
+        }
+
+
+        if (!itemsContainer) {
+            return;
+        }
 
 
         const items =
@@ -620,17 +1166,28 @@
                     </p>
 
                 </div>
+
             `;
 
         } else {
 
             itemsContainer.innerHTML =
-                items.map(createCartItem).join('');
+                items
+                    .map(
+                        createCartItem
+                    )
+                    .join('');
 
         }
 
 
-        if (totalElement) {
+        if (
+            totalElement &&
+            window.VelocityProducts &&
+            typeof window.VelocityProducts
+                .formatPrice ===
+                'function'
+        ) {
 
             totalElement.textContent =
                 VelocityProducts.formatPrice(
@@ -639,6 +1196,16 @@
 
         }
 
+
+        /*
+         * الصور الجديدة:
+         * local first → Web fallback.
+         */
+
+        setupCartImageFallbacks(
+            itemsContainer
+        );
+
     }
 
 
@@ -646,24 +1213,69 @@
        CART ITEM
     ===================================================== */
 
-    function createCartItem(item) {
+    function createCartItem(
+        item
+    ) {
 
         const product =
             item.product;
+
+
+        if (!product) {
+            return '';
+        }
+
+
+        const image =
+            getProductImage(
+                product
+            );
+
+
+        const fallback =
+            product.imageUrl ||
+            product.fallbackImage ||
+            '';
+
+
+        const name =
+            escapeHTML(
+                product.name || ''
+            );
+
+
+        const productId =
+            escapeAttribute(
+                product.id
+            );
+
+
+        const price =
+            window.VelocityProducts &&
+            typeof window.VelocityProducts
+                .formatPrice ===
+                'function'
+                ? VelocityProducts.formatPrice(
+                    product.price,
+                    product.currency
+                )
+                : `${product.price || 0} DH`;
 
 
         return `
 
             <div
                 class="cart-item"
-                data-cart-item="${product.id}"
+                data-cart-item="${productId}"
             >
 
                 <div class="cart-item-image">
 
                     <img
-                        src="${product.image}"
-                        alt="${product.name}"
+                        src="${escapeAttribute(image)}"
+                        data-fallback="${escapeAttribute(fallback)}"
+                        alt="${escapeAttribute(product.name || '')}"
+                        loading="lazy"
                     />
 
                 </div>
@@ -672,35 +1284,38 @@
                 <div class="cart-item-info">
 
                     <h4>
-                        ${product.name}
+                        ${name}
                     </h4>
 
                     <strong>
-                        ${VelocityProducts.formatPrice(
-                            product.price,
-                            product.currency
-                        )}
+                        ${price}
                     </strong>
 
 
-                    <div class="cart-item-controls">
+                    <div
+                        class="cart-item-controls"
+                    >
 
                         <button
                             type="button"
-                            data-product-id="${product.id}"
+                            data-product-id="${productId}"
                             data-cart-quantity="-1"
+                            aria-label="نقص الكمية"
                         >
                             −
                         </button>
+
 
                         <span>
                             ${item.quantity}
                         </span>
 
+
                         <button
                             type="button"
-                            data-product-id="${product.id}"
+                            data-product-id="${productId}"
                             data-cart-quantity="1"
+                            aria-label="زيادة الكمية"
                         >
                             +
                         </button>
@@ -713,14 +1328,91 @@
                 <button
                     type="button"
                     class="cart-item-remove"
-                    data-cart-remove="${product.id}"
+                    data-cart-remove="${productId}"
                     aria-label="حذف المنتج"
                 >
                     ×
                 </button>
 
             </div>
+
         `;
+
+    }
+
+
+    /* =====================================================
+       CART IMAGE FALLBACK
+    ===================================================== */
+
+    function setupCartImageFallbacks(
+        container
+    ) {
+
+        if (!container) {
+            return;
+        }
+
+
+        container
+            .querySelectorAll(
+                'img[data-fallback]'
+            )
+            .forEach(
+                image => {
+
+                    if (
+                        image.dataset
+                            .velocityFallbackReady
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    image.dataset
+                        .velocityFallbackReady =
+                        'true';
+
+
+                    image.addEventListener(
+                        'error',
+                        () => {
+
+                            const fallback =
+                                image.dataset
+                                    .fallback;
+
+
+                            if (
+                                !fallback ||
+                                image.dataset
+                                    .fallbackUsed ===
+                                    'true'
+                            ) {
+
+                                image.style.visibility =
+                                    'hidden';
+
+                                return;
+
+                            }
+
+
+                            image.dataset
+                                .fallbackUsed =
+                                'true';
+
+
+                            image.src =
+                                fallback;
+
+                        }
+                    );
+
+                }
+            );
 
     }
 
@@ -739,17 +1431,26 @@
             .querySelectorAll(
                 '[data-cart-count]'
             )
-            .forEach(element => {
+            .forEach(
+                element => {
 
-                element.textContent =
-                    total;
+                    element.textContent =
+                        total;
 
-                element.classList.toggle(
-                    'has-items',
-                    total > 0
-                );
 
-            });
+                    element.classList.toggle(
+                        'has-items',
+                        total > 0
+                    );
+
+
+                    element.setAttribute(
+                        'aria-label',
+                        `${total} منتجات في السلة`
+                    );
+
+                }
+            );
 
     }
 
@@ -758,7 +1459,14 @@
        ADDED MESSAGE
     ===================================================== */
 
-    function showAddedMessage(product) {
+    function showAddedMessage(
+        product
+    ) {
+
+        if (!product) {
+            return;
+        }
+
 
         let toast =
             document.querySelector(
@@ -769,15 +1477,22 @@
         if (!toast) {
 
             toast =
-                document.createElement('div');
+                document.createElement(
+                    'div'
+                );
+
 
             toast.id =
                 'velocity-toast';
 
+
             toast.className =
                 'velocity-toast';
 
-            document.body.appendChild(toast);
+
+            document.body.appendChild(
+                toast
+            );
 
         }
 
@@ -785,7 +1500,10 @@
         toast.textContent =
             `${product.name} تمت إضافته للسلة ✓`;
 
-        toast.classList.add('show');
+
+        toast.classList.add(
+            'show'
+        );
 
 
         clearTimeout(
@@ -794,24 +1512,32 @@
 
 
         toast._timer =
-            setTimeout(() => {
+            setTimeout(
+                () => {
 
-                toast.classList.remove(
-                    'show'
-                );
+                    toast.classList.remove(
+                        'show'
+                    );
 
-            }, 2500);
+                },
+                2500
+            );
 
     }
 
 
     /* =====================================================
-       CHECKOUT PLACEHOLDER
+       CHECKOUT
     ===================================================== */
 
     function checkout() {
 
         if (!cart.length) {
+
+            showAddedMessage({
+                name:
+                    'السلة فارغة'
+            });
 
             return;
 
@@ -823,12 +1549,18 @@
                 'velocity:checkout-requested',
                 {
                     detail: {
-                        cart: getCart(),
-                        total: getTotalPrice()
+
+                        cart:
+                            getCart(),
+
+                        total:
+                            getTotalPrice()
+
                     }
                 }
             )
         );
+
 
         console.log(
             '[Velocity Cart] Checkout requested.'
@@ -848,12 +1580,65 @@
                 'velocity:cart-changed',
                 {
                     detail: {
-                        items: getCart(),
-                        totalItems: getTotalItems(),
-                        totalPrice: getTotalPrice()
+
+                        items:
+                            getCart(),
+
+                        totalItems:
+                            getTotalItems(),
+
+                        totalPrice:
+                            getTotalPrice()
+
                     }
                 }
             )
+        );
+
+    }
+
+
+    /* =====================================================
+       HTML SAFETY
+    ===================================================== */
+
+    function escapeHTML(
+        value
+    ) {
+
+        return String(
+            value ?? ''
+        )
+            .replace(
+                /&/g,
+                '&amp;'
+            )
+            .replace(
+                /</g,
+                '&lt;'
+            )
+            .replace(
+                />/g,
+                '&gt;'
+            )
+            .replace(
+                /"/g,
+                '&quot;'
+            )
+            .replace(
+                /'/g,
+                '&#039;'
+            );
+
+    }
+
+
+    function escapeAttribute(
+        value
+    ) {
+
+        return escapeHTML(
+            value
         );
 
     }
@@ -865,45 +1650,91 @@
 
     function init() {
 
+        if (initialized) {
+            return;
+        }
+
+
+        initialized = true;
+
+
         createDrawer();
 
         render();
 
 
+        /*
+         * Event delegation:
+         * حتى Product Cards اللي كتتولد
+         * من بعد تبقى خدامة.
+         */
+
         document.addEventListener(
             'click',
             event => {
+
+                /* -----------------------------------------
+                   OPEN CART
+                ----------------------------------------- */
 
                 const openButton =
                     event.target.closest(
                         '[data-cart-open]'
                     );
 
+
                 if (openButton) {
+
+                    event.preventDefault();
 
                     open();
 
+                    return;
+
                 }
 
+
+                /* -----------------------------------------
+                   ADD PRODUCT
+                ----------------------------------------- */
 
                 const addButton =
                     event.target.closest(
                         '[data-cart-id]'
                     );
 
+
                 if (
                     addButton &&
                     window.VelocityProducts
                 ) {
 
+                    event.preventDefault();
+
+
                     add(
-                        addButton.dataset.cartId
+                        addButton.dataset
+                            .cartId
                     );
 
                 }
 
             }
         );
+
+
+        /*
+         * إذا products.js كان جاهز
+         * نعيد رسم السلة.
+         */
+
+        if (
+            window.VelocityProducts
+        ) {
+
+            render();
+
+        }
 
     }
 
@@ -915,33 +1746,45 @@
     window.VelocityCart = {
 
         init,
+
         add,
+
         remove,
+
         updateQuantity,
+
         clear,
+
         open,
+
         close,
+
         render,
+
         getCart,
+
         getTotalItems,
+
         getTotalPrice
 
     };
 
 
-    /*
-    =========================================================
-    WAIT FOR PRODUCTS
-    =========================================================
-    */
+    /* =====================================================
+       DOM READY
+    ===================================================== */
 
     if (
-        document.readyState === 'loading'
+        document.readyState ===
+        'loading'
     ) {
 
         document.addEventListener(
             'DOMContentLoaded',
-            init
+            init,
+            {
+                once: true
+            }
         );
 
     } else {
