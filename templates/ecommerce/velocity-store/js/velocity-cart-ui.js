@@ -6,11 +6,12 @@
    ---------------------------------------------------------
    - Add To Cart cinematic animation
    - EXACT 2 FULL ROTATIONS
-   - 720deg rotateY
+   - EXACT 720deg rotateY
    - Glow effect
    - Premium Added To Cart modal
    - Cart modal actions
    - Safe animation timing
+   - Manifest/image system untouched
 ========================================================= */
 
 (function () {
@@ -33,6 +34,17 @@
 
 
         /* =====================================================
+           CONSTANTS
+        ===================================================== */
+
+        ANIMATION_DURATION: 1400,
+
+        ANIMATION_CLEANUP_DELAY: 1500,
+
+        MODAL_DELAY: 120,
+
+
+        /* =====================================================
            PREPARE EXPERIENCE
         ===================================================== */
 
@@ -42,12 +54,17 @@
                 return;
             }
 
+
             /*
-             * Prevent duplicate animations.
+             * Prevent two cinematic animations
+             * from running at the same time.
              */
             if (CartUI.animationRunning) {
+
                 return;
+
             }
+
 
             CartUI.animationRunning = true;
 
@@ -55,18 +72,26 @@
 
             CartUI.cartConfirmed = false;
 
+
             /*
-             * Clear previous timers.
+             * Clear old timers.
              */
-            clearTimeout(CartUI.animationTimer);
-            clearTimeout(CartUI.modalTimer);
+            clearTimeout(
+                CartUI.animationTimer
+            );
+
+            clearTimeout(
+                CartUI.modalTimer
+            );
+
 
             CartUI.animationTimer = null;
+
             CartUI.modalTimer = null;
 
 
             /*
-             * Find the product card.
+             * Find the exact product card.
              */
             const card =
                 CartUI.findProductCard(
@@ -75,12 +100,24 @@
 
 
             /*
-             * Start the 720deg animation.
+             * Start cinematic animation.
              */
             if (card) {
 
                 CartUI.animateCard(
                     card
+                );
+
+            } else {
+
+                /*
+                 * If the card disappeared because
+                 * the products were re-rendered,
+                 * don't leave the system locked.
+                 */
+                console.warn(
+                    '[Velocity Store] Product card not found for animation:',
+                    product.id
                 );
 
             }
@@ -90,30 +127,45 @@
              * =================================================
              * EXACT TIMELINE
              *
-             * CSS animation:
-             * 1400ms
-             *
-             * JS waits:
-             * 1450ms
-             *
-             * Then modal:
-             * +120ms
-             *
-             * Result:
-             *
-             * CLICK
-             * ↓
+             * 0ms
+             *    ↓
              * 0°
-             * ↓
+             *
+             * 175ms
+             *    ↓
+             * 90°
+             *
+             * 350ms
+             *    ↓
              * 180°
-             * ↓
+             *
+             * 525ms
+             *    ↓
+             * 270°
+             *
+             * 700ms
+             *    ↓
              * 360°
-             * ↓
+             *
+             * 875ms
+             *    ↓
+             * 450°
+             *
+             * 1050ms
+             *    ↓
              * 540°
-             * ↓
+             *
+             * 1225ms
+             *    ↓
+             * 630°
+             *
+             * 1400ms
+             *    ↓
              * 720°
-             * ↓
-             * MODAL
+             *
+             * +120ms
+             *    ↓
+             * PREMIUM MODAL
              * =================================================
              */
 
@@ -123,6 +175,10 @@
 
                         CartUI.animationTimer = null;
 
+
+                        /*
+                         * Animation has visually finished.
+                         */
                         CartUI.animationRunning = false;
 
 
@@ -134,28 +190,44 @@
 
 
                         if (!finishedProduct) {
+
                             return;
+
                         }
 
 
                         /*
-                         * The cart change may have already happened.
+                         * IMPORTANT:
                          *
-                         * We deliberately DO NOT depend on
-                         * cartConfirmed here.
-                         *
-                         * The visual sequence always finishes
-                         * before the modal appears.
+                         * Do NOT open the modal unless
+                         * cart.js confirmed the addition.
                          */
+                        if (
+                            !CartUI.cartConfirmed
+                        ) {
 
+                            console.warn(
+                                '[Velocity Store] Cart addition was not confirmed. Modal cancelled.'
+                            );
+
+                            return;
+
+                        }
+
+
+                        /*
+                         * Open premium modal after
+                         * the 720deg animation.
+                         */
                         CartUI.scheduleModal(
                             finishedProduct,
-                            120
+                            CartUI.MODAL_DELAY
                         );
 
                     },
-                    1450
+                    CartUI.ANIMATION_DURATION + 50
                 );
+
         },
 
 
@@ -175,8 +247,7 @@
 
 
             /*
-             * If there is no product ID,
-             * still animate the card if possible.
+             * No product ID.
              */
             if (!productId) {
 
@@ -195,21 +266,48 @@
                 }
 
                 return;
+
             }
 
 
             /*
              * Get product safely.
+             *
+             * Prefer VelocityProducts because it is
+             * the actual product database.
+             *
+             * VelocityCore remains supported.
              */
-            const product =
-                window.VelocityCore &&
-                typeof window.VelocityCore.getProductById === 'function'
+            let product = null;
 
-                    ? window.VelocityCore.getProductById(
+
+            if (
+                window.VelocityProducts &&
+                typeof window.VelocityProducts.getProductById ===
+                'function'
+            ) {
+
+                product =
+                    window.VelocityProducts.getProductById(
                         productId
-                    )
+                    );
 
-                    : null;
+            }
+
+
+            if (
+                !product &&
+                window.VelocityCore &&
+                typeof window.VelocityCore.getProductById ===
+                'function'
+            ) {
+
+                product =
+                    window.VelocityCore.getProductById(
+                        productId
+                    );
+
+            }
 
 
             if (!product) {
@@ -220,14 +318,15 @@
                 );
 
                 return;
+
             }
 
 
             /*
              * IMPORTANT:
              *
-             * This must happen BEFORE cart.js
-             * processes the actual cart action.
+             * Start the cinematic experience BEFORE
+             * cart.js processes the actual add.
              */
             CartUI.prepareExperience(
                 product
@@ -246,14 +345,37 @@
                 productId === undefined ||
                 productId === null
             ) {
+
                 return null;
+
             }
 
 
             const wanted =
-                String(productId);
+                String(
+                    productId
+                );
 
 
+            /*
+             * First try the exact animation ID.
+             */
+            const animationCard =
+                document.querySelector(
+                    `.product-card[data-cart-animation-id="${CSS.escape(wanted)}"]`
+                );
+
+
+            if (animationCard) {
+
+                return animationCard;
+
+            }
+
+
+            /*
+             * Normal product ID fallback.
+             */
             const cards =
                 document.querySelectorAll(
                     '.product-card'
@@ -273,11 +395,14 @@
                 const cardProductId =
                     card.dataset.productId ||
                     card.dataset.id ||
+                    card.dataset.cartAnimationId ||
                     '';
 
 
                 if (
-                    String(cardProductId) === wanted
+                    String(
+                        cardProductId
+                    ) === wanted
                 ) {
 
                     return card;
@@ -288,6 +413,7 @@
 
 
             return null;
+
         },
 
 
@@ -312,19 +438,40 @@
 
 
             /*
+             * Remove old glow state.
+             */
+            const oldGlow =
+                card.querySelector(
+                    '.velocity-cart-glow'
+                );
+
+
+            if (oldGlow) {
+
+                oldGlow.classList.remove(
+                    'active'
+                );
+
+            }
+
+
+            /*
              * Force browser reflow.
              *
-             * This allows the animation to restart
-             * even when the same card is clicked again.
+             * This guarantees the animation
+             * restarts every time.
              */
             void card.offsetWidth;
 
 
             /*
-             * EXACT TWO FULL ROTATIONS.
+             * =================================================
+             * EXACT 2 FULL ROTATIONS
              *
-             * CSS:
-             * rotateY(0deg) → rotateY(720deg)
+             * 360deg = 1 rotation
+             *
+             * 720deg = 2 rotations
+             * =================================================
              */
             card.classList.add(
                 'velocity-cart-spin',
@@ -384,16 +531,15 @@
 
 
             /*
-             * Cleanup AFTER animation.
-             *
-             * CSS duration = 1400ms
-             * Cleanup = 1500ms
+             * Cleanup.
              */
             setTimeout(
                 function () {
 
                     if (!card) {
+
                         return;
+
                     }
 
 
@@ -412,7 +558,7 @@
                     }
 
                 },
-                1500
+                CartUI.ANIMATION_CLEANUP_DELAY
             );
 
         },
@@ -443,19 +589,13 @@
         cartChanged() {
 
             /*
-             * IMPORTANT:
-             *
-             * cart.js may dispatch:
+             * cart.js dispatches:
              *
              * velocity:cart-changed
              *
-             * immediately after adding.
-             *
-             * DO NOT OPEN THE MODAL HERE.
-             *
-             * The animation must finish first.
+             * This means the product was successfully
+             * added to the cart.
              */
-
             CartUI.cartConfirmed = true;
 
         },
@@ -488,8 +628,21 @@
 
 
                         /*
-                         * Make sure another modal
-                         * wasn't opened meanwhile.
+                         * If another experience started
+                         * while waiting, don't open an
+                         * outdated modal.
+                         */
+                        if (
+                            CartUI.animationRunning
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        /*
+                         * Open modal.
                          */
                         CartUI.openModal(
                             product
@@ -514,7 +667,7 @@
 
 
             /*
-             * Remove any old modal first.
+             * Remove previous modal.
              */
             CartUI.closeExistingModal();
 
@@ -544,23 +697,43 @@
             ================================================= */
 
             const image =
-                window.VelocityCore &&
-                typeof window.VelocityCore.getProductImage === 'function'
+                window.VelocityProducts &&
+                typeof window.VelocityProducts.getProductImage ===
+                'function'
 
-                    ? window.VelocityCore.getProductImage(
+                    ? window.VelocityProducts.getProductImage(
                         product
                     )
 
-                    : '';
+                    : (
+                        window.VelocityCore &&
+                        typeof window.VelocityCore.getProductImage ===
+                        'function'
+
+                            ? window.VelocityCore.getProductImage(
+                                product
+                            )
+
+                            : ''
+                    );
 
 
             const fallback =
-                window.VelocityCore &&
-                typeof window.VelocityCore.getFallbackImage === 'function'
+                window.VelocityProducts &&
+                typeof window.VelocityProducts.getFallbackImage ===
+                'function'
 
-                    ? window.VelocityCore.getFallbackImage()
+                    ? window.VelocityProducts.getFallbackImage()
 
-                    : '';
+                    : (
+                        window.VelocityCore &&
+                        typeof window.VelocityCore.getFallbackImage ===
+                        'function'
+
+                            ? window.VelocityCore.getFallbackImage()
+
+                            : ''
+                    );
 
 
             let candidates = [];
@@ -601,7 +774,8 @@
 
             const escapeHTML =
                 window.VelocityCore &&
-                typeof window.VelocityCore.escapeHTML === 'function'
+                typeof window.VelocityCore.escapeHTML ===
+                'function'
 
                     ? window.VelocityCore.escapeHTML
 
@@ -619,7 +793,8 @@
 
             const escapeAttribute =
                 window.VelocityCore &&
-                typeof window.VelocityCore.escapeAttribute === 'function'
+                typeof window.VelocityCore.escapeAttribute ===
+                'function'
 
                     ? window.VelocityCore.escapeAttribute
 
@@ -666,7 +841,8 @@
 
             if (
                 window.VelocityProducts &&
-                typeof window.VelocityProducts.renderStars === 'function'
+                typeof window.VelocityProducts.renderStars ===
+                'function'
             ) {
 
                 try {
@@ -692,7 +868,8 @@
 
             if (
                 window.VelocityProducts &&
-                typeof window.VelocityProducts.formatPrice === 'function'
+                typeof window.VelocityProducts.formatPrice ===
+                'function'
             ) {
 
                 try {
@@ -825,7 +1002,6 @@
 
 
                     <div class="velocity-added-grid">
-
 
                         <!-- =================================
                              VISUAL
@@ -1067,7 +1243,8 @@
 
             if (
                 window.VelocityCore &&
-                typeof window.VelocityCore.attachImageFallbacks === 'function'
+                typeof window.VelocityCore.attachImageFallbacks ===
+                'function'
             ) {
 
                 try {
@@ -1135,7 +1312,9 @@
                         !modal ||
                         !modal.parentNode
                     ) {
+
                         return;
+
                     }
 
 
@@ -1185,6 +1364,7 @@
                 );
 
                 return;
+
             }
 
 
@@ -1205,7 +1385,7 @@
 
 
             /*
-             * Give CSS exit animation time to finish.
+             * Give CSS exit animation time.
              */
             setTimeout(
                 function () {
@@ -1232,6 +1412,14 @@
 
         closeExistingModal() {
 
+            clearTimeout(
+                CartUI.modalTimer
+            );
+
+
+            CartUI.modalTimer = null;
+
+
             const old =
                 document.querySelector(
                     '#velocity-added-cart-modal'
@@ -1255,7 +1443,7 @@
 
 
     /* =========================================================
-       GLOBAL
+       GLOBAL API
     ========================================================= */
 
     window.VelocityCartUI =
