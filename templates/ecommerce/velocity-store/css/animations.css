@@ -1,0 +1,919 @@
+/* =========================================================
+   VELOCITY STORE
+   PREMIUM ANIMATIONS
+========================================================= */
+
+
+/* =========================================================
+   LOADER
+========================================================= */
+
+@keyframes loaderProgress {
+
+    0% {
+        transform:
+            scaleX(0);
+    }
+
+    100% {
+        transform:
+            scaleX(1);
+    }
+}
+
+
+/* =========================================================
+   HERO ENTRY
+========================================================= */
+
+.hero-kicker {
+    animation:
+        heroFadeUp 900ms
+        300ms both
+        cubic-bezier(.2,.8,.2,1);
+}
+
+.hero-title span:first-child {
+    animation:
+        heroTitleIn 1000ms
+        450ms both
+        cubic-bezier(.16,1,.3,1);
+}
+
+.hero-title-outline {
+    animation:
+        heroTitleIn 1100ms
+        600ms both
+        cubic-bezier(.16,1,.3,1);
+}
+
+.hero-description {
+    animation:
+        heroFadeUp 900ms
+        800ms both
+        cubic-bezier(.2,.8,.2,1);
+}
+
+.hero-buttons {
+    animation:
+        heroFadeUp 900ms
+        950ms both
+        cubic-bezier(.2,.8,.2,1);
+}
+
+.hero-stats {
+    animation:
+        heroFadeUp 900ms
+        1100ms both
+        cubic-bezier(.2,.8,.2,1);
+}
+
+
+/* =========================================================
+   HERO PRODUCT
+========================================================= */
+
+.hero-product-card {
+    animation:
+        heroProductIn 1300ms
+        450ms both
+        cubic-bezier(.16,1,.3,1);
+
+    transform-origin:
+        center center;
+}
+
+.hero-product-card::after {
+    content: "";
+
+    position: absolute;
+
+    inset: -2px;
+
+    z-index: -1;
+
+    border-radius: inherit;
+
+    background:
+        linear-gradient(
+            120deg,
+            transparent,
+            rgba(217,255,63,0.35),
+            transparent
+        );
+
+    opacity: 0;
+
+    animation:
+        borderSweep 5s
+        2s
+        infinite;
+}
+
+.hero-product-image {
+    animation:
+        heroImagePulse 6s
+        ease-in-out
+        infinite;
+}
+
+.product-placeholder {
+    animation:
+        productFloat 5s
+        ease-in-out
+        infinite;
+}
+
+.orbit-one {
+    animation:
+        orbitRotate 18s
+        linear
+        infinite;
+}
+
+.orbit-two {
+    animation:
+        orbitRotateReverse 23s
+        linear
+        infinite;
+}
+
+.floating-card-one {
+    animation:
+        floatCardOne 5s
+        ease-in-out
+        infinite;
+}
+
+.floating-card-two {
+    animation:
+        floatCardTwo 6s
+        ease-in-out
+        infinite;
+}
+
+
+/* =========================================================
+   BUTTON EFFECT
+========================================================= */
+
+.primary-button,
+.secondary-button,
+.product-add,
+.checkout-button {
+    position: relative;
+
+    overflow: hidden;
+}
+
+.primary-button::before,
+.product-add::before,
+.checkout-button::before {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    bottom: 0;
+
+    width: 45%;
+
+    left: -70%;
+
+    background:
+        linear-gradient(
+            100deg,
+            transparent,
+            rgba(255,255,255,0.35),
+            transparent
+        );
+
+    transform:
+        skewX(-18deg);
+
+    transition:
+        left 700ms ease;
+}
+
+.primary-button:hover::before,
+.product-add:hover::before,
+.checkout-button:hover::before {
+    left: 125%;
+}
+
+
+/* =========================================================
+   CATEGORY HOVER
+========================================================= */
+
+.category-card {
+    isolation: isolate;
+}
+
+.category-card::after {
+    content: "";
+
+    position: absolute;
+
+    width: 1px;
+    height: 1px;
+
+    left: 50%;
+    top: 50%;
+
+    border-radius: 50%;
+
+    background:
+        var(--accent);
+
+    opacity: 0;
+
+    z-index: -1;
+
+    transition:
+        width 800ms ease,
+        height 800ms ease,
+        opacity 800ms ease;
+}
+
+.category-card:hover::after {
+    width: 600px;
+    height: 600px;
+
+    left: calc(50% - 300px);
+    top: calc(50% - 300px);
+
+    opacity: 0.035;
+}
+
+
+/* =========================================================
+   PRODUCT CARD
+========================================================= */
+
+.product-card {
+    opacity: 1;
+
+    transform-origin:
+        center bottom;
+}
+
+.product-card.reveal {
+    animation:
+        productReveal 800ms
+        both
+        cubic-bezier(.16,1,.3,1);
+}
+
+.product-card.removing {
+    animation:
+        productDisappear 300ms
+        both
+        ease;
+}
+
+.product-card:hover .product-badge {
+    animation:
+        badgePulse 900ms
+        ease-in-out;
+}
+
+.product-card:hover .product-wishlist {
+    animation:
+        wishlistPop 450ms
+        cubic-bezier(.16,1,.3,1);
+}
+
+
+/* =========================================================
+   IMAGE EFFECT
+========================================================= */
+
+.product-image::after {
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+    background:
+        linear-gradient(
+            120deg,
+            transparent 25%,
+            rgba(255,255,255,0.1) 50%,
+            transparent 75%
+        );
+
+    transform:
+        translateX(-120%);
+
+    transition:
+        transform 900ms ease;
+
+    pointer-events: none;
+}
+
+.product-card:hover
+.product-image::after {
+    transform:
+        translateX(120%);
+}
+
+
+/* =========================================================
+   TREND CARDS
+========================================================= */
+
+.trend-card::before {
+    content: "";
+
+    position: absolute;
+
+    width: 300px;
+    height: 300px;
+
+    right: -120px;
+    top: -120px;
+
+    border-radius: 50%;
+
+    background:
+        var(--accent);
+
+    opacity: 0.04;
+
+    filter: blur(40px);
+
+    transition:
+        transform 900ms
+        cubic-bezier(.16,1,.3,1);
+}
+
+.trend-card:hover::before {
+    transform:
+        scale(1.8);
+}
+
+.trend-art {
+    transition:
+        transform 900ms
+        cubic-bezier(.16,1,.3,1),
+        color 500ms ease;
+}
+
+.trend-card:hover .trend-art {
+    transform:
+        rotate(-8deg)
+        scale(1.1);
+
+    color:
+        rgba(217,255,63,0.12);
+}
+
+
+/* =========================================================
+   PROMO
+========================================================= */
+
+.promo-product {
+    animation:
+        promoFloat 5s
+        ease-in-out
+        infinite;
+}
+
+.circle-one {
+    animation:
+        circlePulse 6s
+        ease-in-out
+        infinite;
+}
+
+.circle-two {
+    animation:
+        circlePulse 5s
+        700ms
+        ease-in-out
+        infinite;
+}
+
+
+/* =========================================================
+   NEWSLETTER
+========================================================= */
+
+.newsletter-form:focus-within {
+    animation:
+        newsletterFocus 700ms
+        ease;
+}
+
+
+/* =========================================================
+   CART
+========================================================= */
+
+.cart-drawer.open {
+    animation:
+        drawerEnter 500ms
+        cubic-bezier(.16,1,.3,1);
+}
+
+.cart-button.bump {
+    animation:
+        cartBump 500ms
+        cubic-bezier(.16,1,.3,1);
+}
+
+.cart-item {
+    animation:
+        cartItemIn 500ms
+        both
+        cubic-bezier(.16,1,.3,1);
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.product-modal.open
+.product-modal-content {
+    animation:
+        modalContentIn 650ms
+        100ms
+        both
+        cubic-bezier(.16,1,.3,1);
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+.toast.show {
+    animation:
+        toastEnter 450ms
+        cubic-bezier(.16,1,.3,1);
+}
+
+
+/* =========================================================
+   SCROLL REVEAL
+========================================================= */
+
+.reveal-on-scroll {
+    opacity: 0;
+
+    transform:
+        translateY(35px);
+
+    transition:
+        opacity 900ms
+        cubic-bezier(.2,.8,.2,1),
+        transform 900ms
+        cubic-bezier(.2,.8,.2,1);
+}
+
+.reveal-on-scroll.visible {
+    opacity: 1;
+
+    transform:
+        translateY(0);
+}
+
+
+/* =========================================================
+   KEYFRAMES
+========================================================= */
+
+@keyframes heroFadeUp {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0);
+    }
+}
+
+
+@keyframes heroTitleIn {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(80px)
+            skewY(4deg);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            skewY(0);
+    }
+}
+
+
+@keyframes heroProductIn {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(100px)
+            rotate(8deg)
+            scale(0.82);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            rotate(-5deg)
+            scale(1);
+    }
+}
+
+
+@keyframes heroImagePulse {
+
+    0%,
+    100% {
+        transform:
+            scale(1);
+    }
+
+    50% {
+        transform:
+            scale(1.025);
+    }
+}
+
+
+@keyframes productFloat {
+
+    0%,
+    100% {
+        transform:
+            translateY(0)
+            rotate(0deg);
+    }
+
+    50% {
+        transform:
+            translateY(-18px)
+            rotate(2deg);
+    }
+}
+
+
+@keyframes orbitRotate {
+
+    from {
+        transform:
+            rotate(0deg);
+    }
+
+    to {
+        transform:
+            rotate(360deg);
+    }
+}
+
+
+@keyframes orbitRotateReverse {
+
+    from {
+        transform:
+            rotate(360deg);
+    }
+
+    to {
+        transform:
+            rotate(0deg);
+    }
+}
+
+
+@keyframes floatCardOne {
+
+    0%,
+    100% {
+        transform:
+            translateY(0)
+            rotate(0deg);
+    }
+
+    50% {
+        transform:
+            translateY(-15px)
+            rotate(-2deg);
+    }
+}
+
+
+@keyframes floatCardTwo {
+
+    0%,
+    100% {
+        transform:
+            translateY(0)
+            rotate(0deg);
+    }
+
+    50% {
+        transform:
+            translateY(13px)
+            rotate(2deg);
+    }
+}
+
+
+@keyframes borderSweep {
+
+    0% {
+        opacity: 0;
+
+        transform:
+            translateX(-80%);
+    }
+
+    30% {
+        opacity: 1;
+    }
+
+    70% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+
+        transform:
+            translateX(80%);
+    }
+}
+
+
+@keyframes productReveal {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(45px)
+            scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+    }
+}
+
+
+@keyframes productDisappear {
+
+    from {
+        opacity: 1;
+
+        transform:
+            scale(1);
+    }
+
+    to {
+        opacity: 0;
+
+        transform:
+            scale(0.9);
+    }
+}
+
+
+@keyframes badgePulse {
+
+    0% {
+        transform:
+            scale(1);
+    }
+
+    50% {
+        transform:
+            scale(1.08);
+    }
+
+    100% {
+        transform:
+            scale(1);
+    }
+}
+
+
+@keyframes wishlistPop {
+
+    0% {
+        transform:
+            scale(1);
+    }
+
+    50% {
+        transform:
+            scale(1.16)
+            rotate(-6deg);
+    }
+
+    100% {
+        transform:
+            scale(1);
+    }
+}
+
+
+@keyframes promoFloat {
+
+    0%,
+    100% {
+        transform:
+            translateY(0)
+            rotate(8deg);
+    }
+
+    50% {
+        transform:
+            translateY(-20px)
+            rotate(5deg);
+    }
+}
+
+
+@keyframes circlePulse {
+
+    0%,
+    100% {
+        transform:
+            scale(1)
+            rotate(0deg);
+    }
+
+    50% {
+        transform:
+            scale(1.08)
+            rotate(8deg);
+    }
+}
+
+
+@keyframes newsletterFocus {
+
+    0% {
+        box-shadow:
+            0 0 0 rgba(217,255,63,0);
+    }
+
+    50% {
+        box-shadow:
+            0 0 35px
+            rgba(217,255,63,0.1);
+    }
+
+    100% {
+        box-shadow:
+            0 0 0 rgba(217,255,63,0);
+    }
+}
+
+
+@keyframes drawerEnter {
+
+    from {
+        transform:
+            translateX(105%);
+    }
+
+    to {
+        transform:
+            translateX(0);
+    }
+}
+
+
+@keyframes cartBump {
+
+    0% {
+        transform:
+            scale(1);
+    }
+
+    35% {
+        transform:
+            scale(1.2)
+            rotate(-5deg);
+    }
+
+    70% {
+        transform:
+            scale(0.95)
+            rotate(4deg);
+    }
+
+    100% {
+        transform:
+            scale(1)
+            rotate(0);
+    }
+}
+
+
+@keyframes cartItemIn {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateX(25px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateX(0);
+    }
+}
+
+
+@keyframes modalContentIn {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0);
+    }
+}
+
+
+@keyframes toastEnter {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translate(-50%, 25px)
+            scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translate(-50%, 0)
+            scale(1);
+    }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration:
+            0.01ms !important;
+
+        animation-iteration-count:
+            1 !important;
+
+        scroll-behavior:
+            auto !important;
+
+        transition-duration:
+            0.01ms !important;
+    }
+      }
