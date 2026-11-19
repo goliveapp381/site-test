@@ -3,16 +3,33 @@
 /* =========================================================
    VELOCITY STORE
    PRODUCTS DATABASE + PRODUCT RENDERING
-   Safe + Dynamic + Image Ready
+   ---------------------------------------------------------
+   - Safe product database
+   - Local image support
+   - Web image fallback
+   - Manifest support
+   - Graceful image fallback
+   - Wishlist integration
+   - Dynamic rendering
 ========================================================= */
 
 (function () {
 
-    /*
-    ========================================================
-    PRODUCT DATABASE
-    ========================================================
-    */
+    /* =====================================================
+       CONFIG
+    ===================================================== */
+
+    const IMAGE_MANIFEST_URL =
+        'assets/images/image-manifest.json';
+
+    let imageManifest = {};
+    let manifestLoaded = false;
+    let manifestPromise = null;
+
+
+    /* =====================================================
+       PRODUCT DATABASE
+    ===================================================== */
 
     const products = [
 
@@ -29,15 +46,14 @@
             badge: 'الأكثر مبيعاً',
 
             /*
-             * Local image candidate.
-             * Future image resolver can replace this
-             * automatically when a real local image exists.
+             * يمكن تغييرها لاحقاً إذا بغيتي
+             * ولكن ماشي ضروري.
              */
-            image: 'assets/images/products/product-1.jpg',
+            image: '',
 
             /*
-             * Optional remote fallback.
-             * Add your web image URL here later if needed.
+             * حط هنا رابط الصورة من الويب إذا ما كانتش
+             * صورة محلية.
              */
             webImage: '',
 
@@ -47,6 +63,7 @@
             featured: true,
             newest: true
         },
+
 
         {
             id: 'velocity-002',
@@ -60,7 +77,7 @@
             reviews: 94,
             badge: 'جديد',
 
-            image: 'assets/images/products/product-2.jpg',
+            image: '',
             webImage: '',
 
             colors: ['Black', 'Gray'],
@@ -69,6 +86,7 @@
             featured: true,
             newest: true
         },
+
 
         {
             id: 'velocity-003',
@@ -82,7 +100,7 @@
             reviews: 211,
             badge: 'خصم',
 
-            image: 'assets/images/products/product-3.jpg',
+            image: '',
             webImage: '',
 
             colors: ['Black', 'Silver'],
@@ -91,6 +109,7 @@
             featured: true,
             newest: false
         },
+
 
         {
             id: 'velocity-004',
@@ -104,7 +123,7 @@
             reviews: 76,
             badge: 'مميز',
 
-            image: 'assets/images/products/product-4.jpg',
+            image: '',
             webImage: '',
 
             colors: ['Black', 'Brown'],
@@ -113,6 +132,7 @@
             featured: true,
             newest: false
         },
+
 
         {
             id: 'velocity-005',
@@ -126,7 +146,7 @@
             reviews: 63,
             badge: 'جديد',
 
-            image: 'assets/images/products/product-5.jpg',
+            image: '',
             webImage: '',
 
             colors: ['Black', 'Cream', 'Gray'],
@@ -135,6 +155,7 @@
             featured: true,
             newest: true
         },
+
 
         {
             id: 'velocity-006',
@@ -148,7 +169,7 @@
             reviews: 154,
             badge: 'ترند',
 
-            image: 'assets/images/products/product-6.jpg',
+            image: '',
             webImage: '',
 
             colors: ['White', 'Black'],
@@ -157,6 +178,7 @@
             featured: true,
             newest: true
         },
+
 
         {
             id: 'velocity-007',
@@ -170,7 +192,7 @@
             reviews: 187,
             badge: 'الأكثر طلباً',
 
-            image: 'assets/images/products/product-7.jpg',
+            image: '',
             webImage: '',
 
             colors: ['Black', 'White'],
@@ -179,6 +201,7 @@
             featured: true,
             newest: false
         },
+
 
         {
             id: 'velocity-008',
@@ -192,7 +215,7 @@
             reviews: 52,
             badge: '',
 
-            image: 'assets/images/products/product-8.jpg',
+            image: '',
             webImage: '',
 
             colors: ['Black', 'Brown'],
@@ -221,22 +244,22 @@
                 <rect
                     width="800"
                     height="800"
-                    fill="#f3f4f6"
+                    fill="#111111"
                 />
 
                 <circle
                     cx="400"
-                    cy="330"
-                    r="95"
-                    fill="#d1d5db"
+                    cy="320"
+                    r="100"
+                    fill="#252525"
                 />
 
                 <path
-                    d="M190 650
-                       C220 500 300 450 400 450
-                       C500 450 580 500 610 650
+                    d="M170 650
+                       C210 490 300 440 400 440
+                       C500 440 590 490 630 650
                        Z"
-                    fill="#d1d5db"
+                    fill="#252525"
                 />
 
                 <text
@@ -245,9 +268,10 @@
                     text-anchor="middle"
                     font-family="Arial, sans-serif"
                     font-size="34"
-                    fill="#6b7280"
+                    font-weight="700"
+                    fill="#ffffff"
                 >
-                    VELOCITY STORE
+                    VELOCITY
                 </text>
             </svg>
         `);
@@ -270,7 +294,7 @@
 
 
     /* =====================================================
-       NORMALIZE SEARCH
+       NORMALIZE
     ===================================================== */
 
     function normalizeText(value) {
@@ -285,42 +309,166 @@
 
 
     /* =====================================================
-       GET ALL PRODUCTS
+       LOAD IMAGE MANIFEST
+       -----------------------------------------------------
+       إذا كان الملف موجوداً:
+       assets/images/image-manifest.json
+
+       مثال:
+
+       {
+         "velocity-001": "assets/images/sneaker.jpg",
+         "velocity-002": "assets/images/jacket.webp"
+       }
+
+       إذا الملف غير موجود، ماشي مشكل.
     ===================================================== */
 
-    function getProducts() {
+    async function loadImageManifest() {
 
-        return products.map(
-            product => ({
-                ...product,
+        if (manifestLoaded) {
+            return imageManifest;
+        }
 
-                colors: Array.isArray(product.colors)
-                    ? [...product.colors]
-                    : [],
 
-                sizes: Array.isArray(product.sizes)
-                    ? [...product.sizes]
-                    : []
+        if (manifestPromise) {
+            return manifestPromise;
+        }
+
+
+        manifestPromise =
+            fetch(
+                IMAGE_MANIFEST_URL,
+                {
+                    cache: 'no-cache'
+                }
+            )
+            .then(response => {
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Manifest HTTP ${response.status}`
+                    );
+                }
+
+                return response.json();
 
             })
-        );
+            .then(data => {
+
+                if (
+                    data &&
+                    typeof data === 'object' &&
+                    !Array.isArray(data)
+                ) {
+
+                    imageManifest = data;
+
+                } else {
+
+                    imageManifest = {};
+
+                }
+
+
+                manifestLoaded = true;
+
+                return imageManifest;
+
+            })
+            .catch(() => {
+
+                /*
+                 * Manifest اختياري.
+                 * ما نوقفوش التطبيق إذا ما كانش.
+                 */
+
+                imageManifest = {};
+                manifestLoaded = true;
+
+                return imageManifest;
+
+            });
+
+
+        return manifestPromise;
 
     }
 
 
     /* =====================================================
-       GET PRODUCT BY ID
+       IMAGE PATH
     ===================================================== */
 
-    function getProductById(productId) {
+    function normalizeImagePath(path) {
 
-        const id =
-            String(productId ?? '').trim();
+        if (
+            typeof path !== 'string' ||
+            !path.trim()
+        ) {
 
-        return products.find(
-            product =>
-                product.id === id
-        ) || null;
+            return '';
+
+        }
+
+
+        const value =
+            path.trim();
+
+
+        if (
+            /^https?:\/\//i.test(value) ||
+            value.startsWith('data:image/') ||
+            value.startsWith('/') ||
+            value.startsWith('./') ||
+            value.startsWith('../')
+        ) {
+
+            return value;
+
+        }
+
+
+        if (
+            value.startsWith('assets/')
+        ) {
+
+            return value;
+
+        }
+
+
+        return `assets/images/${value}`;
+
+    }
+
+
+    /* =====================================================
+       GET LOCAL IMAGE FROM MANIFEST
+    ===================================================== */
+
+    function getManifestImage(product) {
+
+        if (!product) {
+            return '';
+        }
+
+
+        const value =
+            imageManifest[product.id];
+
+
+        if (
+            typeof value === 'string' &&
+            value.trim()
+        ) {
+
+            return normalizeImagePath(value);
+
+        }
+
+
+        return '';
 
     }
 
@@ -337,8 +485,7 @@
 
 
         /*
-         * If another image resolver exists,
-         * allow it to control the final image.
+         * 1. Explicit resolved image
          */
 
         if (
@@ -352,7 +499,22 @@
 
 
         /*
-         * Local image has priority.
+         * 2. Manifest image
+         */
+
+        const manifestImage =
+            getManifestImage(product);
+
+
+        if (manifestImage) {
+
+            return manifestImage;
+
+        }
+
+
+        /*
+         * 3. Explicit local image
          */
 
         if (
@@ -360,13 +522,21 @@
             product.localImage.trim()
         ) {
 
-            return product.localImage.trim();
+            return normalizeImagePath(
+                product.localImage
+            );
 
         }
 
 
         /*
-         * Existing image field.
+         * 4. Explicit image
+         *
+         * مهم:
+         * ما بقيناش نحطو product-1.jpg
+         * تلقائياً.
+         *
+         * هادي هي اللي كانت كتسبب 404.
          */
 
         if (
@@ -374,13 +544,15 @@
             product.image.trim()
         ) {
 
-            return product.image.trim();
+            return normalizeImagePath(
+                product.image
+            );
 
         }
 
 
         /*
-         * Remote/web fallback.
+         * 5. Web image
          */
 
         if (
@@ -393,6 +565,10 @@
         }
 
 
+        /*
+         * 6. Remote image
+         */
+
         if (
             typeof product.remoteImage === 'string' &&
             product.remoteImage.trim()
@@ -403,6 +579,10 @@
         }
 
 
+        /*
+         * 7. Fallback
+         */
+
         return FALLBACK_IMAGE;
 
     }
@@ -410,17 +590,91 @@
 
     /* =====================================================
        IMAGE FALLBACK ATTRIBUTE
+       -----------------------------------------------------
+       Local image -> Web image -> SVG fallback
     ===================================================== */
 
-    function getImageFallbackAttribute() {
+    function getImageFallbackAttribute(product) {
+
+        const webImage =
+            product &&
+            typeof product.webImage === 'string'
+                ? product.webImage.trim()
+                : '';
+
+
+        const remoteImage =
+            product &&
+            typeof product.remoteImage === 'string'
+                ? product.remoteImage.trim()
+                : '';
+
+
+        const fallback =
+            webImage ||
+            remoteImage ||
+            FALLBACK_IMAGE;
+
 
         return `
+            data-fallback="${escapeHtml(fallback)}"
             onerror="
-                this.onerror=null;
-                this.src='${FALLBACK_IMAGE}';
-                this.classList.add('image-error');
+                if (
+                    this.dataset.fallbackUsed !== 'true' &&
+                    this.dataset.fallback
+                ) {
+                    this.dataset.fallbackUsed = 'true';
+                    this.src = this.dataset.fallback;
+                } else {
+                    this.onerror = null;
+                    this.src = '${FALLBACK_IMAGE}';
+                }
             "
         `;
+
+    }
+
+
+    /* =====================================================
+       GET PRODUCTS
+    ===================================================== */
+
+    function getProducts() {
+
+        return products.map(
+            product => ({
+                ...product,
+
+                colors:
+                    Array.isArray(product.colors)
+                        ? [...product.colors]
+                        : [],
+
+                sizes:
+                    Array.isArray(product.sizes)
+                        ? [...product.sizes]
+                        : []
+
+            })
+        );
+
+    }
+
+
+    /* =====================================================
+       GET PRODUCT BY ID
+    ===================================================== */
+
+    function getProductById(productId) {
+
+        const id =
+            String(productId ?? '').trim();
+
+
+        return products.find(
+            product =>
+                product.id === id
+        ) || null;
 
     }
 
@@ -437,25 +691,33 @@
         const numericPrice =
             Number(price);
 
-        if (!Number.isFinite(numericPrice)) {
+
+        if (
+            !Number.isFinite(numericPrice)
+        ) {
 
             return `0 ${escapeHtml(currency)}`;
 
         }
 
-        return `${numericPrice.toLocaleString('fr-FR')} ${escapeHtml(currency)}`;
+
+        return `
+            ${numericPrice.toLocaleString('fr-FR')}
+            ${escapeHtml(currency)}
+        `.replace(/\s+/g, ' ').trim();
 
     }
 
 
     /* =====================================================
-       STAR RATING
+       STARS
     ===================================================== */
 
     function renderStars(rating) {
 
         const numericRating =
             Number(rating);
+
 
         const rounded =
             Math.max(
@@ -494,7 +756,7 @@
 
 
     /* =====================================================
-       GET DISCOUNT
+       DISCOUNT
     ===================================================== */
 
     function getDiscount(product) {
@@ -503,8 +765,10 @@
             return 0;
         }
 
+
         const price =
             Number(product.price);
+
 
         const oldPrice =
             Number(product.oldPrice);
@@ -533,7 +797,7 @@
 
 
     /* =====================================================
-       PRODUCT CARD
+       CREATE PRODUCT CARD
     ===================================================== */
 
     function createProductCard(product) {
@@ -546,30 +810,32 @@
         const productId =
             escapeHtml(product.id);
 
+
         const productName =
             escapeHtml(product.name);
+
 
         const category =
             escapeHtml(product.category);
 
+
         const categoryName =
             escapeHtml(product.categoryName);
 
+
         const badge =
             escapeHtml(product.badge);
+
 
         const image =
             escapeHtml(
                 getProductImage(product)
             );
 
+
         const discount =
             getDiscount(product);
 
-
-        /*
-         * Wishlist state
-         */
 
         const isFavorite =
             window.VelocityWishlist &&
@@ -585,6 +851,8 @@
                 class="product-card"
                 data-product-id="${productId}"
                 data-category="${category}"
+                data-reveal
+                data-tilt
             >
 
                 <div class="product-image-wrapper">
@@ -599,7 +867,6 @@
                             : ''
                     }
 
-
                     ${
                         discount > 0
                             ? `
@@ -610,12 +877,9 @@
                             : ''
                     }
 
-
                     <button
                         class="wishlist-button ${
-                            isFavorite
-                                ? 'active'
-                                : ''
+                            isFavorite ? 'active' : ''
                         }"
                         type="button"
                         data-wishlist-id="${productId}"
@@ -640,7 +904,7 @@
                         alt="${productName}"
                         loading="lazy"
                         decoding="async"
-                        ${getImageFallbackAttribute()}
+                        ${getImageFallbackAttribute(product)}
                     />
 
 
@@ -686,11 +950,9 @@
                             ${renderStars(product.rating)}
                         </div>
 
-
                         <span class="rating-value">
                             ${escapeHtml(product.rating)}
                         </span>
-
 
                         <span class="review-count">
                             (${escapeHtml(product.reviews)})
@@ -737,10 +999,15 @@
 
 
     /* =====================================================
-       RENDER EMPTY STATE
+       EMPTY STATE
     ===================================================== */
 
     function renderEmptyState(element) {
+
+        if (!element) {
+            return;
+        }
+
 
         element.innerHTML = `
             <div class="products-empty">
@@ -797,15 +1064,14 @@
 
         if (!safeProducts.length) {
 
-            renderEmptyState(
-                element
-            );
+            renderEmptyState(element);
 
 
             element.dispatchEvent(
                 new CustomEvent(
                     'velocity:products-rendered',
                     {
+                        bubbles: true,
                         detail: {
                             products: []
                         }
@@ -823,6 +1089,7 @@
 
             }
 
+
             return;
 
         }
@@ -833,10 +1100,6 @@
                 .map(createProductCard)
                 .join('');
 
-
-        /*
-         * Re-sync wishlist after dynamic rendering.
-         */
 
         if (
             window.VelocityWishlist &&
@@ -852,6 +1115,7 @@
             new CustomEvent(
                 'velocity:products-rendered',
                 {
+                    bubbles: true,
                     detail: {
                         products: safeProducts
                     }
@@ -863,26 +1127,25 @@
 
 
     /* =====================================================
-       FEATURED PRODUCTS
+       FEATURED
     ===================================================== */
 
     function getFeaturedProducts() {
 
-        return products.filter(
-            product =>
-                product.featured === true
-        );
+        return getProducts()
+            .filter(
+                product =>
+                    product.featured === true
+            );
 
     }
 
 
     /* =====================================================
-       CATEGORY PRODUCTS
+       CATEGORY
     ===================================================== */
 
-    function getProductsByCategory(
-        category
-    ) {
+    function getProductsByCategory(category) {
 
         const normalizedCategory =
             normalizeText(category);
@@ -898,52 +1161,52 @@
         }
 
 
-        return products.filter(
-            product =>
-                normalizeText(
-                    product.category
-                ) === normalizedCategory
-        );
+        return getProducts()
+            .filter(
+                product =>
+                    normalizeText(
+                        product.category
+                    ) === normalizedCategory
+            );
 
     }
 
 
     /* =====================================================
-       SEARCH PRODUCTS
+       SEARCH
     ===================================================== */
 
-    function searchProducts(
-        query
-    ) {
+    function searchProducts(query) {
 
         const value =
             normalizeText(query);
 
 
         if (!value) {
-
             return getProducts();
-
         }
 
 
-        return products.filter(
-            product => {
+        return getProducts()
+            .filter(product => {
 
                 const name =
                     normalizeText(
                         product.name
                     );
 
+
                 const categoryName =
                     normalizeText(
                         product.categoryName
                     );
 
+
                 const category =
                     normalizeText(
                         product.category
                     );
+
 
                 const id =
                     normalizeText(
@@ -958,14 +1221,13 @@
                     id.includes(value)
                 );
 
-            }
-        );
+            });
 
     }
 
 
     /* =====================================================
-       GET CATEGORIES
+       CATEGORIES
     ===================================================== */
 
     function getCategories() {
@@ -985,7 +1247,7 @@
 
 
     /* =====================================================
-       GET IMAGE FALLBACK
+       FALLBACK
     ===================================================== */
 
     function getFallbackImage() {
@@ -996,7 +1258,7 @@
 
 
     /* =====================================================
-       GLOBAL API
+       PUBLIC API
     ===================================================== */
 
     window.VelocityProducts = {
@@ -1023,9 +1285,27 @@
 
         getProductImage,
 
-        getFallbackImage
+        getFallbackImage,
+
+        loadImageManifest
 
     };
+
+
+    /* =====================================================
+       LOAD MANIFEST
+    ===================================================== */
+
+    loadImageManifest()
+        .then(() => {
+
+            document.dispatchEvent(
+                new CustomEvent(
+                    'velocity:products-images-ready'
+                )
+            );
+
+        });
 
 
     /* =====================================================
