@@ -6,11 +6,17 @@
    ---------------------------------------------------------
    IMAGE SYSTEM
 
-   - Products use logical image IDs
-   - image-manifest.json resolves IDs to real files
-   - Local images have priority
-   - Remote image can be used as fallback
-   - Final fallback is generated SVG
+   - 8 real product cards
+   - Stable imageId per product
+   - image-1 -> product 1
+   - image-2 -> product 2
+   - ...
+   - image-8 -> product 8
+   - image-manifest.json can override filenames
+   - Built-in local image fallback map
+   - Local image has priority
+   - Web image fallback
+   - Final SVG fallback
    - Ready for future Template Editor
 ========================================================= */
 
@@ -24,193 +30,425 @@
         'assets/images/image-manifest.json';
 
 
+    /*
+     * IMPORTANT
+     *
+     * These are the real files currently inside:
+     *
+     * assets/images/products/
+     *
+     * The manifest can override them later.
+     *
+     * This fallback guarantees that the products still
+     * display images even if image-manifest.json returns 404.
+     */
+
+    const DEFAULT_IMAGE_MAP = {
+
+        'image-1':
+            'products/1795097464794.jpg',
+
+        'image-2':
+            'products/1795097469929.jpg',
+
+        'image-3':
+            'products/1795097472776.jpg',
+
+        'image-4':
+            'products/1795097475536.jpg',
+
+        'image-5':
+            'products/1795097479173.jpg',
+
+        'image-6':
+            'products/1795097483617.jpg',
+
+        'image-7':
+            'products/1795097486368.jpg',
+
+        'image-8':
+            'products/1795097490170.jpg'
+
+    };
+
+
     /* =====================================================
        PRODUCT DATABASE
-       -----------------------------------------------------
-       IMPORTANT:
-       imageId is the stable identifier.
-
-       The actual filename is NOT stored here.
-
-       This means later the Template Editor can change
-       the image without touching product structure.
-    ===================================================== */
+       ===================================================== */
 
     const products = [
 
+        /* =================================================
+           PRODUCT 1
+        ================================================= */
+
         {
             id: 'velocity-001',
+
             name: 'Velocity X1 Sneakers',
+
             category: 'shoes',
+
             categoryName: 'Sneakers',
+
             price: 899,
+
             oldPrice: 1099,
+
             currency: 'DH',
+
             rating: 4.9,
+
             reviews: 128,
+
             badge: 'الأكثر مبيعاً',
 
             imageId: 'image-1',
+
             webImage: '',
 
-            colors: ['Black', 'White'],
-            sizes: ['40', '41', '42', '43', '44'],
+            colors: [
+                'Black',
+                'White'
+            ],
+
+            sizes: [
+                '40',
+                '41',
+                '42',
+                '43',
+                '44'
+            ],
+
             stock: 15,
+
             featured: true,
+
             newest: true
         },
+
+
+        /* =================================================
+           PRODUCT 2
+        ================================================= */
 
         {
             id: 'velocity-002',
+
             name: 'Urban Shadow Jacket',
+
             category: 'fashion',
+
             categoryName: 'Fashion',
+
             price: 749,
+
             oldPrice: 899,
+
             currency: 'DH',
+
             rating: 4.8,
+
             reviews: 94,
+
             badge: 'جديد',
 
             imageId: 'image-2',
+
             webImage: '',
 
-            colors: ['Black', 'Gray'],
-            sizes: ['S', 'M', 'L', 'XL'],
+            colors: [
+                'Black',
+                'Gray'
+            ],
+
+            sizes: [
+                'S',
+                'M',
+                'L',
+                'XL'
+            ],
+
             stock: 8,
+
             featured: true,
+
             newest: true
         },
+
+
+        /* =================================================
+           PRODUCT 3
+        ================================================= */
 
         {
             id: 'velocity-003',
+
             name: 'Aero Smart Watch',
+
             category: 'tech',
+
             categoryName: 'Technology',
+
             price: 1299,
+
             oldPrice: 1599,
+
             currency: 'DH',
+
             rating: 4.7,
+
             reviews: 211,
+
             badge: 'خصم',
 
             imageId: 'image-3',
+
             webImage: '',
 
-            colors: ['Black', 'Silver'],
+            colors: [
+                'Black',
+                'Silver'
+            ],
+
             sizes: [],
+
             stock: 21,
+
             featured: true,
+
             newest: false
         },
+
+
+        /* =================================================
+           PRODUCT 4
+        ================================================= */
 
         {
             id: 'velocity-004',
+
             name: 'Premium Leather Bag',
+
             category: 'accessories',
+
             categoryName: 'Accessories',
+
             price: 599,
+
             oldPrice: 699,
+
             currency: 'DH',
+
             rating: 4.8,
+
             reviews: 76,
+
             badge: 'مميز',
 
             imageId: 'image-4',
+
             webImage: '',
 
-            colors: ['Black', 'Brown'],
+            colors: [
+                'Black',
+                'Brown'
+            ],
+
             sizes: [],
+
             stock: 12,
+
             featured: true,
+
             newest: false
         },
+
+
+        /* =================================================
+           PRODUCT 5
+        ================================================= */
 
         {
             id: 'velocity-005',
+
             name: 'Essential Oversized Hoodie',
+
             category: 'fashion',
+
             categoryName: 'Fashion',
+
             price: 449,
+
             oldPrice: 549,
+
             currency: 'DH',
+
             rating: 4.6,
+
             reviews: 63,
+
             badge: 'جديد',
 
             imageId: 'image-5',
+
             webImage: '',
 
-            colors: ['Black', 'Cream', 'Gray'],
-            sizes: ['S', 'M', 'L', 'XL'],
+            colors: [
+                'Black',
+                'Cream',
+                'Gray'
+            ],
+
+            sizes: [
+                'S',
+                'M',
+                'L',
+                'XL'
+            ],
+
             stock: 30,
+
             featured: true,
+
             newest: true
         },
+
+
+        /* =================================================
+           PRODUCT 6
+        ================================================= */
 
         {
             id: 'velocity-006',
+
             name: 'Velocity Runner Pro',
+
             category: 'shoes',
+
             categoryName: 'Sneakers',
+
             price: 799,
+
             oldPrice: 999,
+
             currency: 'DH',
+
             rating: 4.9,
+
             reviews: 154,
+
             badge: 'ترند',
 
             imageId: 'image-6',
+
             webImage: '',
 
-            colors: ['White', 'Black'],
-            sizes: ['40', '41', '42', '43', '44'],
+            colors: [
+                'White',
+                'Black'
+            ],
+
+            sizes: [
+                '40',
+                '41',
+                '42',
+                '43',
+                '44'
+            ],
+
             stock: 17,
+
             featured: true,
+
             newest: true
         },
 
+
+        /* =================================================
+           PRODUCT 7
+        ================================================= */
+
         {
             id: 'velocity-007',
+
             name: 'Wireless Pro Headphones',
+
             category: 'tech',
+
             categoryName: 'Technology',
+
             price: 999,
+
             oldPrice: 1199,
+
             currency: 'DH',
+
             rating: 4.8,
+
             reviews: 187,
+
             badge: 'الأكثر طلباً',
 
             imageId: 'image-7',
+
             webImage: '',
 
-            colors: ['Black', 'White'],
+            colors: [
+                'Black',
+                'White'
+            ],
+
             sizes: [],
+
             stock: 25,
+
             featured: true,
+
             newest: false
         },
 
+
+        /* =================================================
+           PRODUCT 8
+        ================================================= */
+
         {
             id: 'velocity-008',
+
             name: 'Minimal Crossbody Bag',
+
             category: 'accessories',
+
             categoryName: 'Accessories',
+
             price: 399,
+
             oldPrice: 499,
+
             currency: 'DH',
+
             rating: 4.5,
+
             reviews: 52,
+
             badge: '',
 
             imageId: 'image-8',
+
             webImage: '',
 
-            colors: ['Black', 'Brown'],
+            colors: [
+                'Black',
+                'Brown'
+            ],
+
             sizes: [],
+
             stock: 19,
+
             featured: true,
+
             newest: false
         }
 
@@ -218,12 +456,15 @@
 
 
     /* =====================================================
-       IMAGE MANIFEST
+       IMAGE MANIFEST STATE
     ===================================================== */
 
     let imageManifest = {
+
         version: 1,
+
         products: {}
+
     };
 
 
@@ -239,6 +480,7 @@
     const FALLBACK_IMAGE =
         'data:image/svg+xml;charset=UTF-8,' +
         encodeURIComponent(`
+
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="800"
@@ -270,13 +512,11 @@
 
                 </defs>
 
-
                 <rect
                     width="800"
                     height="800"
                     fill="url(#bg)"
                 />
-
 
                 <circle
                     cx="400"
@@ -284,7 +524,6 @@
                     r="110"
                     fill="#303038"
                 />
-
 
                 <path
                     d="
@@ -300,7 +539,6 @@
                     fill="#303038"
                 />
 
-
                 <text
                     x="400"
                     y="735"
@@ -315,11 +553,12 @@
                 </text>
 
             </svg>
+
         `);
 
 
     /* =====================================================
-       HTML ESCAPE
+       ESCAPE HTML
     ===================================================== */
 
     function escapeHtml(value) {
@@ -368,7 +607,7 @@
         }
 
 
-        const productsMap =
+        const source =
             data.products &&
             typeof data.products === 'object'
                 ? data.products
@@ -378,12 +617,18 @@
         const normalized = {};
 
 
-        Object.keys(productsMap)
-            .forEach(key => {
+        Object.keys(source).forEach(
+            key => {
 
                 const value =
-                    productsMap[key];
+                    source[key];
 
+
+                /*
+                 * Simple format:
+                 *
+                 * "image-1": "products/file.jpg"
+                 */
 
                 if (
                     typeof value === 'string' &&
@@ -393,9 +638,33 @@
                     normalized[key] =
                         value.trim();
 
+                    return;
+
                 }
 
-            });
+
+                /*
+                 * Future editor format:
+                 *
+                 * "image-1": {
+                 *     "src": "products/file.jpg"
+                 * }
+                 */
+
+                if (
+                    value &&
+                    typeof value === 'object' &&
+                    typeof value.src === 'string' &&
+                    value.src.trim()
+                ) {
+
+                    normalized[key] =
+                        value.src.trim();
+
+                }
+
+            }
+        );
 
 
         return {
@@ -424,9 +693,16 @@
         }
 
 
+        const manifestUrl =
+            new URL(
+                IMAGE_MANIFEST_URL,
+                document.baseURI
+            ).href;
+
+
         imageManifestPromise =
             fetch(
-                IMAGE_MANIFEST_URL,
+                manifestUrl,
                 {
                     cache: 'no-cache'
                 }
@@ -452,15 +728,12 @@
                     imageManifestLoaded =
                         true;
 
+
                     console.log(
                         '[Velocity Store] Image manifest loaded:',
                         imageManifest
                     );
 
-
-                    /*
-                     * Notify other modules.
-                     */
 
                     document.dispatchEvent(
                         new CustomEvent(
@@ -475,6 +748,22 @@
                     );
 
 
+                    /*
+                     * IMPORTANT:
+                     *
+                     * Manifest arrived AFTER the initial
+                     * product rendering.
+                     *
+                     * Tell the application to render again.
+                     */
+
+                    document.dispatchEvent(
+                        new CustomEvent(
+                            'velocity:images-ready'
+                        )
+                    );
+
+
                     return imageManifest;
 
                 })
@@ -483,15 +772,32 @@
                     imageManifestLoaded =
                         false;
 
+
                     imageManifest = {
+
                         version: 1,
+
                         products: {}
+
                     };
 
 
                     console.warn(
-                        '[Velocity Store] Image manifest could not be loaded:',
+                        '[Velocity Store] image-manifest.json unavailable. Using built-in image map.',
                         error
+                    );
+
+
+                    /*
+                     * Even if manifest is 404,
+                     * the local DEFAULT_IMAGE_MAP
+                     * will continue working.
+                     */
+
+                    document.dispatchEvent(
+                        new CustomEvent(
+                            'velocity:images-ready'
+                        )
                     );
 
 
@@ -512,9 +818,7 @@
     function getManifestImage(imageId) {
 
         if (
-            !imageId ||
-            !imageManifest ||
-            !imageManifest.products
+            !imageId
         ) {
 
             return '';
@@ -523,12 +827,48 @@
 
 
         const value =
-            imageManifest.products[imageId];
+            imageManifest &&
+            imageManifest.products
+                ? imageManifest.products[imageId]
+                : '';
 
 
         if (
-            typeof value !== 'string' ||
-            !value.trim()
+            typeof value === 'string' &&
+            value.trim()
+        ) {
+
+            return value.trim();
+
+        }
+
+
+        return '';
+
+    }
+
+
+    /* =====================================================
+       GET DEFAULT LOCAL IMAGE
+       -----------------------------------------------------
+       This is the emergency local mapping.
+    ===================================================== */
+
+    function getDefaultLocalImage(imageId) {
+
+        if (!imageId) {
+
+            return '';
+
+        }
+
+
+        const value =
+            DEFAULT_IMAGE_MAP[imageId];
+
+
+        if (
+            typeof value !== 'string'
         ) {
 
             return '';
@@ -561,12 +901,14 @@
 
 
         if (!image) {
+
             return '';
+
         }
 
 
         /*
-         * Absolute URLs.
+         * Absolute HTTP / HTTPS
          */
 
         if (
@@ -579,7 +921,7 @@
 
 
         /*
-         * Data URLs.
+         * Data URL
          */
 
         if (
@@ -592,7 +934,7 @@
 
 
         /*
-         * Already rooted path.
+         * Root path
          */
 
         if (
@@ -605,7 +947,7 @@
 
 
         /*
-         * Already starts from assets.
+         * assets/ path
          */
 
         if (
@@ -618,8 +960,8 @@
 
 
         /*
-         * Manifest paths are relative to
-         * assets/images/.
+         * Local image path is relative
+         * to assets/images/
          */
 
         return `assets/images/${image}`;
@@ -628,26 +970,28 @@
 
 
     /* =====================================================
-       GET ALL PRODUCTS
+       GET PRODUCTS
     ===================================================== */
 
     function getProducts() {
 
-        return products.map(product => ({
+        return products.map(
+            product => ({
 
-            ...product,
+                ...product,
 
-            colors:
-                Array.isArray(product.colors)
-                    ? [...product.colors]
-                    : [],
+                colors:
+                    Array.isArray(product.colors)
+                        ? [...product.colors]
+                        : [],
 
-            sizes:
-                Array.isArray(product.sizes)
-                    ? [...product.sizes]
-                    : []
+                sizes:
+                    Array.isArray(product.sizes)
+                        ? [...product.sizes]
+                        : []
 
-        }));
+            })
+        );
 
     }
 
@@ -659,7 +1003,9 @@
     function getProductById(productId) {
 
         const id =
-            String(productId ?? '').trim();
+            String(
+                productId ?? ''
+            ).trim();
 
 
         return products.find(
@@ -671,138 +1017,18 @@
 
 
     /* =====================================================
-       GET PRODUCT IMAGE
-    ===================================================== */
-
-    function getProductImage(product) {
-
-        if (!product) {
-
-            return FALLBACK_IMAGE;
-
-        }
-
-
-        /*
-         * 1. resolvedImage
-         *
-         * Future editor can directly inject
-         * a resolved image here.
-         */
-
-        if (
-            typeof product.resolvedImage === 'string' &&
-            product.resolvedImage.trim()
-        ) {
-
-            return buildImageUrl(
-                product.resolvedImage
-            );
-
-        }
-
-
-        /*
-         * 2. localImage
-         */
-
-        if (
-            typeof product.localImage === 'string' &&
-            product.localImage.trim()
-        ) {
-
-            return buildImageUrl(
-                product.localImage
-            );
-
-        }
-
-
-        /*
-         * 3. imageId
-         *
-         * This is the main system now.
-         */
-
-        if (
-            product.imageId
-        ) {
-
-            const manifestImage =
-                getManifestImage(
-                    product.imageId
-                );
-
-
-            if (manifestImage) {
-
-                return buildImageUrl(
-                    manifestImage
-                );
-
-            }
-
-        }
-
-
-        /*
-         * 4. Legacy image field.
-         */
-
-        if (
-            typeof product.image === 'string' &&
-            product.image.trim()
-        ) {
-
-            return buildImageUrl(
-                product.image
-            );
-
-        }
-
-
-        /*
-         * 5. Web image.
-         */
-
-        if (
-            typeof product.webImage === 'string' &&
-            product.webImage.trim()
-        ) {
-
-            return buildImageUrl(
-                product.webImage
-            );
-
-        }
-
-
-        /*
-         * 6. Remote image.
-         */
-
-        if (
-            typeof product.remoteImage === 'string' &&
-            product.remoteImage.trim()
-        ) {
-
-            return buildImageUrl(
-                product.remoteImage
-            );
-
-        }
-
-
-        return FALLBACK_IMAGE;
-
-    }
-
-
-    /* =====================================================
        GET PRODUCT IMAGE CANDIDATES
        -----------------------------------------------------
-       Used by app.js to perform:
-       LOCAL → WEB → FALLBACK
+       Priority:
+       
+       1. Editor/resolved image
+       2. localImage
+       3. image-manifest
+       4. default local mapping
+       5. legacy image
+       6. web image
+       7. remote image
+       8. SVG fallback
     ===================================================== */
 
     function getProductImageCandidates(product) {
@@ -825,9 +1051,7 @@
                 buildImageUrl(value);
 
 
-            if (
-                !url
-            ) {
+            if (!url) {
 
                 return;
 
@@ -846,98 +1070,96 @@
 
 
         /*
-         * Local / resolved image.
+         * 1.
+         * Future Template Editor image.
          */
 
-        if (
+        addCandidate(
             product.resolvedImage
-        ) {
-
-            addCandidate(
-                product.resolvedImage
-            );
-
-        }
-
-
-        if (
-            product.localImage
-        ) {
-
-            addCandidate(
-                product.localImage
-            );
-
-        }
+        );
 
 
         /*
-         * Manifest image.
+         * 2.
+         * Explicit local image.
+         */
+
+        addCandidate(
+            product.localImage
+        );
+
+
+        /*
+         * 3.
+         * Manifest mapping.
          */
 
         if (
             product.imageId
         ) {
 
-            const manifestImage =
+            addCandidate(
                 getManifestImage(
                     product.imageId
-                );
-
-
-            if (manifestImage) {
-
-                addCandidate(
-                    manifestImage
-                );
-
-            }
+                )
+            );
 
         }
 
 
         /*
-         * Legacy image.
+         * 4.
+         * Built-in local mapping.
+         *
+         * This is what makes the images work
+         * even while manifest.json is 404.
          */
 
         if (
+            product.imageId
+        ) {
+
+            addCandidate(
+                getDefaultLocalImage(
+                    product.imageId
+                )
+            );
+
+        }
+
+
+        /*
+         * 5.
+         * Old image field.
+         */
+
+        addCandidate(
             product.image
-        ) {
-
-            addCandidate(
-                product.image
-            );
-
-        }
+        );
 
 
         /*
-         * Web fallback.
+         * 6.
+         * Web image.
          */
 
-        if (
+        addCandidate(
             product.webImage
-        ) {
-
-            addCandidate(
-                product.webImage
-            );
-
-        }
-
-
-        if (
-            product.remoteImage
-        ) {
-
-            addCandidate(
-                product.remoteImage
-            );
-
-        }
+        );
 
 
         /*
+         * 7.
+         * Remote image.
+         */
+
+        addCandidate(
+            product.remoteImage
+        );
+
+
+        /*
+         * 8.
          * Final fallback.
          */
 
@@ -952,11 +1174,61 @@
 
 
     /* =====================================================
-       IMAGE FALLBACK ATTRIBUTE
-       -----------------------------------------------------
-       LOCAL IMAGE FAILS:
-       → WEB IMAGE
-       → FALLBACK
+       GET PRODUCT IMAGE
+    ===================================================== */
+
+    function getProductImage(product) {
+
+        const candidates =
+            getProductImageCandidates(
+                product
+            );
+
+
+        return candidates[0] ||
+            FALLBACK_IMAGE;
+
+    }
+
+
+    /* =====================================================
+       IMAGE CANDIDATES ATTRIBUTE
+       ===================================================== */
+
+    function getImageCandidatesAttribute(product) {
+
+        const candidates =
+            getProductImageCandidates(
+                product
+            );
+
+
+        /*
+         * First candidate is used as src.
+         *
+         * Remaining candidates are used
+         * when image loading fails.
+         */
+
+        const fallbackCandidates =
+            candidates.slice(1);
+
+
+        const encoded =
+            escapeHtml(
+                JSON.stringify(
+                    fallbackCandidates
+                )
+            );
+
+
+        return `data-image-candidates="${encoded}"`;
+
+    }
+
+
+    /* =====================================================
+       LEGACY FALLBACK ATTRIBUTE
     ===================================================== */
 
     function getImageFallbackAttribute(product) {
@@ -967,20 +1239,15 @@
             );
 
 
-        const fallbackCandidates =
-            candidates.slice(1);
-
-
-        const encoded =
-            JSON.stringify(
-                fallbackCandidates
-            )
-                .replace(/&/g, '&amp;')
-                .replace(/"/g, '&quot;');
+        const fallback =
+            candidates[1] ||
+            FALLBACK_IMAGE;
 
 
         return `
-            data-image-candidates="${encoded}"
+            data-fallback="${escapeHtml(
+                fallback
+            )}"
         `;
 
     }
@@ -1070,16 +1337,22 @@
     function getDiscount(product) {
 
         if (!product) {
+
             return 0;
+
         }
 
 
         const price =
-            Number(product.price);
+            Number(
+                product.price
+            );
 
 
         const oldPrice =
-            Number(product.oldPrice);
+            Number(
+                product.oldPrice
+            );
 
 
         if (
@@ -1096,7 +1369,10 @@
 
         return Math.round(
             (
-                (oldPrice - price) /
+                (
+                    oldPrice -
+                    price
+                ) /
                 oldPrice
             ) * 100
         );
@@ -1105,60 +1381,86 @@
 
 
     /* =====================================================
-       PRODUCT CARD
-    ===================================================== */
+       CREATE PRODUCT CARD
+       ===================================================== */
 
     function createProductCard(product) {
 
         if (!product) {
+
             return '';
+
         }
 
 
         const productId =
-            escapeHtml(product.id);
+            escapeHtml(
+                product.id
+            );
 
 
         const productName =
-            escapeHtml(product.name);
+            escapeHtml(
+                product.name
+            );
 
 
         const category =
-            escapeHtml(product.category);
+            escapeHtml(
+                product.category
+            );
 
 
         const categoryName =
-            escapeHtml(product.categoryName);
+            escapeHtml(
+                product.categoryName
+            );
 
 
         const badge =
-            escapeHtml(product.badge);
+            escapeHtml(
+                product.badge
+            );
 
 
         const image =
-            escapeHtml(
-                getProductImage(product)
+            getProductImage(
+                product
             );
 
 
         const discount =
-            getDiscount(product);
+            getDiscount(
+                product
+            );
 
 
         const isFavorite =
             window.VelocityWishlist &&
-            typeof window.VelocityWishlist.has === 'function'
+            typeof window.VelocityWishlist.has ===
+            'function'
                 ? window.VelocityWishlist.has(
                     product.id
                 )
                 : false;
 
 
+        /*
+         * This creates ONE card for ONE product.
+         *
+         * Product 1 -> image-1
+         * Product 2 -> image-2
+         * ...
+         */
+
         return `
 
             <article
                 class="product-card"
                 data-product-id="${productId}"
+                data-image-id="${escapeHtml(
+                    product.imageId || ''
+                )}"
                 data-category="${category}"
             >
 
@@ -1201,20 +1503,23 @@
                         }"
                         aria-pressed="${isFavorite}"
                     >
+
                         ${
                             isFavorite
                                 ? '♥'
                                 : '♡'
                         }
+
                     </button>
 
 
                     <img
                         class="product-image"
-                        src="${image}"
+                        src="${escapeHtml(image)}"
                         alt="${productName}"
                         loading="lazy"
                         decoding="async"
+                        ${getImageCandidatesAttribute(product)}
                         ${getImageFallbackAttribute(product)}
                     />
 
@@ -1258,17 +1563,23 @@
                     <div class="product-rating">
 
                         <div class="stars">
-                            ${renderStars(product.rating)}
+                            ${renderStars(
+                                product.rating
+                            )}
                         </div>
 
 
                         <span class="rating-value">
-                            ${escapeHtml(product.rating)}
+                            ${escapeHtml(
+                                product.rating
+                            )}
                         </span>
 
 
                         <span class="review-count">
-                            (${escapeHtml(product.reviews)})
+                            (${escapeHtml(
+                                product.reviews
+                            )})
                         </span>
 
                     </div>
@@ -1279,10 +1590,12 @@
                         <div class="product-price-wrapper">
 
                             <span class="product-price">
+
                                 ${formatPrice(
                                     product.price,
                                     product.currency
                                 )}
+
                             </span>
 
 
@@ -1290,10 +1603,12 @@
                                 product.oldPrice
                                     ? `
                                         <span class="product-old-price">
+
                                             ${formatPrice(
                                                 product.oldPrice,
                                                 product.currency
                                             )}
+
                                         </span>
                                     `
                                     : ''
@@ -1343,7 +1658,7 @@
 
     /* =====================================================
        RENDER PRODUCTS
-    ===================================================== */
+       ===================================================== */
 
     function renderProducts(
         container,
@@ -1377,6 +1692,11 @@
                 : [];
 
 
+        /*
+         * This guarantees that the number of cards
+         * equals the number of products received.
+         */
+
         if (
             !safeProducts.length
         ) {
@@ -1406,10 +1726,17 @@
         element.innerHTML =
             safeProducts
                 .map(
-                    createProductCard
+                    product =>
+                        createProductCard(
+                            product
+                        )
                 )
                 .join('');
 
+
+        /*
+         * Update wishlist state.
+         */
 
         if (
             window.VelocityWishlist &&
@@ -1422,13 +1749,47 @@
         }
 
 
+        /*
+         * Tell the rest of the application
+         * that product cards are ready.
+         */
+
         element.dispatchEvent(
             new CustomEvent(
                 'velocity:products-rendered',
                 {
+                    bubbles: true,
+
                     detail: {
+
                         products:
-                            safeProducts
+                            safeProducts,
+
+                        count:
+                            safeProducts.length
+
+                    }
+                }
+            )
+        );
+
+
+        /*
+         * Also emit globally.
+         */
+
+        document.dispatchEvent(
+            new CustomEvent(
+                'velocity:products-rendered',
+                {
+                    detail: {
+
+                        products:
+                            safeProducts,
+
+                        count:
+                            safeProducts.length
+
                     }
                 }
             )
@@ -1439,11 +1800,11 @@
 
     /* =====================================================
        FEATURED PRODUCTS
-    ===================================================== */
+       ===================================================== */
 
     function getFeaturedProducts() {
 
-        return products.filter(
+        return getProducts().filter(
             product =>
                 product.featured === true
         );
@@ -1453,14 +1814,16 @@
 
     /* =====================================================
        CATEGORY PRODUCTS
-    ===================================================== */
+       ===================================================== */
 
     function getProductsByCategory(
         category
     ) {
 
         const normalizedCategory =
-            normalizeText(category);
+            normalizeText(
+                category
+            );
 
 
         if (
@@ -1473,7 +1836,7 @@
         }
 
 
-        return products.filter(
+        return getProducts().filter(
             product =>
                 normalizeText(
                     product.category
@@ -1485,14 +1848,16 @@
 
     /* =====================================================
        SEARCH PRODUCTS
-    ===================================================== */
+       ===================================================== */
 
     function searchProducts(
         query
     ) {
 
         const value =
-            normalizeText(query);
+            normalizeText(
+                query
+            );
 
 
         if (!value) {
@@ -1502,7 +1867,7 @@
         }
 
 
-        return products.filter(
+        return getProducts().filter(
             product => {
 
                 const name =
@@ -1544,7 +1909,7 @@
 
     /* =====================================================
        GET CATEGORIES
-    ===================================================== */
+       ===================================================== */
 
     function getCategories() {
 
@@ -1564,7 +1929,7 @@
 
     /* =====================================================
        GET FALLBACK IMAGE
-    ===================================================== */
+       ===================================================== */
 
     function getFallbackImage() {
 
@@ -1575,18 +1940,36 @@
 
     /* =====================================================
        GET IMAGE MANIFEST
-    ===================================================== */
+       ===================================================== */
 
     function getImageManifest() {
 
         return {
+
             version:
                 imageManifest.version,
 
-            products:
-                {
-                    ...imageManifest.products
-                }
+            products: {
+
+                ...imageManifest.products
+
+            }
+
+        };
+
+    }
+
+
+    /* =====================================================
+       GET DEFAULT IMAGE MAP
+       ===================================================== */
+
+    function getDefaultImageMap() {
+
+        return {
+
+            ...DEFAULT_IMAGE_MAP
+
         };
 
     }
@@ -1594,7 +1977,7 @@
 
     /* =====================================================
        IS MANIFEST LOADED
-    ===================================================== */
+       ===================================================== */
 
     function isImageManifestLoaded() {
 
@@ -1604,8 +1987,29 @@
 
 
     /* =====================================================
+       GET PRODUCT IMAGE ID
+       ===================================================== */
+
+    function getProductImageId(
+        productId
+    ) {
+
+        const product =
+            getProductById(
+                productId
+            );
+
+
+        return product
+            ? product.imageId
+            : null;
+
+    }
+
+
+    /* =====================================================
        GLOBAL API
-    ===================================================== */
+       ===================================================== */
 
     window.VelocityProducts = {
 
@@ -1633,9 +2037,17 @@
 
         getProductImageCandidates,
 
+        getImageCandidatesAttribute,
+
+        getImageFallbackAttribute,
+
         getFallbackImage,
 
         getImageManifest,
+
+        getDefaultImageMap,
+
+        getProductImageId,
 
         isImageManifestLoaded,
 
@@ -1645,20 +2057,27 @@
 
 
     /* =====================================================
-       START IMAGE MANIFEST LOADING
-    ===================================================== */
+       START MANIFEST
+       ===================================================== */
 
     loadImageManifest();
 
 
     /* =====================================================
-       READY
+       PRODUCTS READY
     ===================================================== */
 
     document.dispatchEvent(
         new CustomEvent(
-            'velocity:products-ready'
+            'velocity:products-ready',
+            {
+                detail: {
+                    count:
+                        products.length
+                }
+            }
         )
     );
+
 
 })();
