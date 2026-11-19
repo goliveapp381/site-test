@@ -1,14 +1,13 @@
 {
   "version": 1,
-  "basePath": "products/",
   "products": {
-    "velocity-001": "1795097464794.jpg",
-    "velocity-002": "1795097469929.jpg",
-    "velocity-003": "1795097472776.jpg",
-    "velocity-004": "1795097475536.jpg",
-    "velocity-005": "1795097479173.jpg",
-    "velocity-006": "1795097483617.jpg",
-    "velocity-007": "1795097486368.jpg",
-    "velocity-008": "1795097490170.jpg"
+    "image-1": "products/1795097464794.jpg",
+    "image-2": "products/1795097469929.jpg",
+    "image-3": "products/1795097472776.jpg",
+    "image-4": "products/1795097475536.jpg",
+    "image-5": "products/1795097479173.jpg",
+    "image-6": "products/1795097483617.jpg",
+    "image-7": "products/1795097486368.jpg",
+    "image-8": "products/1795097490170.jpg"
   }
 }
