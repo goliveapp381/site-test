@@ -13,8 +13,8 @@
    - Wishlist
    - Cart
    - Global UI events
-   - Image fallback
-   - Page loader control
+   - Image fallback support
+   - Page loader protection
 ========================================================= */
 
 (function () {
@@ -35,66 +35,41 @@
                 return;
             }
 
-
             this.initialized = true;
 
+            try {
 
-            /*
-             * ما نخليوش loader يبقى إلى الأبد.
-             */
+                this.initializeModules();
 
-            this.hidePageLoader();
+                this.bindEvents();
 
+                this.setupImageFallbacks();
 
-            /*
-             * Modules
-             */
+                this.updateYear();
 
-            this.initializeModules();
+            } catch (error) {
 
+                console.error(
+                    '[Velocity Store] Application initialization error:',
+                    error
+                );
 
-            /*
-             * Events
-             */
+            } finally {
 
-            this.bindEvents();
+                /*
+                 * مهم جداً:
+                 * مهما وقع في JS، الصفحة ما تبقاش عالقة
+                 * في VELOCITY loader.
+                 */
 
+                this.hidePageLoader();
 
-            /*
-             * Images
-             */
-
-            this.setupImageFallbacks();
-
-
-            /*
-             * Footer
-             */
-
-            this.updateYear();
-
-
-            /*
-             * App ready
-             */
+            }
 
             document.dispatchEvent(
                 new CustomEvent(
                     'velocity:app-ready'
                 )
-            );
-
-
-            /*
-             * Hide loader مرة أخرى بعد render.
-             */
-
-            requestAnimationFrame(
-                () => {
-
-                    this.hidePageLoader();
-
-                }
             );
 
         },
@@ -111,25 +86,27 @@
                     '#pageLoader'
                 );
 
-
             if (!loader) {
                 return;
             }
 
 
             /*
-             * أولاً نخليه visible حتى ما يبقاش
-             * عنصر مخفي بطريقة غريبة.
+             * نبدأ بإخفائه بصرياً.
              */
+
+            loader.classList.add(
+                'loaded'
+            );
+
+            loader.classList.add(
+                'hidden'
+            );
+
 
             loader.setAttribute(
                 'aria-hidden',
                 'true'
-            );
-
-
-            loader.classList.add(
-                'loaded'
             );
 
 
@@ -138,24 +115,35 @@
             );
 
 
+            document.body.classList.remove(
+                'page-loading'
+            );
+
+
             /*
-             * Fallback قوي حتى إذا CSS ما عندوش
-             * class loaded.
+             * إذا CSS ديال القالب ما عندوش
+             * class مناسب، نخليه يختفي مباشرة.
              */
 
             setTimeout(
                 () => {
 
-                    loader.style.opacity =
-                        '0';
+                    if (!loader) {
+                        return;
+                    }
 
-                    loader.style.pointerEvents =
-                        'none';
+                    loader.style.opacity = '0';
+                    loader.style.visibility = 'hidden';
+                    loader.style.pointerEvents = 'none';
 
                 },
-                150
+                350
             );
 
+
+            /*
+             * حذف loader من DOM من بعد animation.
+             */
 
             setTimeout(
                 () => {
@@ -165,29 +153,26 @@
                         loader.parentNode
                     ) {
 
-                        loader.style.display =
-                            'none';
+                        loader.remove();
 
                     }
 
                 },
-                700
+                900
             );
 
         },
 
 
         /* =====================================================
-           MODULES
+           MODULE INITIALIZATION
         ===================================================== */
 
         initializeModules() {
 
             /*
-             * filters.js هو المسؤول على products rendering.
-             *
-             * مهم جداً:
-             * ما نعاودوش نرسمو featured products من بعد.
+             * Filters هو المسؤول على rendering
+             * ديال products.
              */
 
             if (
@@ -196,39 +181,49 @@
                 'function'
             ) {
 
-                try {
+                window.VelocityFilters.apply();
 
-                    window.VelocityFilters.apply();
+            } else {
 
-                } catch (error) {
-
-                    console.error(
-                        '[Velocity Store] Filters initialization error:',
-                        error
-                    );
-
-
-                    this.renderProducts();
-
-                }
-
-
-                return;
+                this.renderProducts();
 
             }
 
 
             /*
-             * Fallback إذا filters.js ما كانش.
+             * Cart initialization.
              */
 
-            this.renderProducts();
+            if (
+                window.VelocityCart &&
+                typeof window.VelocityCart.init ===
+                'function'
+            ) {
+
+                window.VelocityCart.init();
+
+            }
+
+
+            /*
+             * Wishlist initialization.
+             */
+
+            if (
+                window.VelocityWishlist &&
+                typeof window.VelocityWishlist.init ===
+                'function'
+            ) {
+
+                window.VelocityWishlist.init();
+
+            }
 
         },
 
 
         /* =====================================================
-           FALLBACK PRODUCT RENDER
+           PRODUCTS FALLBACK
         ===================================================== */
 
         renderProducts() {
@@ -259,7 +254,7 @@
             }
 
 
-            let productList = [];
+            let products = [];
 
 
             if (
@@ -267,27 +262,16 @@
                 'function'
             ) {
 
-                productList =
+                products =
                     window.VelocityProducts.getProducts();
 
             }
 
 
-            try {
-
-                window.VelocityProducts.renderProducts(
-                    container,
-                    productList
-                );
-
-            } catch (error) {
-
-                console.error(
-                    '[Velocity Store] Product render error:',
-                    error
-                );
-
-            }
+            window.VelocityProducts.renderProducts(
+                container,
+                products
+            );
 
 
             this.setupImageFallbacks();
@@ -304,7 +288,6 @@
             if (this.eventsBound) {
                 return;
             }
-
 
             this.eventsBound = true;
 
@@ -326,7 +309,6 @@
                             '[data-mobile-menu]'
                         );
 
-
                     if (menuButton) {
 
                         event.preventDefault();
@@ -338,15 +320,10 @@
                     }
 
 
-                    /* =========================================
-                       MOBILE CLOSE
-                    ========================================= */
-
                     const mobileClose =
                         event.target.closest(
                             '#mobileMenuClose, [data-mobile-menu-close]'
                         );
-
 
                     if (mobileClose) {
 
@@ -359,15 +336,10 @@
                     }
 
 
-                    /* =========================================
-                       MOBILE LINK
-                    ========================================= */
-
                     const mobileLink =
                         event.target.closest(
                             '#mobileMenu a[href^="#"], .mobile-menu a[href^="#"]'
                         );
-
 
                     if (mobileLink) {
 
@@ -385,20 +357,13 @@
                             '[data-scroll-to]'
                         );
 
-
                     if (scrollButton) {
 
                         event.preventDefault();
 
-
-                        const target =
-                            scrollButton.dataset.scrollTo;
-
-
                         this.scrollTo(
-                            target
+                            scrollButton.dataset.scrollTo
                         );
-
 
                         return;
 
@@ -413,7 +378,6 @@
                         event.target.closest(
                             '[data-search-open]'
                         );
-
 
                     if (searchOpen) {
 
@@ -435,7 +399,6 @@
                             '#closeSearch, [data-search-close]'
                         );
 
-
                     if (searchClose) {
 
                         event.preventDefault();
@@ -451,15 +414,14 @@
                        SEARCH BACKDROP
                     ========================================= */
 
-                    const overlay =
+                    const searchOverlay =
                         document.querySelector(
                             '#searchOverlay'
                         );
 
-
                     if (
-                        overlay &&
-                        event.target === overlay
+                        searchOverlay &&
+                        event.target === searchOverlay
                     ) {
 
                         this.closeSearch();
@@ -478,7 +440,6 @@
                             '#searchSubmit'
                         );
 
-
                     if (searchSubmit) {
 
                         event.preventDefault();
@@ -491,7 +452,7 @@
 
 
                     /* =========================================
-                       CATEGORY FILTER
+                       CATEGORY
                     ========================================= */
 
                     const categoryButton =
@@ -499,11 +460,9 @@
                             '[data-category-filter]'
                         );
 
-
                     if (categoryButton) {
 
                         event.preventDefault();
-
 
                         const category =
                             categoryButton.dataset.categoryFilter ||
@@ -528,32 +487,13 @@
 
                         }
 
-
-                        /*
-                         * إذا ضغط من category cards
-                         * نهبطو للمنتجات.
-                         */
-
-                        if (
-                            categoryButton.closest(
-                                '#categories'
-                            )
-                        ) {
-
-                            this.scrollTo(
-                                '#products'
-                            );
-
-                        }
-
-
                         return;
 
                     }
 
 
                     /* =========================================
-                       FILTER RESET
+                       RESET
                     ========================================= */
 
                     const resetButton =
@@ -561,11 +501,9 @@
                             '[data-filter-reset]'
                         );
 
-
                     if (resetButton) {
 
                         event.preventDefault();
-
 
                         if (
                             window.VelocityFilters &&
@@ -577,14 +515,13 @@
 
                         }
 
-
                         return;
 
                     }
 
 
                     /* =========================================
-                       CART OPEN
+                       CART
                     ========================================= */
 
                     const cartOpen =
@@ -592,11 +529,9 @@
                             '[data-cart-open]'
                         );
 
-
                     if (cartOpen) {
 
                         event.preventDefault();
-
 
                         if (
                             window.VelocityCart &&
@@ -608,21 +543,19 @@
 
                         }
 
-
                         return;
 
                     }
 
 
                     /* =========================================
-                       WISHLIST OPEN
+                       WISHLIST
                     ========================================= */
 
                     const wishlistOpen =
                         event.target.closest(
                             '[data-wishlist-open]'
                         );
-
 
                     if (wishlistOpen) {
 
@@ -644,16 +577,13 @@
                             '.quick-view-button[data-product-id]'
                         );
 
-
                     if (quickView) {
 
                         event.preventDefault();
 
-
                         this.openQuickView(
                             quickView.dataset.productId
                         );
-
 
                         return;
 
@@ -669,22 +599,15 @@
                             '[data-close-quick-view]'
                         );
 
-
                     if (quickViewClose) {
 
                         event.preventDefault();
 
-
-                        const modal =
+                        this.closeQuickView(
                             document.querySelector(
                                 '#quick-view-modal'
-                            );
-
-
-                        this.closeQuickView(
-                            modal
+                            )
                         );
-
 
                         return;
 
@@ -700,11 +623,9 @@
                             '[data-quick-add]'
                         );
 
-
                     if (quickAdd) {
 
                         event.preventDefault();
-
 
                         const productId =
                             quickAdd.dataset.quickAdd;
@@ -729,39 +650,6 @@
                             )
                         );
 
-
-                        return;
-
-                    }
-
-
-                    /* =========================================
-                       SEARCH RESULT
-                    ========================================= */
-
-                    const searchResult =
-                        event.target.closest(
-                            '[data-search-product-id]'
-                        );
-
-
-                    if (searchResult) {
-
-                        event.preventDefault();
-
-
-                        const productId =
-                            searchResult.dataset.searchProductId;
-
-
-                        this.closeSearch();
-
-
-                        this.openQuickView(
-                            productId
-                        );
-
-
                         return;
 
                     }
@@ -783,7 +671,6 @@
                             '[data-product-search]'
                         );
 
-
                     if (!input) {
                         return;
                     }
@@ -793,23 +680,19 @@
                         input.value.trim();
 
 
-                    /*
-                     * Sync all search inputs.
-                     */
-
                     document
                         .querySelectorAll(
                             '[data-product-search]'
                         )
                         .forEach(
-                            otherInput => {
+                            other => {
 
                                 if (
-                                    otherInput !== input &&
-                                    otherInput.value !== value
+                                    other !== input &&
+                                    other.value !== value
                                 ) {
 
-                                    otherInput.value =
+                                    other.value =
                                         value;
 
                                 }
@@ -817,10 +700,6 @@
                             }
                         );
 
-
-                    /*
-                     * Search overlay preview.
-                     */
 
                     if (
                         input.id === 'searchInput'
@@ -832,10 +711,6 @@
 
                     }
 
-
-                    /*
-                     * Products filter.
-                     */
 
                     if (
                         window.VelocityFilters &&
@@ -865,7 +740,6 @@
                         event.target.closest(
                             '[data-product-sort]'
                         );
-
 
                     if (!sort) {
                         return;
@@ -919,22 +793,9 @@
                                 : '';
 
 
-                        if (!email) {
-
-                            this.showNotification(
-                                'المرجو إدخال البريد الإلكتروني.',
-                                'error'
-                            );
-
-                            return;
-
-                        }
-
-
                         if (
-                            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-                                email
-                            )
+                            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+                                .test(email)
                         ) {
 
                             this.showNotification(
@@ -1001,19 +862,11 @@
                     this.closeSearch();
 
 
-                    const modal =
+                    this.closeQuickView(
                         document.querySelector(
                             '#quick-view-modal'
-                        );
-
-
-                    if (modal) {
-
-                        this.closeQuickView(
-                            modal
-                        );
-
-                    }
+                        )
+                    );
 
 
                     if (
@@ -1047,78 +900,7 @@
                         'function'
                     ) {
 
-                        try {
-
-                            window.VelocityAnimations.refresh();
-
-                        } catch (error) {
-
-                            console.warn(
-                                '[Velocity Store] Animation refresh failed:',
-                                error
-                            );
-
-                        }
-
-                    } else if (
-                        window.VelocityAnimations &&
-                        typeof window.VelocityAnimations.init ===
-                        'function'
-                    ) {
-
-                        try {
-
-                            window.VelocityAnimations.init();
-
-                        } catch (error) {
-
-                            console.warn(
-                                '[Velocity Store] Animation init failed:',
-                                error
-                            );
-
-                        }
-
-                    }
-
-
-                    this.hidePageLoader();
-
-                }
-            );
-
-
-            /* =================================================
-               IMAGES READY
-            ================================================= */
-
-            document.addEventListener(
-                'velocity:products-images-ready',
-                () => {
-
-                    /*
-                     * إذا manifest تبدل الصور،
-                     * نعيد render من filters.
-                     */
-
-                    if (
-                        window.VelocityFilters &&
-                        typeof window.VelocityFilters.apply ===
-                        'function'
-                    ) {
-
-                        try {
-
-                            window.VelocityFilters.apply();
-
-                        } catch (error) {
-
-                            console.warn(
-                                '[Velocity Store] Image refresh failed:',
-                                error
-                            );
-
-                        }
+                        window.VelocityAnimations.refresh();
 
                     }
 
@@ -1228,7 +1010,7 @@
 
 
         /* =====================================================
-           SEARCH SUBMIT
+           PERFORM SEARCH
         ===================================================== */
 
         performSearch() {
@@ -1259,7 +1041,6 @@
 
 
             this.closeSearch();
-
 
             this.scrollTo(
                 '#products'
@@ -1309,36 +1090,20 @@
 
 
             if (
-                !window.VelocityProducts
+                !window.VelocityProducts ||
+                typeof window.VelocityProducts.searchProducts !==
+                'function'
             ) {
-
-                container.innerHTML = '';
 
                 return;
 
             }
 
 
-            let results = [];
-
-
-            if (
-                typeof window.VelocityProducts.searchProducts ===
-                'function'
-            ) {
-
-                results =
-                    window.VelocityProducts.searchProducts(
-                        value
-                    );
-
-            }
-
-
-            results =
-                Array.isArray(results)
-                    ? results.slice(0, 6)
-                    : [];
+            const results =
+                window.VelocityProducts
+                    .searchProducts(value)
+                    .slice(0, 6);
 
 
             if (!results.length) {
@@ -1346,9 +1111,7 @@
                 container.innerHTML = `
                     <div class="search-results-empty">
                         <span>×</span>
-                        <p>
-                            No products found.
-                        </p>
+                        <p>No products found.</p>
                     </div>
                 `;
 
@@ -1359,86 +1122,121 @@
 
             container.innerHTML =
                 results
-                    .map(product => {
+                    .map(
+                        product => {
 
-                        const image =
-                            this.getProductImage(
-                                product
-                            );
-
-
-                        const name =
-                            this.escapeHTML(
-                                product.name ||
-                                'Product'
-                            );
+                            const image =
+                                this.getProductImage(
+                                    product
+                                );
 
 
-                        const category =
-                            this.escapeHTML(
-                                product.categoryName ||
-                                product.category ||
-                                ''
-                            );
+                            const name =
+                                this.escapeHTML(
+                                    product.name
+                                );
 
 
-                        const price =
-                            window.VelocityProducts &&
-                            typeof window.VelocityProducts.formatPrice ===
-                            'function'
-                                ? window.VelocityProducts.formatPrice(
-                                    product.price,
-                                    product.currency
-                                )
-                                : `${Number(
-                                    product.price || 0
-                                ).toFixed(2)} DH`;
+                            const category =
+                                this.escapeHTML(
+                                    product.categoryName ||
+                                    product.category ||
+                                    ''
+                                );
 
 
-                        return `
-                            <button
-                                type="button"
-                                class="search-result-item"
-                                data-search-product-id="${this.escapeAttribute(product.id)}"
-                            >
-
-                                <span class="search-result-image">
-
-                                    <img
-                                        src="${this.escapeAttribute(image)}"
-                                        alt="${this.escapeAttribute(product.name || '')}"
-                                        data-fallback="${this.escapeAttribute(this.getFallbackImage())}"
-                                    >
-
-                                </span>
+                            const price =
+                                window.VelocityProducts &&
+                                typeof window.VelocityProducts.formatPrice ===
+                                'function'
+                                    ? window.VelocityProducts.formatPrice(
+                                        product.price,
+                                        product.currency
+                                    )
+                                    : `${product.price} DH`;
 
 
-                                <span class="search-result-info">
+                            return `
+                                <button
+                                    type="button"
+                                    class="search-result-item"
+                                    data-search-product-id="${this.escapeAttribute(product.id)}"
+                                >
 
-                                    <strong>
-                                        ${name}
-                                    </strong>
+                                    <span class="search-result-image">
 
-                                    <small>
-                                        ${category}
-                                    </small>
+                                        <img
+                                            src="${this.escapeAttribute(image)}"
+                                            alt="${this.escapeAttribute(product.name)}"
+                                            data-fallback="${this.escapeAttribute(this.getFallbackImage())}"
+                                        >
 
-                                    <b>
-                                        ${price}
-                                    </b>
+                                    </span>
 
-                                </span>
+                                    <span class="search-result-info">
 
-                            </button>
-                        `;
+                                        <strong>
+                                            ${name}
+                                        </strong>
 
-                    })
+                                        <small>
+                                            ${category}
+                                        </small>
+
+                                        <b>
+                                            ${price}
+                                        </b>
+
+                                    </span>
+
+                                </button>
+                            `;
+
+                        }
+                    )
                     .join('');
 
 
             this.attachImageFallbacks(
                 container
             );
+
+
+            if (
+                !container._velocitySearchBound
+            ) {
+
+                container._velocitySearchBound =
+                    true;
+
+
+                container.addEventListener(
+                    'click',
+                    event => {
+
+                        const result =
+                            event.target.closest(
+                                '[data-search-product-id]'
+                            );
+
+
+                        if (!result) {
+                            return;
+                        }
+
+
+                        const id =
+                            result.dataset.searchProductId;
+
+
+                        this.closeSearch();
+
+                        this.openQuickView(id);
+
+                    }
+                );
+
+            }
 
         },
 
@@ -1451,55 +1249,29 @@
 
             if (
                 window.VelocityWishlist &&
-                typeof window.VelocityWishlist.open ===
+                typeof window.VelocityWishlist.getProducts ===
                 'function'
             ) {
 
-                window.VelocityWishlist.open();
-
-                return;
-
-            }
+                const products =
+                    window.VelocityWishlist.getProducts();
 
 
-            if (
-                !window.VelocityWishlist
-            ) {
+                if (!products.length) {
+
+                    this.showNotification(
+                        'قائمة المفضلة فارغة.',
+                        'info'
+                    );
+
+                    return;
+
+                }
+
 
                 this.showNotification(
-                    'قائمة المفضلة غير متاحة حالياً.',
-                    'error'
-                );
-
-                return;
-
-            }
-
-
-            if (
-                typeof window.VelocityWishlist.getProducts !==
-                'function'
-            ) {
-
-                this.showNotification(
-                    'قائمة المفضلة غير متاحة حالياً.',
-                    'error'
-                );
-
-                return;
-
-            }
-
-
-            const wishlistProducts =
-                window.VelocityWishlist.getProducts();
-
-
-            if (!wishlistProducts.length) {
-
-                this.showNotification(
-                    'قائمة المفضلة فارغة.',
-                    'info'
+                    `لديك ${products.length} منتج في المفضلة.`,
+                    'success'
                 );
 
                 return;
@@ -1508,8 +1280,8 @@
 
 
             this.showNotification(
-                `لديك ${wishlistProducts.length} منتج في المفضلة.`,
-                'success'
+                'قائمة المفضلة غير متاحة حالياً.',
+                'error'
             );
 
         },
@@ -1521,7 +1293,7 @@
 
         toggleMobileMenu() {
 
-            const isOpen =
+            const open =
                 document.body.classList.toggle(
                     'mobile-menu-open'
                 );
@@ -1537,7 +1309,7 @@
 
                 button.setAttribute(
                     'aria-expanded',
-                    String(isOpen)
+                    String(open)
                 );
 
             }
@@ -1553,7 +1325,7 @@
 
                 menu.setAttribute(
                     'aria-hidden',
-                    String(!isOpen)
+                    String(!open)
                 );
 
             }
@@ -1603,7 +1375,7 @@
 
 
         /* =====================================================
-           FALLBACK CATEGORY
+           CATEGORY FALLBACK
         ===================================================== */
 
         fallbackCategoryFilter(category) {
@@ -1626,11 +1398,8 @@
             }
 
 
-            let list =
-                typeof window.VelocityProducts.getProducts ===
-                'function'
-                    ? window.VelocityProducts.getProducts()
-                    : [];
+            let products =
+                window.VelocityProducts.getProducts();
 
 
             if (
@@ -1638,13 +1407,15 @@
                 category !== 'all'
             ) {
 
-                list =
-                    list.filter(
+                products =
+                    products.filter(
                         product =>
                             String(
-                                product.category || ''
+                                product.category
                             ).toLowerCase() ===
-                            String(category).toLowerCase()
+                            String(
+                                category
+                            ).toLowerCase()
                     );
 
             }
@@ -1652,7 +1423,7 @@
 
             window.VelocityProducts.renderProducts(
                 container,
-                list
+                products
             );
 
 
@@ -1674,7 +1445,7 @@
             }
 
 
-            let element = null;
+            let element;
 
 
             try {
@@ -1720,9 +1491,7 @@
                 typeof window.VelocityProducts.getProductById !==
                 'function'
             ) {
-
                 return;
-
             }
 
 
@@ -1750,14 +1519,11 @@
                         'div'
                     );
 
-
                 modal.id =
                     'quick-view-modal';
 
-
                 modal.className =
                     'quick-view-modal';
-
 
                 document.body.appendChild(
                     modal
@@ -1778,7 +1544,7 @@
 
             const name =
                 this.escapeHTML(
-                    product.name || ''
+                    product.name
                 );
 
 
@@ -1797,8 +1563,7 @@
 
 
             const stars =
-                typeof window.VelocityProducts.renderStars ===
-                'function'
+                window.VelocityProducts.renderStars
                     ? window.VelocityProducts.renderStars(
                         rating
                     )
@@ -1806,15 +1571,12 @@
 
 
             const price =
-                typeof window.VelocityProducts.formatPrice ===
-                'function'
+                window.VelocityProducts.formatPrice
                     ? window.VelocityProducts.formatPrice(
                         product.price,
                         product.currency
                     )
-                    : `${Number(
-                        product.price || 0
-                    ).toFixed(2)} DH`;
+                    : `${product.price} DH`;
 
 
             modal.innerHTML = `
@@ -1824,23 +1586,19 @@
                     data-close-quick-view
                 ></div>
 
-
                 <div
                     class="quick-view-content"
                     role="dialog"
                     aria-modal="true"
-                    aria-label="${name}"
                 >
 
                     <button
                         class="quick-view-close"
                         type="button"
                         data-close-quick-view
-                        aria-label="Close"
                     >
                         ×
                     </button>
-
 
                     <div class="quick-view-grid">
 
@@ -1848,12 +1606,11 @@
 
                             <img
                                 src="${this.escapeAttribute(image)}"
-                                alt="${this.escapeAttribute(product.name || '')}"
+                                alt="${this.escapeAttribute(product.name)}"
                                 data-fallback="${this.escapeAttribute(fallback)}"
-                            />
+                            >
 
                         </div>
-
 
                         <div class="quick-view-info">
 
@@ -1861,11 +1618,9 @@
                                 ${category}
                             </span>
 
-
                             <h2>
                                 ${name}
                             </h2>
-
 
                             <div class="product-rating">
 
@@ -1879,20 +1634,14 @@
 
                             </div>
 
-
                             <div class="quick-view-price">
                                 ${price}
                             </div>
 
-
                             <p>
                                 Premium product from
                                 Velocity Store.
-                                Designed with a modern
-                                aesthetic and built for
-                                everyday use.
                             </p>
-
 
                             <button
                                 class="btn btn-primary"
@@ -1967,14 +1716,14 @@
                     }
 
                 },
-                250
+                300
             );
 
         },
 
 
         /* =====================================================
-           GET PRODUCT IMAGE
+           PRODUCT IMAGE
         ===================================================== */
 
         getProductImage(product) {
@@ -1990,14 +1739,14 @@
                 'function'
             ) {
 
-                const resolved =
+                const image =
                     window.VelocityProducts.getProductImage(
                         product
                     );
 
 
-                if (resolved) {
-                    return resolved;
+                if (image) {
+                    return image;
                 }
 
             }
@@ -2006,18 +1755,11 @@
             const candidates = [
 
                 product.resolvedImage,
-
                 product.localImage,
-
                 product.image,
-
                 product.webImage,
-
                 product.imageUrl,
-
-                product.remoteImage,
-
-                product.fallbackImage
+                product.remoteImage
 
             ];
 
@@ -2042,21 +1784,7 @@
                 }
 
 
-                if (
-                    /^https?:\/\//i.test(value) ||
-                    value.startsWith('data:image/') ||
-                    value.startsWith('/') ||
-                    value.startsWith('./') ||
-                    value.startsWith('../') ||
-                    value.startsWith('assets/')
-                ) {
-
-                    return value;
-
-                }
-
-
-                return `assets/images/${value}`;
+                return value;
 
             }
 
@@ -2083,42 +1811,39 @@
             }
 
 
-            return `
-                data:image/svg+xml;charset=UTF-8,
-                <svg xmlns="http://www.w3.org/2000/svg"
-                    width="800"
-                    height="800"
-                    viewBox="0 0 800 800">
-
-                    <rect
+            return 'data:image/svg+xml;charset=UTF-8,' +
+                encodeURIComponent(`
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
                         width="800"
                         height="800"
-                        fill="%23101016"
-                    />
-
-                    <text
-                        x="50%"
-                        y="50%"
-                        dominant-baseline="middle"
-                        text-anchor="middle"
-                        fill="%23ffffff"
-                        font-family="Arial"
-                        font-size="54"
                     >
-                        VELOCITY
-                    </text>
+                        <rect
+                            width="800"
+                            height="800"
+                            fill="#101016"
+                        />
 
-                </svg>
-            `.replace(
-                /\s+/g,
-                ' '
-            );
+                        <text
+                            x="50%"
+                            y="50%"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            fill="#ffffff"
+                            font-family="Arial"
+                            font-size="54"
+                        >
+                            VELOCITY
+                        </text>
+
+                    </svg>
+                `);
 
         },
 
 
         /* =====================================================
-           IMAGE FALLBACK SETUP
+           IMAGE FALLBACK SYSTEM
         ===================================================== */
 
         setupImageFallbacks() {
@@ -2166,35 +1891,39 @@
                         'error',
                         () => {
 
-                            const fallback =
-                                image.dataset.fallback;
-
-
                             if (
-                                fallback &&
-                                image.dataset.fallbackUsed !==
+                                image.dataset.fallbackUsed ===
                                 'true'
                             ) {
 
-                                image.dataset.fallbackUsed =
-                                    'true';
-
-
-                                image.src =
-                                    fallback;
-
+                                image.style.visibility =
+                                    'hidden';
 
                                 return;
 
                             }
 
 
-                            image.onerror =
-                                null;
+                            const fallback =
+                                image.dataset.fallback;
 
 
-                            image.style.visibility =
-                                'hidden';
+                            if (!fallback) {
+
+                                image.style.visibility =
+                                    'hidden';
+
+                                return;
+
+                            }
+
+
+                            image.dataset.fallbackUsed =
+                                'true';
+
+
+                            image.src =
+                                fallback;
 
                         }
                     );
@@ -2227,14 +1956,11 @@
                         'div'
                     );
 
-
                 notification.id =
                     'velocity-notification';
 
-
                 notification.className =
                     'velocity-notification';
-
 
                 document.body.appendChild(
                     notification
@@ -2337,39 +2063,13 @@
        DOM READY
     ========================================================= */
 
-    function startApp() {
-
-        try {
-
-            App.init();
-
-        } catch (error) {
-
-            /*
-             * حتى إذا وقع خطأ في module آخر،
-             * ما نخليوش الصفحة محبوسة فالـloader.
-             */
-
-            console.error(
-                '[Velocity Store] Fatal application error:',
-                error
-            );
-
-
-            App.hidePageLoader();
-
-        }
-
-    }
-
-
     if (
         document.readyState === 'loading'
     ) {
 
         document.addEventListener(
             'DOMContentLoaded',
-            startApp,
+            () => App.init(),
             {
                 once: true
             }
@@ -2377,14 +2077,14 @@
 
     } else {
 
-        startApp();
+        App.init();
 
     }
 
 
-    /* =====================================================
+    /* =========================================================
        GLOBAL
-    ===================================================== */
+    ========================================================= */
 
     window.VelocityApp =
         App;
