@@ -3,6 +3,7 @@
 /* =========================================================
    VELOCITY STORE
    PRODUCTS DATABASE + PRODUCT RENDERING
+   Safe + Dynamic + Image Ready
 ========================================================= */
 
 (function () {
@@ -26,7 +27,20 @@
             rating: 4.9,
             reviews: 128,
             badge: 'الأكثر مبيعاً',
+
+            /*
+             * Local image candidate.
+             * Future image resolver can replace this
+             * automatically when a real local image exists.
+             */
             image: 'assets/images/products/product-1.jpg',
+
+            /*
+             * Optional remote fallback.
+             * Add your web image URL here later if needed.
+             */
+            webImage: '',
+
             colors: ['Black', 'White'],
             sizes: ['40', '41', '42', '43', '44'],
             stock: 15,
@@ -45,7 +59,10 @@
             rating: 4.8,
             reviews: 94,
             badge: 'جديد',
+
             image: 'assets/images/products/product-2.jpg',
+            webImage: '',
+
             colors: ['Black', 'Gray'],
             sizes: ['S', 'M', 'L', 'XL'],
             stock: 8,
@@ -64,7 +81,10 @@
             rating: 4.7,
             reviews: 211,
             badge: 'خصم',
+
             image: 'assets/images/products/product-3.jpg',
+            webImage: '',
+
             colors: ['Black', 'Silver'],
             sizes: [],
             stock: 21,
@@ -83,7 +103,10 @@
             rating: 4.8,
             reviews: 76,
             badge: 'مميز',
+
             image: 'assets/images/products/product-4.jpg',
+            webImage: '',
+
             colors: ['Black', 'Brown'],
             sizes: [],
             stock: 12,
@@ -102,7 +125,10 @@
             rating: 4.6,
             reviews: 63,
             badge: 'جديد',
+
             image: 'assets/images/products/product-5.jpg',
+            webImage: '',
+
             colors: ['Black', 'Cream', 'Gray'],
             sizes: ['S', 'M', 'L', 'XL'],
             stock: 30,
@@ -121,7 +147,10 @@
             rating: 4.9,
             reviews: 154,
             badge: 'ترند',
+
             image: 'assets/images/products/product-6.jpg',
+            webImage: '',
+
             colors: ['White', 'Black'],
             sizes: ['40', '41', '42', '43', '44'],
             stock: 17,
@@ -140,7 +169,10 @@
             rating: 4.8,
             reviews: 187,
             badge: 'الأكثر طلباً',
+
             image: 'assets/images/products/product-7.jpg',
+            webImage: '',
+
             colors: ['Black', 'White'],
             sizes: [],
             stock: 25,
@@ -159,7 +191,10 @@
             rating: 4.5,
             reviews: 52,
             badge: '',
+
             image: 'assets/images/products/product-8.jpg',
+            webImage: '',
+
             colors: ['Black', 'Brown'],
             sizes: [],
             stock: 19,
@@ -170,147 +205,460 @@
     ];
 
 
-    /*
-    ========================================================
-    GET ALL PRODUCTS
-    ========================================================
-    */
+    /* =====================================================
+       FALLBACK IMAGE
+    ===================================================== */
 
-    function getProducts() {
-        return [...products];
+    const FALLBACK_IMAGE =
+        'data:image/svg+xml;charset=UTF-8,' +
+        encodeURIComponent(`
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="800"
+                height="800"
+                viewBox="0 0 800 800"
+            >
+                <rect
+                    width="800"
+                    height="800"
+                    fill="#f3f4f6"
+                />
+
+                <circle
+                    cx="400"
+                    cy="330"
+                    r="95"
+                    fill="#d1d5db"
+                />
+
+                <path
+                    d="M190 650
+                       C220 500 300 450 400 450
+                       C500 450 580 500 610 650
+                       Z"
+                    fill="#d1d5db"
+                />
+
+                <text
+                    x="400"
+                    y="735"
+                    text-anchor="middle"
+                    font-family="Arial, sans-serif"
+                    font-size="34"
+                    fill="#6b7280"
+                >
+                    VELOCITY STORE
+                </text>
+            </svg>
+        `);
+
+
+    /* =====================================================
+       HTML ESCAPE
+    ===================================================== */
+
+    function escapeHtml(value) {
+
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+
     }
 
 
-    /*
-    ========================================================
-    GET PRODUCT BY ID
-    ========================================================
-    */
+    /* =====================================================
+       NORMALIZE SEARCH
+    ===================================================== */
+
+    function normalizeText(value) {
+
+        return String(value ?? '')
+            .trim()
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+
+    }
+
+
+    /* =====================================================
+       GET ALL PRODUCTS
+    ===================================================== */
+
+    function getProducts() {
+
+        return products.map(
+            product => ({
+                ...product,
+
+                colors: Array.isArray(product.colors)
+                    ? [...product.colors]
+                    : [],
+
+                sizes: Array.isArray(product.sizes)
+                    ? [...product.sizes]
+                    : []
+
+            })
+        );
+
+    }
+
+
+    /* =====================================================
+       GET PRODUCT BY ID
+    ===================================================== */
 
     function getProductById(productId) {
 
+        const id =
+            String(productId ?? '').trim();
+
         return products.find(
-            product => product.id === productId
+            product =>
+                product.id === id
         ) || null;
+
     }
 
 
-    /*
-    ========================================================
-    FORMAT PRICE
-    ========================================================
-    */
+    /* =====================================================
+       GET PRODUCT IMAGE
+    ===================================================== */
 
-    function formatPrice(price, currency = 'DH') {
+    function getProductImage(product) {
 
-        return `${Number(price).toLocaleString('fr-FR')} ${currency}`;
+        if (!product) {
+            return FALLBACK_IMAGE;
+        }
+
+
+        /*
+         * If another image resolver exists,
+         * allow it to control the final image.
+         */
+
+        if (
+            typeof product.resolvedImage === 'string' &&
+            product.resolvedImage.trim()
+        ) {
+
+            return product.resolvedImage.trim();
+
+        }
+
+
+        /*
+         * Local image has priority.
+         */
+
+        if (
+            typeof product.localImage === 'string' &&
+            product.localImage.trim()
+        ) {
+
+            return product.localImage.trim();
+
+        }
+
+
+        /*
+         * Existing image field.
+         */
+
+        if (
+            typeof product.image === 'string' &&
+            product.image.trim()
+        ) {
+
+            return product.image.trim();
+
+        }
+
+
+        /*
+         * Remote/web fallback.
+         */
+
+        if (
+            typeof product.webImage === 'string' &&
+            product.webImage.trim()
+        ) {
+
+            return product.webImage.trim();
+
+        }
+
+
+        if (
+            typeof product.remoteImage === 'string' &&
+            product.remoteImage.trim()
+        ) {
+
+            return product.remoteImage.trim();
+
+        }
+
+
+        return FALLBACK_IMAGE;
+
     }
 
 
-    /*
-    ========================================================
-    STAR RATING
-    ========================================================
-    */
+    /* =====================================================
+       IMAGE FALLBACK ATTRIBUTE
+    ===================================================== */
+
+    function getImageFallbackAttribute() {
+
+        return `
+            onerror="
+                this.onerror=null;
+                this.src='${FALLBACK_IMAGE}';
+                this.classList.add('image-error');
+            "
+        `;
+
+    }
+
+
+    /* =====================================================
+       FORMAT PRICE
+    ===================================================== */
+
+    function formatPrice(
+        price,
+        currency = 'DH'
+    ) {
+
+        const numericPrice =
+            Number(price);
+
+        if (!Number.isFinite(numericPrice)) {
+
+            return `0 ${escapeHtml(currency)}`;
+
+        }
+
+        return `${numericPrice.toLocaleString('fr-FR')} ${escapeHtml(currency)}`;
+
+    }
+
+
+    /* =====================================================
+       STAR RATING
+    ===================================================== */
 
     function renderStars(rating) {
 
-        const rounded = Math.max(
-            0,
-            Math.min(
-                5,
-                Math.round(Number(rating) || 0)
-            )
-        );
+        const numericRating =
+            Number(rating);
+
+        const rounded =
+            Math.max(
+                0,
+                Math.min(
+                    5,
+                    Math.round(
+                        Number.isFinite(numericRating)
+                            ? numericRating
+                            : 0
+                    )
+                )
+            );
+
 
         let stars = '';
 
-        for (let i = 1; i <= 5; i++) {
 
-            stars += i <= rounded
-                ? '<span class="star active">★</span>'
-                : '<span class="star">☆</span>';
+        for (
+            let i = 1;
+            i <= 5;
+            i++
+        ) {
+
+            stars +=
+                i <= rounded
+                    ? '<span class="star active">★</span>'
+                    : '<span class="star">☆</span>';
+
         }
 
+
         return stars;
+
     }
 
 
-    /*
-    ========================================================
-    PRODUCT CARD
-    ========================================================
-    */
+    /* =====================================================
+       GET DISCOUNT
+    ===================================================== */
+
+    function getDiscount(product) {
+
+        if (!product) {
+            return 0;
+        }
+
+        const price =
+            Number(product.price);
+
+        const oldPrice =
+            Number(product.oldPrice);
+
+
+        if (
+            !Number.isFinite(price) ||
+            !Number.isFinite(oldPrice) ||
+            oldPrice <= 0 ||
+            price >= oldPrice
+        ) {
+
+            return 0;
+
+        }
+
+
+        return Math.round(
+            (
+                (oldPrice - price) /
+                oldPrice
+            ) * 100
+        );
+
+    }
+
+
+    /* =====================================================
+       PRODUCT CARD
+    ===================================================== */
 
     function createProductCard(product) {
 
-        if (!product) return '';
+        if (!product) {
+            return '';
+        }
+
+
+        const productId =
+            escapeHtml(product.id);
+
+        const productName =
+            escapeHtml(product.name);
+
+        const category =
+            escapeHtml(product.category);
+
+        const categoryName =
+            escapeHtml(product.categoryName);
+
+        const badge =
+            escapeHtml(product.badge);
+
+        const image =
+            escapeHtml(
+                getProductImage(product)
+            );
 
         const discount =
-            product.oldPrice &&
-            Number(product.price) < Number(product.oldPrice)
-                ? Math.round(
-                    (
-                        (Number(product.oldPrice) -
-                            Number(product.price)) /
-                        Number(product.oldPrice)
-                    ) * 100
+            getDiscount(product);
+
+
+        /*
+         * Wishlist state
+         */
+
+        const isFavorite =
+            window.VelocityWishlist &&
+            typeof window.VelocityWishlist.has === 'function'
+                ? window.VelocityWishlist.has(
+                    product.id
                 )
-                : 0;
+                : false;
+
 
         return `
             <article
                 class="product-card"
-                data-product-id="${product.id}"
-                data-category="${product.category}"
+                data-product-id="${productId}"
+                data-category="${category}"
             >
 
                 <div class="product-image-wrapper">
 
-                    ${product.badge ? `
-                        <span class="product-badge">
-                            ${product.badge}
-                        </span>
-                    ` : ''}
+                    ${
+                        product.badge
+                            ? `
+                                <span class="product-badge">
+                                    ${badge}
+                                </span>
+                            `
+                            : ''
+                    }
 
-                    ${discount > 0 ? `
-                        <span class="discount-badge">
-                            -${discount}%
-                        </span>
-                    ` : ''}
+
+                    ${
+                        discount > 0
+                            ? `
+                                <span class="discount-badge">
+                                    -${discount}%
+                                </span>
+                            `
+                            : ''
+                    }
+
 
                     <button
-                        class="wishlist-button"
+                        class="wishlist-button ${
+                            isFavorite
+                                ? 'active'
+                                : ''
+                        }"
                         type="button"
-                        data-wishlist-id="${product.id}"
-                        aria-label="إضافة إلى المفضلة"
+                        data-wishlist-id="${productId}"
+                        aria-label="${
+                            isFavorite
+                                ? 'إزالة من المفضلة'
+                                : 'إضافة إلى المفضلة'
+                        }"
+                        aria-pressed="${isFavorite}"
                     >
-                        ♡
+                        ${
+                            isFavorite
+                                ? '♥'
+                                : '♡'
+                        }
                     </button>
+
 
                     <img
                         class="product-image"
-                        src="${product.image}"
-                        alt="${product.name}"
+                        src="${image}"
+                        alt="${productName}"
                         loading="lazy"
                         decoding="async"
-                        onerror="this.classList.add('image-error')"
+                        ${getImageFallbackAttribute()}
                     />
+
 
                     <div class="product-overlay">
 
                         <button
                             class="quick-view-button"
                             type="button"
-                            data-product-id="${product.id}"
+                            data-product-id="${productId}"
                         >
                             عرض سريع
                         </button>
 
+
                         <button
                             class="add-cart-button"
                             type="button"
-                            data-cart-id="${product.id}"
+                            data-cart-id="${productId}"
                         >
                             أضف للسلة
                         </button>
@@ -323,12 +671,14 @@
                 <div class="product-info">
 
                     <div class="product-category">
-                        ${product.categoryName}
+                        ${categoryName}
                     </div>
 
+
                     <h3 class="product-name">
-                        ${product.name}
+                        ${productName}
                     </h3>
+
 
                     <div class="product-rating">
 
@@ -336,12 +686,14 @@
                             ${renderStars(product.rating)}
                         </div>
 
+
                         <span class="rating-value">
-                            ${product.rating}
+                            ${escapeHtml(product.rating)}
                         </span>
 
+
                         <span class="review-count">
-                            (${product.reviews})
+                            (${escapeHtml(product.reviews)})
                         </span>
 
                     </div>
@@ -358,14 +710,19 @@
                                 )}
                             </span>
 
-                            ${product.oldPrice ? `
-                                <span class="product-old-price">
-                                    ${formatPrice(
-                                        product.oldPrice,
-                                        product.currency
-                                    )}
-                                </span>
-                            ` : ''}
+
+                            ${
+                                product.oldPrice
+                                    ? `
+                                        <span class="product-old-price">
+                                            ${formatPrice(
+                                                product.oldPrice,
+                                                product.currency
+                                            )}
+                                        </span>
+                                    `
+                                    : ''
+                            }
 
                         </div>
 
@@ -375,14 +732,40 @@
 
             </article>
         `;
+
     }
 
 
-    /*
-    ========================================================
-    RENDER PRODUCTS
-    ========================================================
-    */
+    /* =====================================================
+       RENDER EMPTY STATE
+    ===================================================== */
+
+    function renderEmptyState(element) {
+
+        element.innerHTML = `
+            <div class="products-empty">
+
+                <div class="products-empty-icon">
+                    🛍️
+                </div>
+
+                <h3>
+                    لا توجد منتجات
+                </h3>
+
+                <p>
+                    جرب تغيير الفلاتر أو البحث عن منتج آخر.
+                </p>
+
+            </div>
+        `;
+
+    }
+
+
+    /* =====================================================
+       RENDER PRODUCTS
+    ===================================================== */
 
     function renderProducts(
         container,
@@ -394,6 +777,7 @@
                 ? document.querySelector(container)
                 : container;
 
+
         if (!element) {
 
             console.warn(
@@ -401,165 +785,257 @@
             );
 
             return;
+
         }
+
 
         const safeProducts =
             Array.isArray(productsToRender)
-                ? productsToRender
+                ? productsToRender.filter(Boolean)
                 : [];
+
 
         if (!safeProducts.length) {
 
-            element.innerHTML = `
-                <div class="products-empty">
-                    <div class="products-empty-icon">
-                        🛍️
-                    </div>
-
-                    <h3>
-                        لا توجد منتجات
-                    </h3>
-
-                    <p>
-                        جرب تغيير الفلاتر أو البحث عن منتج آخر.
-                    </p>
-                </div>
-            `;
-
-            element.dispatchEvent(
-                new CustomEvent('velocity:products-rendered', {
-                    detail: {
-                        products: []
-                    }
-                })
+            renderEmptyState(
+                element
             );
 
+
+            element.dispatchEvent(
+                new CustomEvent(
+                    'velocity:products-rendered',
+                    {
+                        detail: {
+                            products: []
+                        }
+                    }
+                )
+            );
+
+
+            if (
+                window.VelocityWishlist &&
+                typeof window.VelocityWishlist.updateUI === 'function'
+            ) {
+
+                window.VelocityWishlist.updateUI();
+
+            }
+
             return;
+
         }
+
 
         element.innerHTML =
             safeProducts
                 .map(createProductCard)
                 .join('');
 
+
+        /*
+         * Re-sync wishlist after dynamic rendering.
+         */
+
+        if (
+            window.VelocityWishlist &&
+            typeof window.VelocityWishlist.updateUI === 'function'
+        ) {
+
+            window.VelocityWishlist.updateUI();
+
+        }
+
+
         element.dispatchEvent(
-            new CustomEvent('velocity:products-rendered', {
-                detail: {
-                    products: safeProducts
+            new CustomEvent(
+                'velocity:products-rendered',
+                {
+                    detail: {
+                        products: safeProducts
+                    }
                 }
-            })
+            )
         );
+
     }
 
 
-    /*
-    ========================================================
-    FEATURED PRODUCTS
-    ========================================================
-    */
+    /* =====================================================
+       FEATURED PRODUCTS
+    ===================================================== */
 
     function getFeaturedProducts() {
 
         return products.filter(
-            product => product.featured
+            product =>
+                product.featured === true
         );
+
     }
 
 
-    /*
-    ========================================================
-    CATEGORY PRODUCTS
-    ========================================================
-    */
+    /* =====================================================
+       CATEGORY PRODUCTS
+    ===================================================== */
 
-    function getProductsByCategory(category) {
+    function getProductsByCategory(
+        category
+    ) {
 
         const normalizedCategory =
-            String(category || '')
-                .trim()
-                .toLowerCase();
+            normalizeText(category);
+
 
         if (
             !normalizedCategory ||
             normalizedCategory === 'all'
         ) {
+
             return getProducts();
+
         }
+
 
         return products.filter(
             product =>
-                String(product.category)
-                    .toLowerCase() === normalizedCategory
+                normalizeText(
+                    product.category
+                ) === normalizedCategory
         );
+
     }
 
 
-    /*
-    ========================================================
-    SEARCH PRODUCTS
-    ========================================================
-    */
+    /* =====================================================
+       SEARCH PRODUCTS
+    ===================================================== */
 
-    function searchProducts(query) {
+    function searchProducts(
+        query
+    ) {
 
         const value =
-            String(query || '')
-                .trim()
-                .toLowerCase();
+            normalizeText(query);
+
 
         if (!value) {
+
             return getProducts();
+
         }
 
-        return products.filter(product => {
 
-            return (
-                String(product.name)
-                    .toLowerCase()
-                    .includes(value) ||
+        return products.filter(
+            product => {
 
-                String(product.categoryName)
-                    .toLowerCase()
-                    .includes(value) ||
+                const name =
+                    normalizeText(
+                        product.name
+                    );
 
-                String(product.category)
-                    .toLowerCase()
-                    .includes(value)
-            );
+                const categoryName =
+                    normalizeText(
+                        product.categoryName
+                    );
 
-        });
+                const category =
+                    normalizeText(
+                        product.category
+                    );
+
+                const id =
+                    normalizeText(
+                        product.id
+                    );
+
+
+                return (
+                    name.includes(value) ||
+                    categoryName.includes(value) ||
+                    category.includes(value) ||
+                    id.includes(value)
+                );
+
+            }
+        );
+
     }
 
 
-    /*
-    ========================================================
-    GLOBAL API
-    ========================================================
-    */
+    /* =====================================================
+       GET CATEGORIES
+    ===================================================== */
+
+    function getCategories() {
+
+        return [
+            ...new Set(
+                products
+                    .map(
+                        product =>
+                            product.category
+                    )
+                    .filter(Boolean)
+            )
+        ];
+
+    }
+
+
+    /* =====================================================
+       GET IMAGE FALLBACK
+    ===================================================== */
+
+    function getFallbackImage() {
+
+        return FALLBACK_IMAGE;
+
+    }
+
+
+    /* =====================================================
+       GLOBAL API
+    ===================================================== */
 
     window.VelocityProducts = {
 
         getProducts,
+
         getProductById,
+
         getFeaturedProducts,
+
         getProductsByCategory,
+
+        getCategories,
+
         searchProducts,
+
         renderProducts,
+
         createProductCard,
+
         formatPrice,
-        renderStars
+
+        renderStars,
+
+        getProductImage,
+
+        getFallbackImage
 
     };
 
 
-    /*
-    ========================================================
-    READY
-    ========================================================
-    */
+    /* =====================================================
+       READY
+    ===================================================== */
 
     document.dispatchEvent(
-        new CustomEvent('velocity:products-ready')
+        new CustomEvent(
+            'velocity:products-ready'
+        )
     );
 
 })();
