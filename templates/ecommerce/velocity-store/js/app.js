@@ -3,6 +3,15 @@
 /* =========================================================
    VELOCITY STORE
    MAIN APPLICATION
+   ---------------------------------------------------------
+   - Main application controller
+   - Product rendering
+   - Quick View
+   - Search overlay
+   - Mobile menu
+   - Newsletter
+   - Global UI events
+   - Image fallback support
 ========================================================= */
 
 (function () {
@@ -11,26 +20,78 @@
 
         initialized: false,
 
+        /* =====================================================
+           INIT
+        ===================================================== */
+
         init() {
 
-            if (this.initialized) return;
+            if (this.initialized) {
+                return;
+            }
 
             this.initialized = true;
 
-            this.renderProducts();
+            /*
+             * لا نعتمد على App وحده في رسم المنتجات.
+             * filters.js هو المسؤول على الفلترة والرسم.
+             * إذا لم يكن جاهزاً، نستعمل featured products كـfallback.
+             */
+
+            this.initializeModules();
 
             this.bindEvents();
+
+            this.setupImageFallbacks();
 
             this.updateYear();
 
             document.dispatchEvent(
-                new CustomEvent('velocity:app-ready')
+                new CustomEvent(
+                    'velocity:app-ready'
+                )
             );
+
         },
 
 
         /* =====================================================
-           PRODUCTS
+           MODULE INITIALIZATION
+        ===================================================== */
+
+        initializeModules() {
+
+            /*
+             * Filters module عادةً كيبدأ بوحدو.
+             * هنا فقط نتأكد أنه موجود.
+             */
+
+            if (
+                window.VelocityFilters &&
+                typeof window.VelocityFilters.apply === 'function'
+            ) {
+
+                /*
+                 * نخلي filters.js يتحكم في الرسم.
+                 */
+
+                window.VelocityFilters.apply();
+
+                return;
+            }
+
+
+            /*
+             * Fallback إذا filters.js غير موجود.
+             */
+
+            this.renderProducts();
+
+        },
+
+
+        /* =====================================================
+           PRODUCTS FALLBACK
         ===================================================== */
 
         renderProducts() {
@@ -39,6 +100,7 @@
                 !window.VelocityProducts ||
                 typeof window.VelocityProducts.renderProducts !== 'function'
             ) {
+
                 console.warn(
                     '[Velocity Store] Products module not ready.'
                 );
@@ -46,17 +108,31 @@
                 return;
             }
 
+
             const container =
                 document.querySelector(
                     '#products-grid'
                 );
 
-            if (!container) return;
+            if (!container) {
+                return;
+            }
+
+
+            const featured =
+                typeof VelocityProducts.getFeaturedProducts === 'function'
+                    ? VelocityProducts.getFeaturedProducts()
+                    : VelocityProducts.getProducts();
+
 
             VelocityProducts.renderProducts(
                 container,
-                VelocityProducts.getFeaturedProducts()
+                featured
             );
+
+
+            this.setupImageFallbacks();
+
         },
 
 
@@ -66,9 +142,19 @@
 
         bindEvents() {
 
+            /*
+             * نستعمل Event Delegation
+             * باش حتى العناصر اللي كتتولد من JavaScript
+             * يبقاو خدامين.
+             */
+
             document.addEventListener(
                 'click',
                 event => {
+
+                    /* =========================================
+                       MOBILE MENU OPEN
+                    ========================================= */
 
                     const menuButton =
                         event.target.closest(
@@ -77,11 +163,54 @@
 
                     if (menuButton) {
 
+                        event.preventDefault();
+
                         this.toggleMobileMenu();
 
                         return;
+
                     }
 
+
+                    /* =========================================
+                       MOBILE MENU CLOSE
+                    ========================================= */
+
+                    const mobileClose =
+                        event.target.closest(
+                            '#mobileMenuClose, [data-mobile-menu-close]'
+                        );
+
+                    if (mobileClose) {
+
+                        event.preventDefault();
+
+                        this.closeMobileMenu();
+
+                        return;
+
+                    }
+
+
+                    /* =========================================
+                       MOBILE NAVIGATION
+                    ========================================= */
+
+                    const mobileLink =
+                        event.target.closest(
+                            '.mobile-menu a[href^="#"]'
+                        );
+
+                    if (mobileLink) {
+
+                        this.closeMobileMenu();
+
+                    }
+
+
+                    /* =========================================
+                       SCROLL BUTTON
+                    ========================================= */
 
                     const scrollButton =
                         event.target.closest(
@@ -90,35 +219,222 @@
 
                     if (scrollButton) {
 
+                        event.preventDefault();
+
                         const target =
                             scrollButton.dataset.scrollTo;
 
                         this.scrollTo(target);
 
                         return;
+
                     }
 
 
-                    const quickView =
+                    /* =========================================
+                       SEARCH OPEN
+                    ========================================= */
+
+                    const searchOpen =
                         event.target.closest(
-                            '[data-product-id]'
+                            '[data-search-open]'
+                        );
+
+                    if (searchOpen) {
+
+                        event.preventDefault();
+
+                        this.openSearch();
+
+                        return;
+
+                    }
+
+
+                    /* =========================================
+                       SEARCH CLOSE
+                    ========================================= */
+
+                    const searchClose =
+                        event.target.closest(
+                            '#closeSearch, [data-search-close]'
+                        );
+
+                    if (searchClose) {
+
+                        event.preventDefault();
+
+                        this.closeSearch();
+
+                        return;
+
+                    }
+
+
+                    /* =========================================
+                       SEARCH BACKDROP
+                    ========================================= */
+
+                    const searchOverlay =
+                        document.querySelector(
+                            '#searchOverlay'
                         );
 
                     if (
-                        quickView &&
-                        quickView.classList.contains(
-                            'quick-view-button'
-                        )
+                        searchOverlay &&
+                        event.target === searchOverlay
                     ) {
+
+                        this.closeSearch();
+
+                        return;
+
+                    }
+
+
+                    /* =========================================
+                       WISHLIST HEADER
+                    ========================================= */
+
+                    const wishlistOpen =
+                        event.target.closest(
+                            '[data-wishlist-open]'
+                        );
+
+                    if (wishlistOpen) {
+
+                        event.preventDefault();
+
+                        this.openWishlist();
+
+                        return;
+
+                    }
+
+
+                    /* =========================================
+                       QUICK VIEW
+                    ========================================= */
+
+                    const quickView =
+                        event.target.closest(
+                            '.quick-view-button[data-product-id]'
+                        );
+
+                    if (quickView) {
+
+                        event.preventDefault();
 
                         this.openQuickView(
                             quickView.dataset.productId
                         );
 
+                        return;
+
+                    }
+
+
+                    /* =========================================
+                       QUICK VIEW CLOSE
+                    ========================================= */
+
+                    const quickViewClose =
+                        event.target.closest(
+                            '[data-close-quick-view]'
+                        );
+
+                    if (quickViewClose) {
+
+                        const modal =
+                            document.querySelector(
+                                '#quick-view-modal'
+                            );
+
+                        this.closeQuickView(
+                            modal
+                        );
+
+                        return;
+
                     }
 
                 }
             );
+
+
+            /* =================================================
+               NEWSLETTER
+            ================================================= */
+
+            const newsletterForm =
+                document.querySelector(
+                    '#newsletterForm'
+                );
+
+            if (newsletterForm) {
+
+                newsletterForm.addEventListener(
+                    'submit',
+                    event => {
+
+                        event.preventDefault();
+
+                        const input =
+                            newsletterForm.querySelector(
+                                'input[type="email"]'
+                            );
+
+                        const email =
+                            input
+                                ? input.value.trim()
+                                : '';
+
+
+                        if (!email) {
+
+                            this.showNotification(
+                                'المرجو إدخال البريد الإلكتروني.',
+                                'error'
+                            );
+
+                            return;
+
+                        }
+
+
+                        if (
+                            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+                                email
+                            )
+                        ) {
+
+                            this.showNotification(
+                                'المرجو إدخال بريد إلكتروني صحيح.',
+                                'error'
+                            );
+
+                            return;
+
+                        }
+
+
+                        /*
+                         * حالياً Demo فقط.
+                         * من بعد نقدروا نربطوها بالBackend.
+                         */
+
+                        this.showNotification(
+                            'تم تسجيل بريدك الإلكتروني بنجاح.',
+                            'success'
+                        );
+
+
+                        newsletterForm.reset();
+
+                    }
+                );
+
+            }
 
 
             /* =================================================
@@ -129,19 +445,181 @@
                 'keydown',
                 event => {
 
-                    if (event.key !== 'Escape') return;
+                    if (
+                        event.key !== 'Escape'
+                    ) {
+                        return;
+                    }
+
 
                     this.closeMobileMenu();
+
+                    this.closeSearch();
+
+
+                    const modal =
+                        document.querySelector(
+                            '#quick-view-modal'
+                        );
+
+                    if (modal) {
+
+                        this.closeQuickView(
+                            modal
+                        );
+
+                    }
+
 
                     if (
                         window.VelocityCart &&
                         typeof window.VelocityCart.close === 'function'
                     ) {
+
                         window.VelocityCart.close();
+
                     }
 
                 }
             );
+
+        },
+
+
+        /* =====================================================
+           SEARCH
+        ===================================================== */
+
+        openSearch() {
+
+            const overlay =
+                document.querySelector(
+                    '#searchOverlay'
+                );
+
+            if (!overlay) {
+                return;
+            }
+
+
+            overlay.classList.add(
+                'active'
+            );
+
+            overlay.setAttribute(
+                'aria-hidden',
+                'false'
+            );
+
+
+            document.body.classList.add(
+                'search-open'
+            );
+
+
+            const input =
+                overlay.querySelector(
+                    'input'
+                );
+
+            if (input) {
+
+                setTimeout(() => {
+
+                    input.focus();
+
+                }, 100);
+
+            }
+
+        },
+
+
+        closeSearch() {
+
+            const overlay =
+                document.querySelector(
+                    '#searchOverlay'
+                );
+
+            if (!overlay) {
+                return;
+            }
+
+
+            overlay.classList.remove(
+                'active'
+            );
+
+            overlay.setAttribute(
+                'aria-hidden',
+                'true'
+            );
+
+
+            document.body.classList.remove(
+                'search-open'
+            );
+
+        },
+
+
+        /* =====================================================
+           WISHLIST
+        ===================================================== */
+
+        openWishlist() {
+
+            /*
+             * إذا كان wishlist module عنده drawer
+             * نستعمله مباشرة.
+             */
+
+            if (
+                window.VelocityWishlist &&
+                typeof window.VelocityWishlist.open === 'function'
+            ) {
+
+                window.VelocityWishlist.open();
+
+                return;
+
+            }
+
+
+            /*
+             * إذا ما كانش drawer:
+             * نعرض المنتجات الموجودة في wishlist
+             * بطريقة بسيطة داخل رسالة.
+             */
+
+            if (
+                window.VelocityWishlist &&
+                typeof window.VelocityWishlist.getProducts === 'function'
+            ) {
+
+                const products =
+                    window.VelocityWishlist.getProducts();
+
+
+                if (!products.length) {
+
+                    this.showNotification(
+                        'قائمة المفضلة فارغة.',
+                        'info'
+                    );
+
+                    return;
+
+                }
+
+
+                this.showNotification(
+                    `لديك ${products.length} منتج في المفضلة.`,
+                    'success'
+                );
+
+            }
 
         },
 
@@ -174,12 +652,37 @@
 
         scrollTo(selector) {
 
-            if (!selector) return;
+            if (!selector) {
+                return;
+            }
 
-            const element =
-                document.querySelector(selector);
 
-            if (!element) return;
+            let element = null;
+
+
+            try {
+
+                element =
+                    document.querySelector(
+                        selector
+                    );
+
+            } catch (error) {
+
+                console.warn(
+                    '[Velocity Store] Invalid scroll selector:',
+                    selector
+                );
+
+                return;
+
+            }
+
+
+            if (!element) {
+                return;
+            }
+
 
             element.scrollIntoView({
                 behavior: 'smooth',
@@ -195,24 +698,36 @@
 
         openQuickView(productId) {
 
-            if (!window.VelocityProducts) return;
+            if (
+                !window.VelocityProducts
+            ) {
+                return;
+            }
+
 
             const product =
                 VelocityProducts.getProductById(
                     productId
                 );
 
-            if (!product) return;
+
+            if (!product) {
+                return;
+            }
+
 
             let modal =
                 document.querySelector(
                     '#quick-view-modal'
                 );
 
+
             if (!modal) {
 
                 modal =
-                    document.createElement('div');
+                    document.createElement(
+                        'div'
+                    );
 
                 modal.id =
                     'quick-view-modal';
@@ -220,17 +735,62 @@
                 modal.className =
                     'quick-view-modal';
 
-                document.body.appendChild(modal);
+                document.body.appendChild(
+                    modal
+                );
 
             }
 
+
+            /*
+             * Image system:
+             * نستعمل helper إذا كان products.js
+             * كيوفره.
+             */
+
+            let imageSource =
+                this.getProductImage(
+                    product
+                );
+
+
+            const fallbackImage =
+                product.imageUrl ||
+                product.fallbackImage ||
+                '';
+
+
+            const safeName =
+                this.escapeHTML(
+                    product.name || ''
+                );
+
+
+            const safeCategory =
+                this.escapeHTML(
+                    product.categoryName || ''
+                );
+
+
+            const rating =
+                Number(
+                    product.rating || 0
+                );
+
+
             modal.innerHTML = `
 
-                <div class="quick-view-backdrop"
-                     data-close-quick-view>
-                </div>
+                <div
+                    class="quick-view-backdrop"
+                    data-close-quick-view
+                ></div>
 
-                <div class="quick-view-content">
+                <div
+                    class="quick-view-content"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="${safeName}"
+                >
 
                     <button
                         class="quick-view-close"
@@ -246,8 +806,9 @@
                         <div class="quick-view-image">
 
                             <img
-                                src="${product.image}"
-                                alt="${product.name}"
+                                src="${this.escapeAttribute(imageSource)}"
+                                alt="${this.escapeAttribute(product.name || '')}"
+                                data-fallback="${this.escapeAttribute(fallbackImage)}"
                             />
 
                         </div>
@@ -255,23 +816,25 @@
                         <div class="quick-view-info">
 
                             <span class="product-category">
-                                ${product.categoryName}
+                                ${safeCategory}
                             </span>
 
                             <h2>
-                                ${product.name}
+                                ${safeName}
                             </h2>
 
                             <div class="product-rating">
 
                                 <div class="stars">
+
                                     ${VelocityProducts.renderStars(
-                                        product.rating
+                                        rating
                                     )}
+
                                 </div>
 
                                 <span>
-                                    ${product.rating}
+                                    ${rating}
                                 </span>
 
                             </div>
@@ -295,7 +858,7 @@
                             <button
                                 class="btn btn-primary"
                                 type="button"
-                                data-quick-add="${product.id}"
+                                data-quick-add="${this.escapeAttribute(product.id)}"
                             >
                                 أضف للسلة
                             </button>
@@ -307,26 +870,55 @@
                 </div>
             `;
 
+
+            this.attachImageFallbacks(
+                modal
+            );
+
+
             requestAnimationFrame(() => {
 
-                modal.classList.add('active');
+                modal.classList.add(
+                    'active'
+                );
 
             });
 
 
-            modal.addEventListener(
-                'click',
+            /*
+             * ما نزيدوش EventListener كل مرة
+             * بلا cleanup.
+             */
+
+            if (
+                modal._velocityQuickViewHandler
+            ) {
+
+                modal.removeEventListener(
+                    'click',
+                    modal._velocityQuickViewHandler
+                );
+
+            }
+
+
+            const handler =
                 event => {
 
-                    if (
+                    const closeButton =
                         event.target.closest(
                             '[data-close-quick-view]'
-                        )
-                    ) {
+                        );
 
-                        this.closeQuickView(modal);
+
+                    if (closeButton) {
+
+                        this.closeQuickView(
+                            modal
+                        );
 
                         return;
+
                     }
 
 
@@ -335,21 +927,201 @@
                             '[data-quick-add]'
                         );
 
+
                     if (addButton) {
 
                         if (
                             window.VelocityCart &&
-                            typeof window.VelocityCart.add === 'function'
+                            typeof VelocityCart.add === 'function'
                         ) {
 
                             VelocityCart.add(
                                 addButton.dataset.quickAdd
                             );
 
-                            this.closeQuickView(modal);
+                            this.closeQuickView(
+                                modal
+                            );
+
                         }
 
                     }
+
+                };
+
+
+            modal._velocityQuickViewHandler =
+                handler;
+
+
+            modal.addEventListener(
+                'click',
+                handler
+            );
+
+        },
+
+
+        /* =====================================================
+           QUICK VIEW IMAGE
+        ===================================================== */
+
+        getProductImage(product) {
+
+            if (!product) {
+                return '';
+            }
+
+
+            /*
+             * إذا products.js فيه helper خاص بالصور.
+             */
+
+            if (
+                window.VelocityProducts &&
+                typeof VelocityProducts.getProductImage === 'function'
+            ) {
+
+                return VelocityProducts.getProductImage(
+                    product
+                );
+
+            }
+
+
+            /*
+             * الصورة المحلية الجديدة.
+             */
+
+            if (product.image) {
+
+                /*
+                 * إذا كانت URL كاملة
+                 */
+
+                if (
+                    /^https?:\/\//i.test(
+                        product.image
+                    )
+                ) {
+
+                    return product.image;
+
+                }
+
+
+                /*
+                 * إذا كان المسار يبدأ بـ assets/
+                 */
+
+                if (
+                    product.image.startsWith(
+                        'assets/'
+                    )
+                ) {
+
+                    return product.image;
+
+                }
+
+
+                return `assets/images/${product.image}`;
+
+            }
+
+
+            /*
+             * Web fallback.
+             */
+
+            return (
+                product.imageUrl ||
+                product.fallbackImage ||
+                ''
+            );
+
+        },
+
+
+        /* =====================================================
+           IMAGE FALLBACK SYSTEM
+        ===================================================== */
+
+        setupImageFallbacks() {
+
+            this.attachImageFallbacks(
+                document
+            );
+
+        },
+
+
+        attachImageFallbacks(container) {
+
+            if (!container) {
+                return;
+            }
+
+
+            const images =
+                container.querySelectorAll
+                    ? container.querySelectorAll(
+                        'img[data-fallback]'
+                    )
+                    : [];
+
+
+            images.forEach(
+                image => {
+
+                    if (
+                        image.dataset.velocityFallbackBound
+                    ) {
+                        return;
+                    }
+
+
+                    image.dataset.velocityFallbackBound =
+                        'true';
+
+
+                    image.addEventListener(
+                        'error',
+                        () => {
+
+                            const fallback =
+                                image.dataset.fallback;
+
+
+                            if (
+                                !fallback ||
+                                image.dataset.fallbackUsed === 'true'
+                            ) {
+
+                                /*
+                                 * منع broken icon
+                                 */
+
+                                image.style.visibility =
+                                    'hidden';
+
+                                return;
+
+                            }
+
+
+                            image.dataset.fallbackUsed =
+                                'true';
+
+
+                            image.src =
+                                fallback;
+
+                        },
+                        {
+                            once: false
+                        }
+                    );
 
                 }
             );
@@ -357,17 +1129,113 @@
         },
 
 
-        closeQuickView(modal) {
+        /* =====================================================
+           NOTIFICATION
+        ===================================================== */
 
-            if (!modal) return;
+        showNotification(
+            message,
+            type = 'info'
+        ) {
 
-            modal.classList.remove('active');
+            let notification =
+                document.querySelector(
+                    '#velocity-notification'
+                );
 
-            setTimeout(() => {
 
-                modal.remove();
+            if (!notification) {
 
-            }, 250);
+                notification =
+                    document.createElement(
+                        'div'
+                    );
+
+                notification.id =
+                    'velocity-notification';
+
+                notification.className =
+                    'velocity-notification';
+
+                document.body.appendChild(
+                    notification
+                );
+
+            }
+
+
+            notification.className =
+                `velocity-notification ${type}`;
+
+
+            notification.textContent =
+                message;
+
+
+            requestAnimationFrame(() => {
+
+                notification.classList.add(
+                    'show'
+                );
+
+            });
+
+
+            clearTimeout(
+                notification._velocityTimer
+            );
+
+
+            notification._velocityTimer =
+                setTimeout(() => {
+
+                    notification.classList.remove(
+                        'show'
+                    );
+
+                }, 3000);
+
+        },
+
+
+        /* =====================================================
+           HTML SAFETY
+        ===================================================== */
+
+        escapeHTML(value) {
+
+            return String(
+                value ?? ''
+            )
+                .replace(
+                    /&/g,
+                    '&amp;'
+                )
+                .replace(
+                    /</g,
+                    '&lt;'
+                )
+                .replace(
+                    />/g,
+                    '&gt;'
+                )
+                .replace(
+                    /"/g,
+                    '&quot;'
+                )
+                .replace(
+                    /'/g,
+                    '&#039;'
+                );
+
+        },
+
+
+        escapeAttribute(value) {
+
+            return this.escapeHTML(
+                value
+            );
 
         },
 
@@ -378,34 +1246,40 @@
 
         updateYear() {
 
-            const year =
-                document.querySelector(
+            const years =
+                document.querySelectorAll(
                     '[data-current-year]'
                 );
 
-            if (year) {
 
-                year.textContent =
-                    new Date().getFullYear();
+            years.forEach(
+                year => {
 
-            }
+                    year.textContent =
+                        new Date().getFullYear();
+
+                }
+            );
 
         }
 
     };
 
 
-    /*
-    =========================================================
-    DOM READY
-    =========================================================
-    */
+    /* =========================================================
+       DOM READY
+    ========================================================= */
 
-    if (document.readyState === 'loading') {
+    if (
+        document.readyState === 'loading'
+    ) {
 
         document.addEventListener(
             'DOMContentLoaded',
-            () => App.init()
+            () => App.init(),
+            {
+                once: true
+            }
         );
 
     } else {
@@ -415,12 +1289,11 @@
     }
 
 
-    /*
-    =========================================================
-    GLOBAL
-    =========================================================
-    */
+    /* =========================================================
+       GLOBAL
+    ========================================================= */
 
-    window.VelocityApp = App;
+    window.VelocityApp =
+        App;
 
 })();
