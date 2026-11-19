@@ -13,7 +13,8 @@
    - Wishlist
    - Cart
    - Global UI events
-   - Image fallback support
+   - Image fallback
+   - Page loader control
 ========================================================= */
 
 (function () {
@@ -22,6 +23,7 @@
 
         initialized: false,
         eventsBound: false,
+
 
         /* =====================================================
            INIT
@@ -33,47 +35,191 @@
                 return;
             }
 
+
             this.initialized = true;
+
+
+            /*
+             * ما نخليوش loader يبقى إلى الأبد.
+             */
+
+            this.hidePageLoader();
+
+
+            /*
+             * Modules
+             */
 
             this.initializeModules();
 
+
+            /*
+             * Events
+             */
+
             this.bindEvents();
+
+
+            /*
+             * Images
+             */
 
             this.setupImageFallbacks();
 
+
+            /*
+             * Footer
+             */
+
             this.updateYear();
 
+
+            /*
+             * App ready
+             */
+
             document.dispatchEvent(
-                new CustomEvent('velocity:app-ready')
+                new CustomEvent(
+                    'velocity:app-ready'
+                )
+            );
+
+
+            /*
+             * Hide loader مرة أخرى بعد render.
+             */
+
+            requestAnimationFrame(
+                () => {
+
+                    this.hidePageLoader();
+
+                }
             );
 
         },
 
 
         /* =====================================================
-           MODULE INITIALIZATION
+           PAGE LOADER
         ===================================================== */
 
-        initializeModules() {
+        hidePageLoader() {
 
-            /*
-             * filters.js هو المسؤول الأساسي على
-             * rendering ديال products.
-             */
+            const loader =
+                document.querySelector(
+                    '#pageLoader'
+                );
 
-            if (
-                window.VelocityFilters &&
-                typeof window.VelocityFilters.apply === 'function'
-            ) {
 
-                window.VelocityFilters.apply();
-
+            if (!loader) {
                 return;
             }
 
 
             /*
-             * Fallback إذا filters.js ما كانش حاضر.
+             * أولاً نخليه visible حتى ما يبقاش
+             * عنصر مخفي بطريقة غريبة.
+             */
+
+            loader.setAttribute(
+                'aria-hidden',
+                'true'
+            );
+
+
+            loader.classList.add(
+                'loaded'
+            );
+
+
+            document.body.classList.remove(
+                'loading'
+            );
+
+
+            /*
+             * Fallback قوي حتى إذا CSS ما عندوش
+             * class loaded.
+             */
+
+            setTimeout(
+                () => {
+
+                    loader.style.opacity =
+                        '0';
+
+                    loader.style.pointerEvents =
+                        'none';
+
+                },
+                150
+            );
+
+
+            setTimeout(
+                () => {
+
+                    if (
+                        loader &&
+                        loader.parentNode
+                    ) {
+
+                        loader.style.display =
+                            'none';
+
+                    }
+
+                },
+                700
+            );
+
+        },
+
+
+        /* =====================================================
+           MODULES
+        ===================================================== */
+
+        initializeModules() {
+
+            /*
+             * filters.js هو المسؤول على products rendering.
+             *
+             * مهم جداً:
+             * ما نعاودوش نرسمو featured products من بعد.
+             */
+
+            if (
+                window.VelocityFilters &&
+                typeof window.VelocityFilters.apply ===
+                'function'
+            ) {
+
+                try {
+
+                    window.VelocityFilters.apply();
+
+                } catch (error) {
+
+                    console.error(
+                        '[Velocity Store] Filters initialization error:',
+                        error
+                    );
+
+
+                    this.renderProducts();
+
+                }
+
+
+                return;
+
+            }
+
+
+            /*
+             * Fallback إذا filters.js ما كانش.
              */
 
             this.renderProducts();
@@ -82,14 +228,15 @@
 
 
         /* =====================================================
-           PRODUCTS FALLBACK
+           FALLBACK PRODUCT RENDER
         ===================================================== */
 
         renderProducts() {
 
             if (
                 !window.VelocityProducts ||
-                typeof window.VelocityProducts.renderProducts !== 'function'
+                typeof window.VelocityProducts.renderProducts !==
+                'function'
             ) {
 
                 console.warn(
@@ -97,42 +244,51 @@
                 );
 
                 return;
+
             }
 
 
             const container =
-                document.querySelector('#products-grid');
+                document.querySelector(
+                    '#products-grid'
+                );
+
 
             if (!container) {
                 return;
             }
 
 
-            let products = [];
+            let productList = [];
+
 
             if (
-                typeof window.VelocityProducts.getFeaturedProducts ===
-                'function'
-            ) {
-
-                products =
-                    window.VelocityProducts.getFeaturedProducts();
-
-            } else if (
                 typeof window.VelocityProducts.getProducts ===
                 'function'
             ) {
 
-                products =
+                productList =
                     window.VelocityProducts.getProducts();
 
             }
 
 
-            window.VelocityProducts.renderProducts(
-                container,
-                products
-            );
+            try {
+
+                window.VelocityProducts.renderProducts(
+                    container,
+                    productList
+                );
+
+            } catch (error) {
+
+                console.error(
+                    '[Velocity Store] Product render error:',
+                    error
+                );
+
+            }
+
 
             this.setupImageFallbacks();
 
@@ -149,11 +305,12 @@
                 return;
             }
 
+
             this.eventsBound = true;
 
 
             /* =================================================
-               GLOBAL CLICK DELEGATION
+               GLOBAL CLICK
             ================================================= */
 
             document.addEventListener(
@@ -161,13 +318,14 @@
                 event => {
 
                     /* =========================================
-                       MOBILE MENU OPEN
+                       MOBILE MENU
                     ========================================= */
 
                     const menuButton =
                         event.target.closest(
                             '[data-mobile-menu]'
                         );
+
 
                     if (menuButton) {
 
@@ -181,13 +339,14 @@
 
 
                     /* =========================================
-                       MOBILE MENU CLOSE
+                       MOBILE CLOSE
                     ========================================= */
 
                     const mobileClose =
                         event.target.closest(
                             '#mobileMenuClose, [data-mobile-menu-close]'
                         );
+
 
                     if (mobileClose) {
 
@@ -201,13 +360,14 @@
 
 
                     /* =========================================
-                       MOBILE MENU LINK
+                       MOBILE LINK
                     ========================================= */
 
                     const mobileLink =
                         event.target.closest(
                             '#mobileMenu a[href^="#"], .mobile-menu a[href^="#"]'
                         );
+
 
                     if (mobileLink) {
 
@@ -217,7 +377,7 @@
 
 
                     /* =========================================
-                       SCROLL BUTTON
+                       SCROLL
                     ========================================= */
 
                     const scrollButton =
@@ -225,14 +385,20 @@
                             '[data-scroll-to]'
                         );
 
+
                     if (scrollButton) {
 
                         event.preventDefault();
 
+
                         const target =
                             scrollButton.dataset.scrollTo;
 
-                        this.scrollTo(target);
+
+                        this.scrollTo(
+                            target
+                        );
+
 
                         return;
 
@@ -247,6 +413,7 @@
                         event.target.closest(
                             '[data-search-open]'
                         );
+
 
                     if (searchOpen) {
 
@@ -268,6 +435,7 @@
                             '#closeSearch, [data-search-close]'
                         );
 
+
                     if (searchClose) {
 
                         event.preventDefault();
@@ -283,14 +451,15 @@
                        SEARCH BACKDROP
                     ========================================= */
 
-                    const searchOverlay =
+                    const overlay =
                         document.querySelector(
                             '#searchOverlay'
                         );
 
+
                     if (
-                        searchOverlay &&
-                        event.target === searchOverlay
+                        overlay &&
+                        event.target === overlay
                     ) {
 
                         this.closeSearch();
@@ -308,6 +477,7 @@
                         event.target.closest(
                             '#searchSubmit'
                         );
+
 
                     if (searchSubmit) {
 
@@ -329,7 +499,11 @@
                             '[data-category-filter]'
                         );
 
+
                     if (categoryButton) {
+
+                        event.preventDefault();
+
 
                         const category =
                             categoryButton.dataset.categoryFilter ||
@@ -354,6 +528,25 @@
 
                         }
 
+
+                        /*
+                         * إذا ضغط من category cards
+                         * نهبطو للمنتجات.
+                         */
+
+                        if (
+                            categoryButton.closest(
+                                '#categories'
+                            )
+                        ) {
+
+                            this.scrollTo(
+                                '#products'
+                            );
+
+                        }
+
+
                         return;
 
                     }
@@ -368,9 +561,11 @@
                             '[data-filter-reset]'
                         );
 
+
                     if (resetButton) {
 
                         event.preventDefault();
+
 
                         if (
                             window.VelocityFilters &&
@@ -381,6 +576,7 @@
                             window.VelocityFilters.reset();
 
                         }
+
 
                         return;
 
@@ -396,9 +592,11 @@
                             '[data-cart-open]'
                         );
 
+
                     if (cartOpen) {
 
                         event.preventDefault();
+
 
                         if (
                             window.VelocityCart &&
@@ -409,6 +607,7 @@
                             window.VelocityCart.open();
 
                         }
+
 
                         return;
 
@@ -423,6 +622,7 @@
                         event.target.closest(
                             '[data-wishlist-open]'
                         );
+
 
                     if (wishlistOpen) {
 
@@ -444,13 +644,16 @@
                             '.quick-view-button[data-product-id]'
                         );
 
+
                     if (quickView) {
 
                         event.preventDefault();
 
+
                         this.openQuickView(
                             quickView.dataset.productId
                         );
+
 
                         return;
 
@@ -466,16 +669,22 @@
                             '[data-close-quick-view]'
                         );
 
+
                     if (quickViewClose) {
 
                         event.preventDefault();
+
 
                         const modal =
                             document.querySelector(
                                 '#quick-view-modal'
                             );
 
-                        this.closeQuickView(modal);
+
+                        this.closeQuickView(
+                            modal
+                        );
+
 
                         return;
 
@@ -483,7 +692,7 @@
 
 
                     /* =========================================
-                       QUICK VIEW ADD TO CART
+                       QUICK VIEW ADD
                     ========================================= */
 
                     const quickAdd =
@@ -491,12 +700,15 @@
                             '[data-quick-add]'
                         );
 
+
                     if (quickAdd) {
 
                         event.preventDefault();
 
+
                         const productId =
                             quickAdd.dataset.quickAdd;
+
 
                         if (
                             window.VelocityCart &&
@@ -508,14 +720,47 @@
                                 productId
                             );
 
-                            const modal =
-                                document.querySelector(
-                                    '#quick-view-modal'
-                                );
-
-                            this.closeQuickView(modal);
-
                         }
+
+
+                        this.closeQuickView(
+                            document.querySelector(
+                                '#quick-view-modal'
+                            )
+                        );
+
+
+                        return;
+
+                    }
+
+
+                    /* =========================================
+                       SEARCH RESULT
+                    ========================================= */
+
+                    const searchResult =
+                        event.target.closest(
+                            '[data-search-product-id]'
+                        );
+
+
+                    if (searchResult) {
+
+                        event.preventDefault();
+
+
+                        const productId =
+                            searchResult.dataset.searchProductId;
+
+
+                        this.closeSearch();
+
+
+                        this.openQuickView(
+                            productId
+                        );
+
 
                         return;
 
@@ -526,7 +771,7 @@
 
 
             /* =================================================
-               SEARCH INPUTS
+               SEARCH INPUT
             ================================================= */
 
             document.addEventListener(
@@ -538,6 +783,7 @@
                             '[data-product-search]'
                         );
 
+
                     if (!input) {
                         return;
                     }
@@ -548,7 +794,7 @@
 
 
                     /*
-                     * Synchronise جميع search inputs.
+                     * Sync all search inputs.
                      */
 
                     document
@@ -573,8 +819,7 @@
 
 
                     /*
-                     * Search overlay
-                     * كيبان فيه preview ديال النتائج.
+                     * Search overlay preview.
                      */
 
                     if (
@@ -589,7 +834,7 @@
 
 
                     /*
-                     * Product filtering.
+                     * Products filter.
                      */
 
                     if (
@@ -621,6 +866,7 @@
                             '[data-product-sort]'
                         );
 
+
                     if (!sort) {
                         return;
                     }
@@ -650,6 +896,7 @@
                 document.querySelector(
                     '#newsletterForm'
                 );
+
 
             if (newsletterForm) {
 
@@ -700,11 +947,6 @@
                         }
 
 
-                        /*
-                         * Demo حاليا.
-                         * يمكن ربطها لاحقاً بالBackend.
-                         */
-
                         this.showNotification(
                             'تم تسجيل بريدك الإلكتروني بنجاح.',
                             'success'
@@ -740,7 +982,7 @@
 
 
             /* =================================================
-               ESC KEY
+               ESC
             ================================================= */
 
             document.addEventListener(
@@ -763,6 +1005,7 @@
                         document.querySelector(
                             '#quick-view-modal'
                         );
+
 
                     if (modal) {
 
@@ -788,7 +1031,7 @@
 
 
             /* =================================================
-               PRODUCT RENDER EVENT
+               PRODUCTS RENDERED
             ================================================= */
 
             document.addEventListener(
@@ -797,10 +1040,6 @@
 
                     this.setupImageFallbacks();
 
-                    /*
-                     * إعادة تفعيل animations
-                     * للعناصر التي تم توليدها ديناميكياً.
-                     */
 
                     if (
                         window.VelocityAnimations &&
@@ -808,7 +1047,18 @@
                         'function'
                     ) {
 
-                        window.VelocityAnimations.refresh();
+                        try {
+
+                            window.VelocityAnimations.refresh();
+
+                        } catch (error) {
+
+                            console.warn(
+                                '[Velocity Store] Animation refresh failed:',
+                                error
+                            );
+
+                        }
 
                     } else if (
                         window.VelocityAnimations &&
@@ -816,7 +1066,59 @@
                         'function'
                     ) {
 
-                        window.VelocityAnimations.init();
+                        try {
+
+                            window.VelocityAnimations.init();
+
+                        } catch (error) {
+
+                            console.warn(
+                                '[Velocity Store] Animation init failed:',
+                                error
+                            );
+
+                        }
+
+                    }
+
+
+                    this.hidePageLoader();
+
+                }
+            );
+
+
+            /* =================================================
+               IMAGES READY
+            ================================================= */
+
+            document.addEventListener(
+                'velocity:products-images-ready',
+                () => {
+
+                    /*
+                     * إذا manifest تبدل الصور،
+                     * نعيد render من filters.
+                     */
+
+                    if (
+                        window.VelocityFilters &&
+                        typeof window.VelocityFilters.apply ===
+                        'function'
+                    ) {
+
+                        try {
+
+                            window.VelocityFilters.apply();
+
+                        } catch (error) {
+
+                            console.warn(
+                                '[Velocity Store] Image refresh failed:',
+                                error
+                            );
+
+                        }
 
                     }
 
@@ -827,7 +1129,7 @@
 
 
         /* =====================================================
-           SEARCH
+           SEARCH OPEN
         ===================================================== */
 
         openSearch() {
@@ -837,6 +1139,7 @@
                     '#searchOverlay'
                 );
 
+
             if (!overlay) {
                 return;
             }
@@ -845,6 +1148,7 @@
             overlay.classList.add(
                 'active'
             );
+
 
             overlay.setAttribute(
                 'aria-hidden',
@@ -879,18 +1183,18 @@
             }
 
 
-            const currentValue =
+            this.renderSearchResults(
                 input
                     ? input.value.trim()
-                    : '';
-
-
-            this.renderSearchResults(
-                currentValue
+                    : ''
             );
 
         },
 
+
+        /* =====================================================
+           SEARCH CLOSE
+        ===================================================== */
 
         closeSearch() {
 
@@ -898,6 +1202,7 @@
                 document.querySelector(
                     '#searchOverlay'
                 );
+
 
             if (!overlay) {
                 return;
@@ -907,6 +1212,7 @@
             overlay.classList.remove(
                 'active'
             );
+
 
             overlay.setAttribute(
                 'aria-hidden',
@@ -920,6 +1226,10 @@
 
         },
 
+
+        /* =====================================================
+           SEARCH SUBMIT
+        ===================================================== */
 
         performSearch() {
 
@@ -948,36 +1258,29 @@
             }
 
 
-            const productsSection =
-                document.querySelector(
-                    '#products'
-                );
-
-
             this.closeSearch();
 
 
-            if (productsSection) {
-
-                productsSection.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-
-            }
+            this.scrollTo(
+                '#products'
+            );
 
         },
 
 
+        /* =====================================================
+           SEARCH RESULTS
+        ===================================================== */
+
         renderSearchResults(query) {
 
-            const resultsContainer =
+            const container =
                 document.querySelector(
                     '#searchResults'
                 );
 
 
-            if (!resultsContainer) {
+            if (!container) {
                 return;
             }
 
@@ -990,10 +1293,13 @@
 
             if (!value) {
 
-                resultsContainer.innerHTML = `
+                container.innerHTML = `
                     <div class="search-results-empty">
                         <span>⌕</span>
-                        <p>Search for products, shoes, fashion or tech.</p>
+                        <p>
+                            Search for products, shoes,
+                            fashion or tech.
+                        </p>
                     </div>
                 `;
 
@@ -1006,14 +1312,14 @@
                 !window.VelocityProducts
             ) {
 
-                resultsContainer.innerHTML = '';
+                container.innerHTML = '';
 
                 return;
 
             }
 
 
-            let products = [];
+            let results = [];
 
 
             if (
@@ -1021,65 +1327,28 @@
                 'function'
             ) {
 
-                products =
+                results =
                     window.VelocityProducts.searchProducts(
                         value
-                    );
-
-            } else if (
-                typeof window.VelocityProducts.getProducts ===
-                'function'
-            ) {
-
-                const all =
-                    window.VelocityProducts.getProducts();
-
-
-                const normalized =
-                    value.toLowerCase();
-
-
-                products =
-                    all.filter(
-                        product => {
-
-                            const name =
-                                String(
-                                    product.name || ''
-                                ).toLowerCase();
-
-
-                            const category =
-                                String(
-                                    product.categoryName ||
-                                    product.category ||
-                                    ''
-                                ).toLowerCase();
-
-
-                            return (
-                                name.includes(normalized) ||
-                                category.includes(normalized)
-                            );
-
-                        }
                     );
 
             }
 
 
-            products =
-                Array.isArray(products)
-                    ? products.slice(0, 6)
+            results =
+                Array.isArray(results)
+                    ? results.slice(0, 6)
                     : [];
 
 
-            if (!products.length) {
+            if (!results.length) {
 
-                resultsContainer.innerHTML = `
+                container.innerHTML = `
                     <div class="search-results-empty">
                         <span>×</span>
-                        <p>No products found.</p>
+                        <p>
+                            No products found.
+                        </p>
                     </div>
                 `;
 
@@ -1088,127 +1357,88 @@
             }
 
 
-            resultsContainer.innerHTML =
-                products
-                    .map(
-                        product => {
+            container.innerHTML =
+                results
+                    .map(product => {
 
-                            const image =
-                                this.getProductImage(
-                                    product
-                                );
-
-
-                            const name =
-                                this.escapeHTML(
-                                    product.name || 'Product'
-                                );
+                        const image =
+                            this.getProductImage(
+                                product
+                            );
 
 
-                            const category =
-                                this.escapeHTML(
-                                    product.categoryName ||
-                                    product.category ||
-                                    ''
-                                );
+                        const name =
+                            this.escapeHTML(
+                                product.name ||
+                                'Product'
+                            );
 
 
-                            const price =
-                                window.VelocityProducts &&
-                                typeof window.VelocityProducts.formatPrice ===
-                                'function'
-                                    ? window.VelocityProducts.formatPrice(
-                                        product.price,
-                                        product.currency
-                                    )
-                                    : `$${Number(
-                                        product.price || 0
-                                    ).toFixed(2)}`;
+                        const category =
+                            this.escapeHTML(
+                                product.categoryName ||
+                                product.category ||
+                                ''
+                            );
 
 
-                            return `
-                                <button
-                                    type="button"
-                                    class="search-result-item"
-                                    data-search-product-id="${this.escapeAttribute(product.id)}"
-                                >
+                        const price =
+                            window.VelocityProducts &&
+                            typeof window.VelocityProducts.formatPrice ===
+                            'function'
+                                ? window.VelocityProducts.formatPrice(
+                                    product.price,
+                                    product.currency
+                                )
+                                : `${Number(
+                                    product.price || 0
+                                ).toFixed(2)} DH`;
 
-                                    <span class="search-result-image">
 
-                                        <img
-                                            src="${this.escapeAttribute(image)}"
-                                            alt="${this.escapeAttribute(product.name || '')}"
-                                            data-fallback="${this.escapeAttribute(this.getFallbackImage())}"
-                                        >
+                        return `
+                            <button
+                                type="button"
+                                class="search-result-item"
+                                data-search-product-id="${this.escapeAttribute(product.id)}"
+                            >
 
-                                    </span>
+                                <span class="search-result-image">
 
-                                    <span class="search-result-info">
+                                    <img
+                                        src="${this.escapeAttribute(image)}"
+                                        alt="${this.escapeAttribute(product.name || '')}"
+                                        data-fallback="${this.escapeAttribute(this.getFallbackImage())}"
+                                    >
 
-                                        <strong>
-                                            ${name}
-                                        </strong>
+                                </span>
 
-                                        <small>
-                                            ${category}
-                                        </small>
 
-                                        <b>
-                                            ${price}
-                                        </b>
+                                <span class="search-result-info">
 
-                                    </span>
+                                    <strong>
+                                        ${name}
+                                    </strong>
 
-                                </button>
-                            `;
+                                    <small>
+                                        ${category}
+                                    </small>
 
-                        }
-                    )
+                                    <b>
+                                        ${price}
+                                    </b>
+
+                                </span>
+
+                            </button>
+                        `;
+
+                    })
                     .join('');
 
 
             this.attachImageFallbacks(
-                resultsContainer
+                container
             );
-
-
-            if (
-                !resultsContainer._velocitySearchBound
-            ) {
-
-                resultsContainer._velocitySearchBound =
-                    true;
-
-
-                resultsContainer.addEventListener(
-                    'click',
-                    event => {
-
-                        const result =
-                            event.target.closest(
-                                '[data-search-product-id]'
-                            );
-
-
-                        if (!result) {
-                            return;
-                        }
-
-
-                        const productId =
-                            result.dataset.searchProductId;
-
-
-                        this.closeSearch();
-
-                        this.openQuickView(
-                            productId
-                        );
-
-                    }
-                );
-
-            }
 
         },
 
@@ -1261,11 +1491,11 @@
             }
 
 
-            const products =
+            const wishlistProducts =
                 window.VelocityWishlist.getProducts();
 
 
-            if (!products.length) {
+            if (!wishlistProducts.length) {
 
                 this.showNotification(
                     'قائمة المفضلة فارغة.',
@@ -1277,22 +1507,8 @@
             }
 
 
-            /*
-             * إذا wishlist.js الحالي لا يحتوي drawer،
-             * نعرض المنتجات بطريقة مفيدة.
-             */
-
-            let message =
-                `Wishlist: ${products.length} product`;
-
-
-            if (products.length !== 1) {
-                message += 's';
-            }
-
-
             this.showNotification(
-                message,
+                `لديك ${wishlistProducts.length} منتج في المفضلة.`,
                 'success'
             );
 
@@ -1387,7 +1603,7 @@
 
 
         /* =====================================================
-           FALLBACK CATEGORY FILTER
+           FALLBACK CATEGORY
         ===================================================== */
 
         fallbackCategoryFilter(category) {
@@ -1410,7 +1626,7 @@
             }
 
 
-            let products =
+            let list =
                 typeof window.VelocityProducts.getProducts ===
                 'function'
                     ? window.VelocityProducts.getProducts()
@@ -1422,21 +1638,13 @@
                 category !== 'all'
             ) {
 
-                products =
-                    products.filter(
-                        product => {
-
-                            const value =
-                                String(
-                                    product.category ||
-                                    ''
-                                ).toLowerCase();
-
-
-                            return value ===
-                                category.toLowerCase();
-
-                        }
+                list =
+                    list.filter(
+                        product =>
+                            String(
+                                product.category || ''
+                            ).toLowerCase() ===
+                            String(category).toLowerCase()
                     );
 
             }
@@ -1444,7 +1652,7 @@
 
             window.VelocityProducts.renderProducts(
                 container,
-                products
+                list
             );
 
 
@@ -1479,7 +1687,7 @@
             } catch (error) {
 
                 console.warn(
-                    '[Velocity Store] Invalid scroll selector:',
+                    '[Velocity Store] Invalid selector:',
                     selector
                 );
 
@@ -1512,7 +1720,9 @@
                 typeof window.VelocityProducts.getProductById !==
                 'function'
             ) {
+
                 return;
+
             }
 
 
@@ -1540,11 +1750,14 @@
                         'div'
                     );
 
+
                 modal.id =
                     'quick-view-modal';
 
+
                 modal.className =
                     'quick-view-modal';
+
 
                 document.body.appendChild(
                     modal
@@ -1553,23 +1766,23 @@
             }
 
 
-            const imageSource =
+            const image =
                 this.getProductImage(
                     product
                 );
 
 
-            const fallbackImage =
+            const fallback =
                 this.getFallbackImage();
 
 
-            const safeName =
+            const name =
                 this.escapeHTML(
                     product.name || ''
                 );
 
 
-            const safeCategory =
+            const category =
                 this.escapeHTML(
                     product.categoryName ||
                     product.category ||
@@ -1599,9 +1812,9 @@
                         product.price,
                         product.currency
                     )
-                    : `$${Number(
+                    : `${Number(
                         product.price || 0
-                    ).toFixed(2)}`;
+                    ).toFixed(2)} DH`;
 
 
             modal.innerHTML = `
@@ -1611,11 +1824,12 @@
                     data-close-quick-view
                 ></div>
 
+
                 <div
                     class="quick-view-content"
                     role="dialog"
                     aria-modal="true"
-                    aria-label="${safeName}"
+                    aria-label="${name}"
                 >
 
                     <button
@@ -1627,27 +1841,31 @@
                         ×
                     </button>
 
+
                     <div class="quick-view-grid">
 
                         <div class="quick-view-image">
 
                             <img
-                                src="${this.escapeAttribute(imageSource)}"
+                                src="${this.escapeAttribute(image)}"
                                 alt="${this.escapeAttribute(product.name || '')}"
-                                data-fallback="${this.escapeAttribute(fallbackImage)}"
+                                data-fallback="${this.escapeAttribute(fallback)}"
                             />
 
                         </div>
 
+
                         <div class="quick-view-info">
 
                             <span class="product-category">
-                                ${safeCategory}
+                                ${category}
                             </span>
 
+
                             <h2>
-                                ${safeName}
+                                ${name}
                             </h2>
+
 
                             <div class="product-rating">
 
@@ -1661,9 +1879,11 @@
 
                             </div>
 
+
                             <div class="quick-view-price">
                                 ${price}
                             </div>
+
 
                             <p>
                                 Premium product from
@@ -1672,6 +1892,7 @@
                                 aesthetic and built for
                                 everyday use.
                             </p>
+
 
                             <button
                                 class="btn btn-primary"
@@ -1702,48 +1923,6 @@
                     );
 
                 }
-            );
-
-
-            if (
-                modal._velocityQuickViewHandler
-            ) {
-
-                modal.removeEventListener(
-                    'click',
-                    modal._velocityQuickViewHandler
-                );
-
-            }
-
-
-            const handler =
-                event => {
-
-                    const closeButton =
-                        event.target.closest(
-                            '[data-close-quick-view]'
-                        );
-
-
-                    if (closeButton) {
-
-                        this.closeQuickView(
-                            modal
-                        );
-
-                    }
-
-                };
-
-
-            modal._velocityQuickViewHandler =
-                handler;
-
-
-            modal.addEventListener(
-                'click',
-                handler
             );
 
 
@@ -1795,7 +1974,7 @@
 
 
         /* =====================================================
-           PRODUCT IMAGE
+           GET PRODUCT IMAGE
         ===================================================== */
 
         getProductImage(product) {
@@ -1843,7 +2022,9 @@
             ];
 
 
-            for (const candidate of candidates) {
+            for (
+                const candidate of candidates
+            ) {
 
                 if (
                     typeof candidate !== 'string'
@@ -1904,20 +2085,40 @@
 
             return `
                 data:image/svg+xml;charset=UTF-8,
-                <svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
-                    <rect width="800" height="800" fill="%23101016"/>
-                    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
-                        fill="%23ffffff" font-family="Arial" font-size="54">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                    width="800"
+                    height="800"
+                    viewBox="0 0 800 800">
+
+                    <rect
+                        width="800"
+                        height="800"
+                        fill="%23101016"
+                    />
+
+                    <text
+                        x="50%"
+                        y="50%"
+                        dominant-baseline="middle"
+                        text-anchor="middle"
+                        fill="%23ffffff"
+                        font-family="Arial"
+                        font-size="54"
+                    >
                         VELOCITY
                     </text>
+
                 </svg>
-            `.replace(/\s+/g, ' ');
+            `.replace(
+                /\s+/g,
+                ' '
+            );
 
         },
 
 
         /* =====================================================
-           IMAGE FALLBACK SYSTEM
+           IMAGE FALLBACK SETUP
         ===================================================== */
 
         setupImageFallbacks() {
@@ -1970,25 +2171,30 @@
 
 
                             if (
-                                !fallback ||
-                                image.dataset.fallbackUsed ===
+                                fallback &&
+                                image.dataset.fallbackUsed !==
                                 'true'
                             ) {
 
-                                image.style.visibility =
-                                    'hidden';
+                                image.dataset.fallbackUsed =
+                                    'true';
+
+
+                                image.src =
+                                    fallback;
+
 
                                 return;
 
                             }
 
 
-                            image.dataset.fallbackUsed =
-                                'true';
+                            image.onerror =
+                                null;
 
 
-                            image.src =
-                                fallback;
+                            image.style.visibility =
+                                'hidden';
 
                         }
                     );
@@ -2021,11 +2227,14 @@
                         'div'
                     );
 
+
                 notification.id =
                     'velocity-notification';
 
+
                 notification.className =
                     'velocity-notification';
+
 
                 document.body.appendChild(
                     notification
@@ -2074,7 +2283,7 @@
 
 
         /* =====================================================
-           HTML SAFETY
+           HTML ESCAPE
         ===================================================== */
 
         escapeHTML(value) {
@@ -2106,20 +2315,18 @@
 
         updateYear() {
 
-            const years =
-                document.querySelectorAll(
+            document
+                .querySelectorAll(
                     '[data-current-year]'
+                )
+                .forEach(
+                    element => {
+
+                        element.textContent =
+                            new Date().getFullYear();
+
+                    }
                 );
-
-
-            years.forEach(
-                year => {
-
-                    year.textContent =
-                        new Date().getFullYear();
-
-                }
-            );
 
         }
 
@@ -2130,13 +2337,39 @@
        DOM READY
     ========================================================= */
 
+    function startApp() {
+
+        try {
+
+            App.init();
+
+        } catch (error) {
+
+            /*
+             * حتى إذا وقع خطأ في module آخر،
+             * ما نخليوش الصفحة محبوسة فالـloader.
+             */
+
+            console.error(
+                '[Velocity Store] Fatal application error:',
+                error
+            );
+
+
+            App.hidePageLoader();
+
+        }
+
+    }
+
+
     if (
         document.readyState === 'loading'
     ) {
 
         document.addEventListener(
             'DOMContentLoaded',
-            () => App.init(),
+            startApp,
             {
                 once: true
             }
@@ -2144,14 +2377,14 @@
 
     } else {
 
-        App.init();
+        startApp();
 
     }
 
 
-    /* =========================================================
+    /* =====================================================
        GLOBAL
-    ========================================================= */
+    ===================================================== */
 
     window.VelocityApp =
         App;
