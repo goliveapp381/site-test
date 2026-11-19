@@ -11,6 +11,7 @@
    - Cart badges
    - Checkout event
    - Safe initialization
+   - Add-to-cart cinematic flow handled by App / CartUI
 ========================================================= */
 
 (function () {
@@ -53,9 +54,7 @@
 
 
             if (
-                !Array.isArray(
-                    parsed
-                )
+                !Array.isArray(parsed)
             ) {
 
                 return [];
@@ -64,22 +63,23 @@
 
 
             /*
-             * تنظيف البيانات القديمة
-             * أو corrupted cart data.
+             * Clean old / corrupted data.
              */
 
             return parsed
                 .filter(
                     item =>
                         item &&
-                        typeof item.productId ===
-                            'string' &&
+                        typeof item.productId === 'string' &&
                         Number(item.quantity) > 0
                 )
                 .map(
                     item => ({
+
                         productId:
-                            item.productId,
+                            String(
+                                item.productId
+                            ),
 
                         quantity:
                             Math.max(
@@ -90,6 +90,7 @@
                                     )
                                 )
                             )
+
                     })
                 );
 
@@ -114,9 +115,7 @@
 
             localStorage.setItem(
                 STORAGE_KEY,
-                JSON.stringify(
-                    cart
-                )
+                JSON.stringify(cart)
             );
 
 
@@ -147,8 +146,7 @@
 
         if (
             !window.VelocityProducts ||
-            typeof window.VelocityProducts
-                .getProductById !==
+            typeof window.VelocityProducts.getProductById !==
                 'function'
         ) {
 
@@ -157,10 +155,9 @@
         }
 
 
-        return window.VelocityProducts
-            .getProductById(
-                productId
-            );
+        return window.VelocityProducts.getProductById(
+            productId
+        );
 
     }
 
@@ -174,9 +171,15 @@
         quantity = 1
     ) {
 
+        const normalizedProductId =
+            String(
+                productId
+            );
+
+
         const product =
             getProduct(
-                productId
+                normalizedProductId
             );
 
 
@@ -206,7 +209,7 @@
             cart.find(
                 item =>
                     item.productId ===
-                    String(productId)
+                    normalizedProductId
             );
 
 
@@ -232,9 +235,9 @@
         }
 
 
-        /*
-         * Stock protection.
-         */
+        /* =================================================
+           STOCK PROTECTION
+        ================================================= */
 
         if (
             Number.isFinite(
@@ -256,9 +259,7 @@
                 item.quantity =
                     Math.min(
                         item.quantity,
-                        Number(
-                            product.stock
-                        )
+                        Number(product.stock)
                     );
 
 
@@ -272,6 +273,7 @@
                                 entry.productId !==
                                 String(product.id)
                         );
+
 
                     saveCart();
 
@@ -292,9 +294,31 @@
 
         render();
 
-        open();
-
         emitChange();
+
+
+        /*
+         * IMPORTANT:
+         *
+         * Do not open the cart drawer here.
+         *
+         * The cinematic Add-To-Cart experience
+         * is controlled by VelocityCartUI.
+         *
+         * This prevents:
+         *
+         * click
+         * → drawer immediately
+         * → animation hidden
+         *
+         * Instead:
+         *
+         * click
+         * → 720° animation
+         * → Added modal
+         * → View Cart
+         */
+
 
         showAddedMessage(
             product
@@ -314,6 +338,12 @@
         productId
     ) {
 
+        const normalizedProductId =
+            String(
+                productId
+            );
+
+
         const before =
             cart.length;
 
@@ -322,13 +352,12 @@
             cart.filter(
                 item =>
                     item.productId !==
-                    String(productId)
+                    normalizedProductId
             );
 
 
         if (
-            cart.length ===
-            before
+            cart.length === before
         ) {
 
             return;
@@ -354,11 +383,17 @@
         quantity
     ) {
 
+        const normalizedProductId =
+            String(
+                productId
+            );
+
+
         const item =
             cart.find(
                 entry =>
                     entry.productId ===
-                    String(productId)
+                    normalizedProductId
             );
 
 
@@ -374,14 +409,12 @@
 
 
         if (
-            !Number.isFinite(
-                value
-            ) ||
+            !Number.isFinite(value) ||
             value <= 0
         ) {
 
             remove(
-                productId
+                normalizedProductId
             );
 
             return;
@@ -391,7 +424,7 @@
 
         const product =
             getProduct(
-                productId
+                normalizedProductId
             );
 
 
@@ -410,9 +443,7 @@
             value =
                 Math.min(
                     value,
-                    Number(
-                        product.stock
-                    )
+                    Number(product.stock)
                 );
 
         }
@@ -423,7 +454,7 @@
         ) {
 
             remove(
-                productId
+                normalizedProductId
             );
 
             return;
@@ -558,12 +589,8 @@
 
 
                 if (
-                    !Number.isFinite(
-                        price
-                    ) ||
-                    !Number.isFinite(
-                        quantity
-                    )
+                    !Number.isFinite(price) ||
+                    !Number.isFinite(quantity)
                 ) {
 
                     return total;
@@ -636,27 +663,24 @@
 
 
         /*
-         * الأفضل:
-         * products.js يكون فيه getProductImage().
+         * Prefer products.js helper.
          */
 
         if (
             window.VelocityProducts &&
-            typeof window.VelocityProducts
-                .getProductImage ===
+            typeof window.VelocityProducts.getProductImage ===
                 'function'
         ) {
 
-            return window.VelocityProducts
-                .getProductImage(
-                    product
-                );
+            return window.VelocityProducts.getProductImage(
+                product
+            );
 
         }
 
 
         /*
-         * URL مباشرة.
+         * Direct URL.
          */
 
         if (
@@ -693,7 +717,7 @@
 
 
             return (
-                `assets/images/` +
+                'assets/images/' +
                 product.image
             );
 
@@ -867,6 +891,7 @@
 
                 </div>
 
+
                 <button
                     type="button"
                     class="cart-close"
@@ -1027,8 +1052,7 @@
         if (removeButton) {
 
             remove(
-                removeButton.dataset
-                    .cartRemove
+                removeButton.dataset.cartRemove
             );
 
             return;
@@ -1049,22 +1073,18 @@
         if (quantityButton) {
 
             const productId =
-                quantityButton.dataset
-                    .productId;
+                quantityButton.dataset.productId;
 
 
             const change =
                 Number(
-                    quantityButton.dataset
-                        .cartQuantity
+                    quantityButton.dataset.cartQuantity
                 );
 
 
             if (
                 !productId ||
-                !Number.isFinite(
-                    change
-                )
+                !Number.isFinite(change)
             ) {
 
                 return;
@@ -1087,8 +1107,7 @@
 
             updateQuantity(
                 productId,
-                item.quantity +
-                    change
+                item.quantity + change
             );
 
         }
@@ -1127,9 +1146,7 @@
 
             drawer.setAttribute(
                 'aria-hidden',
-                drawer.classList.contains(
-                    'active'
-                )
+                drawer.classList.contains('active')
                     ? 'false'
                     : 'true'
             );
@@ -1184,23 +1201,17 @@
         if (
             totalElement &&
             window.VelocityProducts &&
-            typeof window.VelocityProducts
-                .formatPrice ===
+            typeof window.VelocityProducts.formatPrice ===
                 'function'
         ) {
 
             totalElement.textContent =
-                VelocityProducts.formatPrice(
+                window.VelocityProducts.formatPrice(
                     getTotalPrice()
                 );
 
         }
 
-
-        /*
-         * الصور الجديدة:
-         * local first → Web fallback.
-         */
 
         setupCartImageFallbacks(
             itemsContainer
@@ -1252,13 +1263,14 @@
 
         const price =
             window.VelocityProducts &&
-            typeof window.VelocityProducts
-                .formatPrice ===
+            typeof window.VelocityProducts.formatPrice ===
                 'function'
-                ? VelocityProducts.formatPrice(
+
+                ? window.VelocityProducts.formatPrice(
                     product.price,
                     product.currency
                 )
+
                 : `${product.price || 0} DH`;
 
 
@@ -1287,14 +1299,13 @@
                         ${name}
                     </h4>
 
+
                     <strong>
                         ${price}
                     </strong>
 
 
-                    <div
-                        class="cart-item-controls"
-                    >
+                    <div class="cart-item-controls">
 
                         <button
                             type="button"
@@ -1362,8 +1373,7 @@
                 image => {
 
                     if (
-                        image.dataset
-                            .velocityFallbackReady
+                        image.dataset.velocityFallbackReady
                     ) {
 
                         return;
@@ -1371,24 +1381,21 @@
                     }
 
 
-                    image.dataset
-                        .velocityFallbackReady =
+                    image.dataset.velocityFallbackReady =
                         'true';
 
 
                     image.addEventListener(
                         'error',
-                        () => {
+                        function () {
 
                             const fallback =
-                                image.dataset
-                                    .fallback;
+                                image.dataset.fallback;
 
 
                             if (
                                 !fallback ||
-                                image.dataset
-                                    .fallbackUsed ===
+                                image.dataset.fallbackUsed ===
                                     'true'
                             ) {
 
@@ -1400,8 +1407,7 @@
                             }
 
 
-                            image.dataset
-                                .fallbackUsed =
+                            image.dataset.fallbackUsed =
                                 'true';
 
 
@@ -1513,7 +1519,7 @@
 
         toast._timer =
             setTimeout(
-                () => {
+                function () {
 
                     toast.classList.remove(
                         'show'
@@ -1664,77 +1670,45 @@
 
 
         /*
-         * Event delegation:
-         * حتى Product Cards اللي كتتولد
-         * من بعد تبقى خدامة.
+         * IMPORTANT:
+         *
+         * cart.js does NOT handle normal
+         * product-card Add To Cart clicks.
+         *
+         * app.js handles the click and starts:
+         *
+         * 720° animation
+         * ↓
+         * cart.add()
+         * ↓
+         * Added modal
+         *
+         * This avoids duplicate click handlers.
+         */
+
+
+        /*
+         * Re-render when products become ready.
          */
 
         document.addEventListener(
-            'click',
-            event => {
+            'velocity:products-ready',
+            function () {
 
-                /* -----------------------------------------
-                   OPEN CART
-                ----------------------------------------- */
-
-                const openButton =
-                    event.target.closest(
-                        '[data-cart-open]'
-                    );
-
-
-                if (openButton) {
-
-                    event.preventDefault();
-
-                    open();
-
-                    return;
-
-                }
-
-
-                /* -----------------------------------------
-                   ADD PRODUCT
-                ----------------------------------------- */
-
-                const addButton =
-                    event.target.closest(
-                        '[data-cart-id]'
-                    );
-
-
-                if (
-                    addButton &&
-                    window.VelocityProducts
-                ) {
-
-                    event.preventDefault();
-
-
-                    add(
-                        addButton.dataset
-                            .cartId
-                    );
-
-                }
+                render();
 
             }
         );
 
 
-        /*
-         * إذا products.js كان جاهز
-         * نعيد رسم السلة.
-         */
+        document.addEventListener(
+            'velocity:image-manifest-ready',
+            function () {
 
-        if (
-            window.VelocityProducts
-        ) {
+                render();
 
-            render();
-
-        }
+            }
+        );
 
     }
 
@@ -1775,8 +1749,7 @@
     ===================================================== */
 
     if (
-        document.readyState ===
-        'loading'
+        document.readyState === 'loading'
     ) {
 
         document.addEventListener(
