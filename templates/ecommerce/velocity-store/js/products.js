@@ -18,6 +18,12 @@
    - Web image fallback
    - Final SVG fallback
    - Ready for future Template Editor
+
+   CART ANIMATION SUPPORT
+   - data-product-id
+   - data-cart-id
+   - data-cart-animation-id
+   - Compatible with velocity-cart-ui.js
 ========================================================= */
 
 (function () {
@@ -33,14 +39,12 @@
     /*
      * IMPORTANT
      *
-     * These are the real files currently inside:
+     * Do NOT change these mappings here.
      *
-     * assets/images/products/
+     * image-manifest.json has priority.
      *
-     * The manifest can override them later.
-     *
-     * This fallback guarantees that the products still
-     * display images even if image-manifest.json returns 404.
+     * These values are only emergency fallbacks
+     * when the manifest is unavailable.
      */
 
     const DEFAULT_IMAGE_MAP = {
@@ -74,7 +78,7 @@
 
     /* =====================================================
        PRODUCT DATABASE
-       ===================================================== */
+    ===================================================== */
 
     const products = [
 
@@ -528,12 +532,8 @@
                 <path
                     d="
                         M180 670
-                        C210 500
-                        300 445
-                        400 445
-                        C500 445
-                        590 500
-                        620 670
+                        C210 500 300 445 400 445
+                        C500 445 590 500 620 670
                         Z
                     "
                     fill="#303038"
@@ -624,12 +624,6 @@
                     source[key];
 
 
-                /*
-                 * Simple format:
-                 *
-                 * "image-1": "products/file.jpg"
-                 */
-
                 if (
                     typeof value === 'string' &&
                     value.trim()
@@ -642,14 +636,6 @@
 
                 }
 
-
-                /*
-                 * Future editor format:
-                 *
-                 * "image-1": {
-                 *     "src": "products/file.jpg"
-                 * }
-                 */
 
                 if (
                     value &&
@@ -748,15 +734,6 @@
                     );
 
 
-                    /*
-                     * IMPORTANT:
-                     *
-                     * Manifest arrived AFTER the initial
-                     * product rendering.
-                     *
-                     * Tell the application to render again.
-                     */
-
                     document.dispatchEvent(
                         new CustomEvent(
                             'velocity:images-ready'
@@ -788,12 +765,6 @@
                     );
 
 
-                    /*
-                     * Even if manifest is 404,
-                     * the local DEFAULT_IMAGE_MAP
-                     * will continue working.
-                     */
-
                     document.dispatchEvent(
                         new CustomEvent(
                             'velocity:images-ready'
@@ -817,9 +788,7 @@
 
     function getManifestImage(imageId) {
 
-        if (
-            !imageId
-        ) {
+        if (!imageId) {
 
             return '';
 
@@ -850,8 +819,6 @@
 
     /* =====================================================
        GET DEFAULT LOCAL IMAGE
-       -----------------------------------------------------
-       This is the emergency local mapping.
     ===================================================== */
 
     function getDefaultLocalImage(imageId) {
@@ -907,10 +874,6 @@
         }
 
 
-        /*
-         * Absolute HTTP / HTTPS
-         */
-
         if (
             /^https?:\/\//i.test(image)
         ) {
@@ -919,10 +882,6 @@
 
         }
 
-
-        /*
-         * Data URL
-         */
 
         if (
             image.startsWith('data:image/')
@@ -933,10 +892,6 @@
         }
 
 
-        /*
-         * Root path
-         */
-
         if (
             image.startsWith('/')
         ) {
@@ -946,10 +901,6 @@
         }
 
 
-        /*
-         * assets/ path
-         */
-
         if (
             image.startsWith('assets/')
         ) {
@@ -958,11 +909,6 @@
 
         }
 
-
-        /*
-         * Local image path is relative
-         * to assets/images/
-         */
 
         return `assets/images/${image}`;
 
@@ -1018,17 +964,6 @@
 
     /* =====================================================
        GET PRODUCT IMAGE CANDIDATES
-       -----------------------------------------------------
-       Priority:
-       
-       1. Editor/resolved image
-       2. localImage
-       3. image-manifest
-       4. default local mapping
-       5. legacy image
-       6. web image
-       7. remote image
-       8. SVG fallback
     ===================================================== */
 
     function getProductImageCandidates(product) {
@@ -1070,8 +1005,7 @@
 
 
         /*
-         * 1.
-         * Future Template Editor image.
+         * 1. Template Editor / resolved image
          */
 
         addCandidate(
@@ -1080,8 +1014,7 @@
 
 
         /*
-         * 2.
-         * Explicit local image.
+         * 2. Explicit local image
          */
 
         addCandidate(
@@ -1090,8 +1023,7 @@
 
 
         /*
-         * 3.
-         * Manifest mapping.
+         * 3. image-manifest.json
          */
 
         if (
@@ -1108,11 +1040,7 @@
 
 
         /*
-         * 4.
-         * Built-in local mapping.
-         *
-         * This is what makes the images work
-         * even while manifest.json is 404.
+         * 4. Built-in fallback mapping
          */
 
         if (
@@ -1129,8 +1057,7 @@
 
 
         /*
-         * 5.
-         * Old image field.
+         * 5. Legacy image
          */
 
         addCandidate(
@@ -1139,8 +1066,7 @@
 
 
         /*
-         * 6.
-         * Web image.
+         * 6. Web image
          */
 
         addCandidate(
@@ -1149,8 +1075,7 @@
 
 
         /*
-         * 7.
-         * Remote image.
+         * 7. Remote image
          */
 
         addCandidate(
@@ -1159,8 +1084,7 @@
 
 
         /*
-         * 8.
-         * Final fallback.
+         * 8. Final SVG fallback
          */
 
         addCandidate(
@@ -1193,7 +1117,7 @@
 
     /* =====================================================
        IMAGE CANDIDATES ATTRIBUTE
-       ===================================================== */
+    ===================================================== */
 
     function getImageCandidatesAttribute(product) {
 
@@ -1202,13 +1126,6 @@
                 product
             );
 
-
-        /*
-         * First candidate is used as src.
-         *
-         * Remaining candidates are used
-         * when image loading fails.
-         */
 
         const fallbackCandidates =
             candidates.slice(1);
@@ -1445,19 +1362,12 @@
                 : false;
 
 
-        /*
-         * This creates ONE card for ONE product.
-         *
-         * Product 1 -> image-1
-         * Product 2 -> image-2
-         * ...
-         */
-
         return `
 
             <article
                 class="product-card"
                 data-product-id="${productId}"
+                data-cart-animation-id="${productId}"
                 data-image-id="${escapeHtml(
                     product.imageId || ''
                 )}"
@@ -1539,6 +1449,7 @@
                             class="add-cart-button"
                             type="button"
                             data-cart-id="${productId}"
+                            data-cart-animation-id="${productId}"
                         >
                             أضف للسلة
                         </button>
@@ -1658,7 +1569,7 @@
 
     /* =====================================================
        RENDER PRODUCTS
-       ===================================================== */
+    ===================================================== */
 
     function renderProducts(
         container,
@@ -1691,11 +1602,6 @@
                 ? productsToRender.filter(Boolean)
                 : [];
 
-
-        /*
-         * This guarantees that the number of cards
-         * equals the number of products received.
-         */
 
         if (
             !safeProducts.length
@@ -1734,10 +1640,6 @@
                 .join('');
 
 
-        /*
-         * Update wishlist state.
-         */
-
         if (
             window.VelocityWishlist &&
             typeof window.VelocityWishlist.updateUI ===
@@ -1748,11 +1650,6 @@
 
         }
 
-
-        /*
-         * Tell the rest of the application
-         * that product cards are ready.
-         */
 
         element.dispatchEvent(
             new CustomEvent(
@@ -1773,10 +1670,6 @@
             )
         );
 
-
-        /*
-         * Also emit globally.
-         */
 
         document.dispatchEvent(
             new CustomEvent(
@@ -1800,7 +1693,7 @@
 
     /* =====================================================
        FEATURED PRODUCTS
-       ===================================================== */
+    ===================================================== */
 
     function getFeaturedProducts() {
 
@@ -1814,7 +1707,7 @@
 
     /* =====================================================
        CATEGORY PRODUCTS
-       ===================================================== */
+    ===================================================== */
 
     function getProductsByCategory(
         category
@@ -1848,7 +1741,7 @@
 
     /* =====================================================
        SEARCH PRODUCTS
-       ===================================================== */
+    ===================================================== */
 
     function searchProducts(
         query
@@ -1909,7 +1802,7 @@
 
     /* =====================================================
        GET CATEGORIES
-       ===================================================== */
+    ===================================================== */
 
     function getCategories() {
 
@@ -1929,7 +1822,7 @@
 
     /* =====================================================
        GET FALLBACK IMAGE
-       ===================================================== */
+    ===================================================== */
 
     function getFallbackImage() {
 
@@ -1940,7 +1833,7 @@
 
     /* =====================================================
        GET IMAGE MANIFEST
-       ===================================================== */
+    ===================================================== */
 
     function getImageManifest() {
 
@@ -1962,7 +1855,7 @@
 
     /* =====================================================
        GET DEFAULT IMAGE MAP
-       ===================================================== */
+    ===================================================== */
 
     function getDefaultImageMap() {
 
@@ -1977,7 +1870,7 @@
 
     /* =====================================================
        IS MANIFEST LOADED
-       ===================================================== */
+    ===================================================== */
 
     function isImageManifestLoaded() {
 
@@ -1988,7 +1881,7 @@
 
     /* =====================================================
        GET PRODUCT IMAGE ID
-       ===================================================== */
+    ===================================================== */
 
     function getProductImageId(
         productId
@@ -2009,7 +1902,7 @@
 
     /* =====================================================
        GLOBAL API
-       ===================================================== */
+    ===================================================== */
 
     window.VelocityProducts = {
 
@@ -2058,7 +1951,7 @@
 
     /* =====================================================
        START MANIFEST
-       ===================================================== */
+    ===================================================== */
 
     loadImageManifest();
 
