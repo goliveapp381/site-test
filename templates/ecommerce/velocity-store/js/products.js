@@ -4,26 +4,37 @@
    VELOCITY STORE
    PRODUCTS DATABASE + PRODUCT RENDERING
    ---------------------------------------------------------
-   - Safe product database
-   - Local image support
-   - Web image fallback
-   - Manifest support
-   - Graceful image fallback
-   - Wishlist integration
-   - Dynamic rendering
+   IMAGE SYSTEM
+   ---------------------------------------------------------
+   Product ID
+       ↓
+   imageSlot / product ID
+       ↓
+   image-manifest.json
+       ↓
+   assets/images/products/real-image.jpg
+
+   Supports:
+   - Local image manifest
+   - Remote web image
+   - Fallback image
+   - Future TemplateCraft Editor image replacement
 ========================================================= */
 
 (function () {
 
     /* =====================================================
-       CONFIG
+       CONFIGURATION
     ===================================================== */
 
     const IMAGE_MANIFEST_URL =
         'assets/images/image-manifest.json';
 
-    let imageManifest = {};
-    let manifestLoaded = false;
+    const MANIFEST_CACHE_KEY =
+        'velocity-image-manifest';
+
+    let imageManifest = null;
+
     let manifestPromise = null;
 
 
@@ -35,31 +46,37 @@
 
         {
             id: 'velocity-001',
+            imageSlot: 'velocity-001',
+
             name: 'Velocity X1 Sneakers',
             category: 'shoes',
             categoryName: 'Sneakers',
+
             price: 899,
             oldPrice: 1099,
             currency: 'DH',
+
             rating: 4.9,
             reviews: 128,
+
             badge: 'الأكثر مبيعاً',
 
             /*
-             * يمكن تغييرها لاحقاً إذا بغيتي
-             * ولكن ماشي ضروري.
+             * Legacy fallback.
+             * Manifest has priority.
              */
             image: '',
 
             /*
-             * حط هنا رابط الصورة من الويب إذا ما كانتش
-             * صورة محلية.
+             * Optional remote image.
              */
             webImage: '',
 
             colors: ['Black', 'White'],
             sizes: ['40', '41', '42', '43', '44'],
+
             stock: 15,
+
             featured: true,
             newest: true
         },
@@ -67,14 +84,19 @@
 
         {
             id: 'velocity-002',
+            imageSlot: 'velocity-002',
+
             name: 'Urban Shadow Jacket',
             category: 'fashion',
             categoryName: 'Fashion',
+
             price: 749,
             oldPrice: 899,
             currency: 'DH',
+
             rating: 4.8,
             reviews: 94,
+
             badge: 'جديد',
 
             image: '',
@@ -82,7 +104,9 @@
 
             colors: ['Black', 'Gray'],
             sizes: ['S', 'M', 'L', 'XL'],
+
             stock: 8,
+
             featured: true,
             newest: true
         },
@@ -90,14 +114,19 @@
 
         {
             id: 'velocity-003',
+            imageSlot: 'velocity-003',
+
             name: 'Aero Smart Watch',
             category: 'tech',
             categoryName: 'Technology',
+
             price: 1299,
             oldPrice: 1599,
             currency: 'DH',
+
             rating: 4.7,
             reviews: 211,
+
             badge: 'خصم',
 
             image: '',
@@ -105,7 +134,9 @@
 
             colors: ['Black', 'Silver'],
             sizes: [],
+
             stock: 21,
+
             featured: true,
             newest: false
         },
@@ -113,14 +144,19 @@
 
         {
             id: 'velocity-004',
+            imageSlot: 'velocity-004',
+
             name: 'Premium Leather Bag',
             category: 'accessories',
             categoryName: 'Accessories',
+
             price: 599,
             oldPrice: 699,
             currency: 'DH',
+
             rating: 4.8,
             reviews: 76,
+
             badge: 'مميز',
 
             image: '',
@@ -128,7 +164,9 @@
 
             colors: ['Black', 'Brown'],
             sizes: [],
+
             stock: 12,
+
             featured: true,
             newest: false
         },
@@ -136,14 +174,19 @@
 
         {
             id: 'velocity-005',
+            imageSlot: 'velocity-005',
+
             name: 'Essential Oversized Hoodie',
             category: 'fashion',
             categoryName: 'Fashion',
+
             price: 449,
             oldPrice: 549,
             currency: 'DH',
+
             rating: 4.6,
             reviews: 63,
+
             badge: 'جديد',
 
             image: '',
@@ -151,7 +194,9 @@
 
             colors: ['Black', 'Cream', 'Gray'],
             sizes: ['S', 'M', 'L', 'XL'],
+
             stock: 30,
+
             featured: true,
             newest: true
         },
@@ -159,14 +204,19 @@
 
         {
             id: 'velocity-006',
+            imageSlot: 'velocity-006',
+
             name: 'Velocity Runner Pro',
             category: 'shoes',
             categoryName: 'Sneakers',
+
             price: 799,
             oldPrice: 999,
             currency: 'DH',
+
             rating: 4.9,
             reviews: 154,
+
             badge: 'ترند',
 
             image: '',
@@ -174,7 +224,9 @@
 
             colors: ['White', 'Black'],
             sizes: ['40', '41', '42', '43', '44'],
+
             stock: 17,
+
             featured: true,
             newest: true
         },
@@ -182,14 +234,19 @@
 
         {
             id: 'velocity-007',
+            imageSlot: 'velocity-007',
+
             name: 'Wireless Pro Headphones',
             category: 'tech',
             categoryName: 'Technology',
+
             price: 999,
             oldPrice: 1199,
             currency: 'DH',
+
             rating: 4.8,
             reviews: 187,
+
             badge: 'الأكثر طلباً',
 
             image: '',
@@ -197,7 +254,9 @@
 
             colors: ['Black', 'White'],
             sizes: [],
+
             stock: 25,
+
             featured: true,
             newest: false
         },
@@ -205,14 +264,19 @@
 
         {
             id: 'velocity-008',
+            imageSlot: 'velocity-008',
+
             name: 'Minimal Crossbody Bag',
             category: 'accessories',
             categoryName: 'Accessories',
+
             price: 399,
             oldPrice: 499,
             currency: 'DH',
+
             rating: 4.5,
             reviews: 52,
+
             badge: '',
 
             image: '',
@@ -220,7 +284,9 @@
 
             colors: ['Black', 'Brown'],
             sizes: [],
+
             stock: 19,
+
             featured: true,
             newest: false
         }
@@ -244,22 +310,22 @@
                 <rect
                     width="800"
                     height="800"
-                    fill="#111111"
+                    fill="#111118"
                 />
 
                 <circle
                     cx="400"
-                    cy="320"
-                    r="100"
-                    fill="#252525"
+                    cy="300"
+                    r="90"
+                    fill="#272733"
                 />
 
                 <path
-                    d="M170 650
-                       C210 490 300 440 400 440
-                       C500 440 590 490 630 650
+                    d="M180 650
+                       C210 500 300 440 400 440
+                       C500 440 590 500 620 650
                        Z"
-                    fill="#252525"
+                    fill="#272733"
                 />
 
                 <text
@@ -268,7 +334,6 @@
                     text-anchor="middle"
                     font-family="Arial, sans-serif"
                     font-size="34"
-                    font-weight="700"
                     fill="#ffffff"
                 >
                     VELOCITY
@@ -294,7 +359,7 @@
 
 
     /* =====================================================
-       NORMALIZE
+       NORMALIZE TEXT
     ===================================================== */
 
     function normalizeText(value) {
@@ -310,23 +375,11 @@
 
     /* =====================================================
        LOAD IMAGE MANIFEST
-       -----------------------------------------------------
-       إذا كان الملف موجوداً:
-       assets/images/image-manifest.json
-
-       مثال:
-
-       {
-         "velocity-001": "assets/images/sneaker.jpg",
-         "velocity-002": "assets/images/jacket.webp"
-       }
-
-       إذا الملف غير موجود، ماشي مشكل.
     ===================================================== */
 
     async function loadImageManifest() {
 
-        if (manifestLoaded) {
+        if (imageManifest) {
             return imageManifest;
         }
 
@@ -340,55 +393,144 @@
             fetch(
                 IMAGE_MANIFEST_URL,
                 {
+                    method: 'GET',
                     cache: 'no-cache'
                 }
             )
-            .then(response => {
+                .then(response => {
 
-                if (!response.ok) {
-                    throw new Error(
-                        `Manifest HTTP ${response.status}`
+                    if (!response.ok) {
+
+                        throw new Error(
+                            `Image manifest HTTP ${response.status}`
+                        );
+
+                    }
+
+                    return response.json();
+
+                })
+                .then(manifest => {
+
+                    if (
+                        !manifest ||
+                        typeof manifest !== 'object'
+                    ) {
+
+                        throw new Error(
+                            'Invalid image manifest'
+                        );
+
+                    }
+
+
+                    imageManifest =
+                        manifest;
+
+
+                    /*
+                     * Keep a browser cache copy.
+                     */
+
+                    try {
+
+                        localStorage.setItem(
+                            MANIFEST_CACHE_KEY,
+                            JSON.stringify(manifest)
+                        );
+
+                    } catch (error) {
+
+                        /*
+                         * localStorage may be unavailable.
+                         */
+
+                    }
+
+
+                    document.dispatchEvent(
+                        new CustomEvent(
+                            'velocity:image-manifest-ready',
+                            {
+                                detail: {
+                                    manifest
+                                }
+                            }
+                        )
                     );
-                }
-
-                return response.json();
-
-            })
-            .then(data => {
-
-                if (
-                    data &&
-                    typeof data === 'object' &&
-                    !Array.isArray(data)
-                ) {
-
-                    imageManifest = data;
-
-                } else {
-
-                    imageManifest = {};
-
-                }
 
 
-                manifestLoaded = true;
+                    return manifest;
 
-                return imageManifest;
+                })
+                .catch(error => {
 
-            })
-            .catch(() => {
+                    console.warn(
+                        '[Velocity Store] Image manifest could not be loaded:',
+                        error.message
+                    );
 
-                /*
-                 * Manifest اختياري.
-                 * ما نوقفوش التطبيق إذا ما كانش.
-                 */
 
-                imageManifest = {};
-                manifestLoaded = true;
+                    /*
+                     * Try localStorage cache.
+                     */
 
-                return imageManifest;
+                    try {
 
-            });
+                        const cached =
+                            localStorage.getItem(
+                                MANIFEST_CACHE_KEY
+                            );
+
+
+                        if (cached) {
+
+                            const parsed =
+                                JSON.parse(cached);
+
+
+                            if (
+                                parsed &&
+                                typeof parsed === 'object'
+                            ) {
+
+                                imageManifest =
+                                    parsed;
+
+
+                                return parsed;
+
+                            }
+
+                        }
+
+                    } catch (cacheError) {
+
+                        /*
+                         * Ignore cache errors.
+                         */
+
+                    }
+
+
+                    /*
+                     * Empty manifest.
+                     *
+                     * Important:
+                     * The website must continue working
+                     * even when manifest is missing.
+                     */
+
+                    imageManifest = {
+                        version: 1,
+                        basePath: 'products/',
+                        products: {}
+                    };
+
+
+                    return imageManifest;
+
+                });
 
 
         return manifestPromise;
@@ -397,14 +539,17 @@
 
 
     /* =====================================================
-       IMAGE PATH
+       BUILD LOCAL IMAGE URL
     ===================================================== */
 
-    function normalizeImagePath(path) {
+    function buildLocalImageUrl(
+        fileName,
+        basePath = 'products/'
+    ) {
 
         if (
-            typeof path !== 'string' ||
-            !path.trim()
+            typeof fileName !== 'string' ||
+            !fileName.trim()
         ) {
 
             return '';
@@ -412,25 +557,41 @@
         }
 
 
-        const value =
-            path.trim();
+        let value =
+            fileName.trim();
 
+
+        /*
+         * Already complete URL.
+         */
 
         if (
             /^https?:\/\//i.test(value) ||
-            value.startsWith('data:image/') ||
-            value.startsWith('/') ||
-            value.startsWith('./') ||
-            value.startsWith('../')
+            value.startsWith('data:image/')
         ) {
 
             return value;
 
         }
 
+
+        /*
+         * Remove leading slash.
+         */
+
+        value =
+            value.replace(/^\/+/, '');
+
+
+        /*
+         * If manifest already gives
+         * assets/images/... use it directly.
+         */
 
         if (
-            value.startsWith('assets/')
+            value.startsWith(
+                'assets/images/'
+            )
         ) {
 
             return value;
@@ -438,32 +599,156 @@
         }
 
 
-        return `assets/images/${value}`;
+        /*
+         * If manifest entry is already
+         * products/file.jpg
+         */
+
+        if (
+            value.startsWith(
+                'products/'
+            )
+        ) {
+
+            return `assets/images/${value}`;
+
+        }
+
+
+        /*
+         * Normal manifest format:
+         *
+         * basePath = products/
+         * filename = 12345.jpg
+         */
+
+        const safeBase =
+            String(basePath || 'products/')
+                .replace(/^\/+/, '')
+                .replace(/\/+$/, '');
+
+
+        return (
+            `assets/images/${safeBase}/${value}`
+        );
 
     }
 
 
     /* =====================================================
-       GET LOCAL IMAGE FROM MANIFEST
+       GET MANIFEST IMAGE
     ===================================================== */
 
     function getManifestImage(product) {
 
-        if (!product) {
+        if (
+            !product ||
+            !imageManifest
+        ) {
+
+            return '';
+
+        }
+
+
+        const productsMap =
+            imageManifest.products;
+
+
+        if (
+            !productsMap ||
+            typeof productsMap !== 'object'
+        ) {
+
+            return '';
+
+        }
+
+
+        /*
+         * First use imageSlot.
+         */
+
+        const slot =
+            product.imageSlot ||
+            product.id;
+
+
+        if (!slot) {
             return '';
         }
 
 
-        const value =
-            imageManifest[product.id];
+        const entry =
+            productsMap[slot];
+
+
+        /*
+         * Manifest may contain:
+         *
+         * "velocity-001": "123.jpg"
+         *
+         * OR
+         *
+         * "velocity-001": {
+         *    "file": "123.jpg"
+         * }
+         */
+
+        if (
+            typeof entry === 'string'
+        ) {
+
+            return buildLocalImageUrl(
+                entry,
+                imageManifest.basePath
+            );
+
+        }
 
 
         if (
-            typeof value === 'string' &&
-            value.trim()
+            entry &&
+            typeof entry === 'object'
         ) {
 
-            return normalizeImagePath(value);
+            if (
+                typeof entry.url === 'string' &&
+                entry.url.trim()
+            ) {
+
+                return buildLocalImageUrl(
+                    entry.url,
+                    imageManifest.basePath
+                );
+
+            }
+
+
+            if (
+                typeof entry.file === 'string' &&
+                entry.file.trim()
+            ) {
+
+                return buildLocalImageUrl(
+                    entry.file,
+                    imageManifest.basePath
+                );
+
+            }
+
+
+            if (
+                typeof entry.src === 'string' &&
+                entry.src.trim()
+            ) {
+
+                return buildLocalImageUrl(
+                    entry.src,
+                    imageManifest.basePath
+                );
+
+            }
 
         }
 
@@ -480,7 +765,9 @@
     function getProductImage(product) {
 
         if (!product) {
+
             return FALLBACK_IMAGE;
+
         }
 
 
@@ -522,21 +809,13 @@
             product.localImage.trim()
         ) {
 
-            return normalizeImagePath(
-                product.localImage
-            );
+            return product.localImage.trim();
 
         }
 
 
         /*
-         * 4. Explicit image
-         *
-         * مهم:
-         * ما بقيناش نحطو product-1.jpg
-         * تلقائياً.
-         *
-         * هادي هي اللي كانت كتسبب 404.
+         * 4. Legacy image field
          */
 
         if (
@@ -544,15 +823,13 @@
             product.image.trim()
         ) {
 
-            return normalizeImagePath(
-                product.image
-            );
+            return product.image.trim();
 
         }
 
 
         /*
-         * 5. Web image
+         * 5. Remote web image
          */
 
         if (
@@ -566,7 +843,7 @@
 
 
         /*
-         * 6. Remote image
+         * 6. Remote image alias
          */
 
         if (
@@ -579,22 +856,78 @@
         }
 
 
-        /*
-         * 7. Fallback
-         */
-
         return FALLBACK_IMAGE;
 
     }
 
 
     /* =====================================================
-       IMAGE FALLBACK ATTRIBUTE
-       -----------------------------------------------------
-       Local image -> Web image -> SVG fallback
+       ASYNC RESOLVE PRODUCT IMAGE
     ===================================================== */
 
-    function getImageFallbackAttribute(product) {
+    async function resolveProductImage(product) {
+
+        if (!product) {
+
+            return FALLBACK_IMAGE;
+
+        }
+
+
+        /*
+         * Load manifest first.
+         */
+
+        await loadImageManifest();
+
+
+        return getProductImage(product);
+
+    }
+
+
+    /* =====================================================
+       RESOLVE ALL PRODUCT IMAGES
+    ===================================================== */
+
+    async function resolveProductsImages(
+        productList
+    ) {
+
+        await loadImageManifest();
+
+
+        return (
+            Array.isArray(productList)
+                ? productList
+                : []
+        ).map(product => {
+
+            if (!product) {
+                return product;
+            }
+
+
+            return {
+                ...product,
+
+                resolvedImage:
+                    getProductImage(product)
+
+            };
+
+        });
+
+    }
+
+
+    /* =====================================================
+       IMAGE FALLBACK ATTRIBUTE
+    ===================================================== */
+
+    function getImageFallbackAttribute(
+        product
+    ) {
 
         const webImage =
             product &&
@@ -603,78 +936,52 @@
                 : '';
 
 
-        const remoteImage =
-            product &&
-            typeof product.remoteImage === 'string'
-                ? product.remoteImage.trim()
-                : '';
-
-
         const fallback =
-            webImage ||
-            remoteImage ||
-            FALLBACK_IMAGE;
+            escapeHtml(
+                FALLBACK_IMAGE
+            );
+
+
+        /*
+         * If remote image exists:
+         *
+         * local fails
+         * ↓
+         * web image
+         * ↓
+         * fallback
+         */
+
+        if (webImage) {
+
+            return `
+                data-web-image="${escapeHtml(webImage)}"
+                onerror="
+                    if (
+                        this.dataset.webFallbackUsed !== 'true' &&
+                        this.dataset.webImage
+                    ) {
+                        this.dataset.webFallbackUsed='true';
+                        this.onerror=null;
+                        this.src=this.dataset.webImage;
+                    } else {
+                        this.onerror=null;
+                        this.src='${fallback}';
+                        this.classList.add('image-error');
+                    }
+                "
+            `;
+
+        }
 
 
         return `
-            data-fallback="${escapeHtml(fallback)}"
             onerror="
-                if (
-                    this.dataset.fallbackUsed !== 'true' &&
-                    this.dataset.fallback
-                ) {
-                    this.dataset.fallbackUsed = 'true';
-                    this.src = this.dataset.fallback;
-                } else {
-                    this.onerror = null;
-                    this.src = '${FALLBACK_IMAGE}';
-                }
+                this.onerror=null;
+                this.src='${fallback}';
+                this.classList.add('image-error');
             "
         `;
-
-    }
-
-
-    /* =====================================================
-       GET PRODUCTS
-    ===================================================== */
-
-    function getProducts() {
-
-        return products.map(
-            product => ({
-                ...product,
-
-                colors:
-                    Array.isArray(product.colors)
-                        ? [...product.colors]
-                        : [],
-
-                sizes:
-                    Array.isArray(product.sizes)
-                        ? [...product.sizes]
-                        : []
-
-            })
-        );
-
-    }
-
-
-    /* =====================================================
-       GET PRODUCT BY ID
-    ===================================================== */
-
-    function getProductById(productId) {
-
-        const id =
-            String(productId ?? '').trim();
-
-
-        return products.find(
-            product =>
-                product.id === id
-        ) || null;
 
     }
 
@@ -693,7 +1000,9 @@
 
 
         if (
-            !Number.isFinite(numericPrice)
+            !Number.isFinite(
+                numericPrice
+            )
         ) {
 
             return `0 ${escapeHtml(currency)}`;
@@ -701,16 +1010,16 @@
         }
 
 
-        return `
-            ${numericPrice.toLocaleString('fr-FR')}
-            ${escapeHtml(currency)}
-        `.replace(/\s+/g, ' ').trim();
+        return (
+            `${numericPrice.toLocaleString('fr-FR')} ` +
+            `${escapeHtml(currency)}`
+        );
 
     }
 
 
     /* =====================================================
-       STARS
+       STAR RATING
     ===================================================== */
 
     function renderStars(rating) {
@@ -725,7 +1034,9 @@
                 Math.min(
                     5,
                     Math.round(
-                        Number.isFinite(numericRating)
+                        Number.isFinite(
+                            numericRating
+                        )
                             ? numericRating
                             : 0
                     )
@@ -797,7 +1108,7 @@
 
 
     /* =====================================================
-       CREATE PRODUCT CARD
+       PRODUCT CARD
     ===================================================== */
 
     function createProductCard(product) {
@@ -839,7 +1150,8 @@
 
         const isFavorite =
             window.VelocityWishlist &&
-            typeof window.VelocityWishlist.has === 'function'
+            typeof window.VelocityWishlist.has ===
+            'function'
                 ? window.VelocityWishlist.has(
                     product.id
                 )
@@ -851,8 +1163,9 @@
                 class="product-card"
                 data-product-id="${productId}"
                 data-category="${category}"
-                data-reveal
-                data-tilt
+                data-image-slot="${escapeHtml(
+                    product.imageSlot || product.id
+                )}"
             >
 
                 <div class="product-image-wrapper">
@@ -879,7 +1192,9 @@
 
                     <button
                         class="wishlist-button ${
-                            isFavorite ? 'active' : ''
+                            isFavorite
+                                ? 'active'
+                                : ''
                         }"
                         type="button"
                         data-wishlist-id="${productId}"
@@ -897,7 +1212,6 @@
                         }
                     </button>
 
-
                     <img
                         class="product-image"
                         src="${image}"
@@ -906,7 +1220,6 @@
                         decoding="async"
                         ${getImageFallbackAttribute(product)}
                     />
-
 
                     <div class="product-overlay">
 
@@ -917,7 +1230,6 @@
                         >
                             عرض سريع
                         </button>
-
 
                         <button
                             class="add-cart-button"
@@ -931,18 +1243,15 @@
 
                 </div>
 
-
                 <div class="product-info">
 
                     <div class="product-category">
                         ${categoryName}
                     </div>
 
-
                     <h3 class="product-name">
                         ${productName}
                     </h3>
-
 
                     <div class="product-rating">
 
@@ -960,7 +1269,6 @@
 
                     </div>
 
-
                     <div class="product-bottom">
 
                         <div class="product-price-wrapper">
@@ -971,7 +1279,6 @@
                                     product.currency
                                 )}
                             </span>
-
 
                             ${
                                 product.oldPrice
@@ -1064,14 +1371,15 @@
 
         if (!safeProducts.length) {
 
-            renderEmptyState(element);
+            renderEmptyState(
+                element
+            );
 
 
             element.dispatchEvent(
                 new CustomEvent(
                     'velocity:products-rendered',
                     {
-                        bubbles: true,
                         detail: {
                             products: []
                         }
@@ -1082,7 +1390,8 @@
 
             if (
                 window.VelocityWishlist &&
-                typeof window.VelocityWishlist.updateUI === 'function'
+                typeof window.VelocityWishlist.updateUI ===
+                'function'
             ) {
 
                 window.VelocityWishlist.updateUI();
@@ -1103,7 +1412,8 @@
 
         if (
             window.VelocityWishlist &&
-            typeof window.VelocityWishlist.updateUI === 'function'
+            typeof window.VelocityWishlist.updateUI ===
+            'function'
         ) {
 
             window.VelocityWishlist.updateUI();
@@ -1115,7 +1425,6 @@
             new CustomEvent(
                 'velocity:products-rendered',
                 {
-                    bubbles: true,
                     detail: {
                         products: safeProducts
                     }
@@ -1127,25 +1436,26 @@
 
 
     /* =====================================================
-       FEATURED
+       FEATURED PRODUCTS
     ===================================================== */
 
     function getFeaturedProducts() {
 
-        return getProducts()
-            .filter(
-                product =>
-                    product.featured === true
-            );
+        return getProducts().filter(
+            product =>
+                product.featured === true
+        );
 
     }
 
 
     /* =====================================================
-       CATEGORY
+       CATEGORY PRODUCTS
     ===================================================== */
 
-    function getProductsByCategory(category) {
+    function getProductsByCategory(
+        category
+    ) {
 
         const normalizedCategory =
             normalizeText(category);
@@ -1161,13 +1471,12 @@
         }
 
 
-        return getProducts()
-            .filter(
-                product =>
-                    normalizeText(
-                        product.category
-                    ) === normalizedCategory
-            );
+        return getProducts().filter(
+            product =>
+                normalizeText(
+                    product.category
+                ) === normalizedCategory
+        );
 
     }
 
@@ -1183,12 +1492,14 @@
 
 
         if (!value) {
+
             return getProducts();
+
         }
 
 
-        return getProducts()
-            .filter(product => {
+        return getProducts().filter(
+            product => {
 
                 const name =
                     normalizeText(
@@ -1221,13 +1532,14 @@
                     id.includes(value)
                 );
 
-            });
+            }
+        );
 
     }
 
 
     /* =====================================================
-       CATEGORIES
+       GET CATEGORIES
     ===================================================== */
 
     function getCategories() {
@@ -1247,7 +1559,7 @@
 
 
     /* =====================================================
-       FALLBACK
+       GET FALLBACK IMAGE
     ===================================================== */
 
     function getFallbackImage() {
@@ -1258,7 +1570,7 @@
 
 
     /* =====================================================
-       PUBLIC API
+       GLOBAL API
     ===================================================== */
 
     window.VelocityProducts = {
@@ -1285,9 +1597,13 @@
 
         getProductImage,
 
-        getFallbackImage,
+        resolveProductImage,
 
-        loadImageManifest
+        resolveProductsImages,
+
+        loadImageManifest,
+
+        getFallbackImage
 
     };
 
@@ -1299,9 +1615,16 @@
     loadImageManifest()
         .then(() => {
 
+            /*
+             * Re-render after manifest arrives.
+             *
+             * This is important because products.js
+             * may load before the manifest.
+             */
+
             document.dispatchEvent(
                 new CustomEvent(
-                    'velocity:products-images-ready'
+                    'velocity:image-ready'
                 )
             );
 
