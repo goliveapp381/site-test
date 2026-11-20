@@ -727,7 +727,6 @@
 
 @keyframes velocityPremiumCardSpin {
 
-    /* START */
     0% {
 
         transform:
@@ -738,8 +737,6 @@
             scale(1);
     }
 
-
-    /* QUARTER TURN */
     25% {
 
         transform:
@@ -750,8 +747,6 @@
             scale(1.08);
     }
 
-
-    /* HALF TURN */
     50% {
 
         transform:
@@ -762,8 +757,6 @@
             scale(1.12);
     }
 
-
-    /* THREE QUARTERS */
     75% {
 
         transform:
@@ -774,8 +767,6 @@
             scale(1.08);
     }
 
-
-    /* EXACTLY ONE COMPLETE ROTATION */
     100% {
 
         transform:
@@ -1178,3 +1169,136 @@
 
     cursor: pointer;
 }
+
+
+/* =========================================================
+   FINAL MOBILE PRODUCT GRID FIX
+   ---------------------------------------------------------
+   FORCE 2 PRODUCT CARDS PER ROW
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .products-grid,
+    #productsGrid,
+    .product-grid {
+
+        display: grid !important;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr)) !important;
+
+        grid-template-rows: auto !important;
+
+        grid-auto-flow: row !important;
+
+        grid-auto-columns: auto !important;
+
+        column-gap: 10px !important;
+
+        row-gap: 10px !important;
+
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+        min-width: 0 !important;
+
+        overflow: visible !important;
+    }
+
+
+    .products-grid > .product-card,
+    #productsGrid > .product-card,
+    .product-grid > .product-card {
+
+        grid-column: auto !important;
+
+        grid-row: auto !important;
+
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+        min-width: 0 !important;
+
+        margin: 0 !important;
+    }
+
+}
+
+
+/* =========================================================
+   FINAL SMALL PHONE FIX
+========================================================= */
+
+@media (max-width: 520px) {
+
+    .products-grid,
+    #productsGrid,
+    .product-grid {
+
+        display: grid !important;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr)) !important;
+
+        column-gap: 8px !important;
+
+        row-gap: 10px !important;
+
+    }
+
+
+    .products-grid > .product-card,
+    #productsGrid > .product-card,
+    .product-grid > .product-card {
+
+        grid-column: auto !important;
+
+        grid-row: auto !important;
+
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+        min-width: 0 !important;
+
+    }
+
+}
+
+
+/* =========================================================
+   FINAL VERY SMALL PHONE FIX
+========================================================= */
+
+@media (max-width: 360px) {
+
+    .products-grid,
+    #productsGrid,
+    .product-grid {
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr)) !important;
+
+        column-gap: 7px !important;
+
+        row-gap: 8px !important;
+
+    }
+
+
+    .products-grid > .product-card,
+    #productsGrid > .product-card,
+    .product-grid > .product-card {
+
+        grid-column: auto !important;
+
+        width: 100% !important;
+
+        min-width: 0 !important;
+
+    }
+
+       }
