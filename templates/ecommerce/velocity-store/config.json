@@ -1,0 +1,349 @@
+{
+  "templateId": "velocity-store",
+  "name": "Velocity Store",
+  "version": "1.0.0",
+
+  "editor": {
+    "layout": "sidebar-preview",
+    "preview": true
+  },
+
+  "editable": {
+
+    "announcement_text": {
+      "type": "text",
+      "label": "Announcement Text",
+      "group": "Announcement"
+    },
+
+    "announcement_button": {
+      "type": "text",
+      "label": "Announcement Button",
+      "group": "Announcement"
+    },
+
+    "brand_name": {
+      "type": "text",
+      "label": "Brand Name",
+      "group": "Brand"
+    },
+
+    "hero_kicker": {
+      "type": "text",
+      "label": "Hero Kicker",
+      "group": "Hero"
+    },
+
+    "hero_title_main": {
+      "type": "text",
+      "label": "Hero Main Title",
+      "group": "Hero"
+    },
+
+    "hero_title_outline": {
+      "type": "text",
+      "label": "Hero Outline Title",
+      "group": "Hero"
+    },
+
+    "hero_description": {
+      "type": "textarea",
+      "label": "Hero Description",
+      "group": "Hero"
+    },
+
+    "hero_primary_button": {
+      "type": "text",
+      "label": "Primary Button",
+      "group": "Hero"
+    },
+
+    "hero_secondary_button": {
+      "type": "text",
+      "label": "Secondary Button",
+      "group": "Hero"
+    },
+
+    "hero_stat_customers": {
+      "type": "text",
+      "label": "Customers Number",
+      "group": "Hero Stats"
+    },
+
+    "hero_stat_customers_label": {
+      "type": "text",
+      "label": "Customers Label",
+      "group": "Hero Stats"
+    },
+
+    "hero_stat_rating": {
+      "type": "text",
+      "label": "Rating",
+      "group": "Hero Stats"
+    },
+
+    "hero_stat_rating_label": {
+      "type": "text",
+      "label": "Rating Label",
+      "group": "Hero Stats"
+    },
+
+    "hero_stat_support": {
+      "type": "text",
+      "label": "Support",
+      "group": "Hero Stats"
+    },
+
+    "hero_stat_support_label": {
+      "type": "text",
+      "label": "Support Label",
+      "group": "Hero Stats"
+    },
+
+    "hero_product_name": {
+      "type": "text",
+      "label": "Featured Product",
+      "group": "Hero Product"
+    },
+
+    "hero_product_price": {
+      "type": "text",
+      "label": "Featured Product Price",
+      "group": "Hero Product"
+    },
+
+    "hero_product_badge": {
+      "type": "text",
+      "label": "Product Badge",
+      "group": "Hero Product"
+    },
+
+    "hero_product_image": {
+      "type": "image",
+      "label": "Hero Product Image",
+      "group": "Hero Product"
+    },
+
+    "categories_kicker": {
+      "type": "text",
+      "label": "Categories Kicker",
+      "group": "Categories"
+    },
+
+    "categories_title": {
+      "type": "text",
+      "label": "Categories Title",
+      "group": "Categories"
+    },
+
+    "category_fashion_name": {
+      "type": "text",
+      "label": "Fashion Name",
+      "group": "Categories"
+    },
+
+    "category_fashion_count": {
+      "type": "text",
+      "label": "Fashion Count",
+      "group": "Categories"
+    },
+
+    "category_shoes_name": {
+      "type": "text",
+      "label": "Sneakers Name",
+      "group": "Categories"
+    },
+
+    "category_shoes_count": {
+      "type": "text",
+      "label": "Sneakers Count",
+      "group": "Categories"
+    },
+
+    "category_tech_name": {
+      "type": "text",
+      "label": "Technology Name",
+      "group": "Categories"
+    },
+
+    "category_tech_count": {
+      "type": "text",
+      "label": "Technology Count",
+      "group": "Categories"
+    },
+
+    "category_accessories_name": {
+      "type": "text",
+      "label": "Accessories Name",
+      "group": "Categories"
+    },
+
+    "category_accessories_count": {
+      "type": "text",
+      "label": "Accessories Count",
+      "group": "Categories"
+    },
+
+    "products_kicker": {
+      "type": "text",
+      "label": "Products Kicker",
+      "group": "Products"
+    },
+
+    "products_title": {
+      "type": "text",
+      "label": "Products Title",
+      "group": "Products"
+    },
+
+    "products": {
+      "type": "products",
+      "label": "Products",
+      "group": "Products"
+    },
+
+    "sale_kicker": {
+      "type": "text",
+      "label": "Sale Kicker",
+      "group": "Sale"
+    },
+
+    "sale_title": {
+      "type": "textarea",
+      "label": "Sale Title",
+      "group": "Sale"
+    },
+
+    "sale_description": {
+      "type": "textarea",
+      "label": "Sale Description",
+      "group": "Sale"
+    },
+
+    "sale_button": {
+      "type": "text",
+      "label": "Sale Button",
+      "group": "Sale"
+    },
+
+    "trending_kicker": {
+      "type": "text",
+      "label": "Trending Kicker",
+      "group": "Trending"
+    },
+
+    "trending_title": {
+      "type": "text",
+      "label": "Trending Title",
+      "group": "Trending"
+    },
+
+    "trending_1_title": {
+      "type": "textarea",
+      "label": "Trending Card 1",
+      "group": "Trending"
+    },
+
+    "trending_2_title": {
+      "type": "textarea",
+      "label": "Trending Card 2",
+      "group": "Trending"
+    },
+
+    "trending_3_title": {
+      "type": "textarea",
+      "label": "Trending Card 3",
+      "group": "Trending"
+    },
+
+    "newsletter_kicker": {
+      "type": "text",
+      "label": "Newsletter Kicker",
+      "group": "Newsletter"
+    },
+
+    "newsletter_title": {
+      "type": "text",
+      "label": "Newsletter Title",
+      "group": "Newsletter"
+    },
+
+    "newsletter_description": {
+      "type": "textarea",
+      "label": "Newsletter Description",
+      "group": "Newsletter"
+    },
+
+    "newsletter_button": {
+      "type": "text",
+      "label": "Newsletter Button",
+      "group": "Newsletter"
+    },
+
+    "footer_brand_name": {
+      "type": "text",
+      "label": "Footer Brand",
+      "group": "Footer"
+    },
+
+    "footer_description": {
+      "type": "textarea",
+      "label": "Footer Description",
+      "group": "Footer"
+    },
+
+    "footer_shop_title": {
+      "type": "text",
+      "label": "Shop Title",
+      "group": "Footer"
+    },
+
+    "footer_help_title": {
+      "type": "text",
+      "label": "Help Title",
+      "group": "Footer"
+    },
+
+    "footer_follow_title": {
+      "type": "text",
+      "label": "Follow Title",
+      "group": "Footer"
+    },
+
+    "social_instagram": {
+      "type": "link",
+      "label": "Instagram",
+      "group": "Social"
+    },
+
+    "social_tiktok": {
+      "type": "link",
+      "label": "TikTok",
+      "group": "Social"
+    },
+
+    "social_facebook": {
+      "type": "link",
+      "label": "Facebook",
+      "group": "Social"
+    },
+
+    "social_pinterest": {
+      "type": "link",
+      "label": "Pinterest",
+      "group": "Social"
+    },
+
+    "primary_color": {
+      "type": "color",
+      "label": "Primary Color",
+      "group": "Appearance"
+    },
+
+    "background_color": {
+      "type": "color",
+      "label": "Background Color",
+      "group": "Appearance"
+    }
+  }
+}
