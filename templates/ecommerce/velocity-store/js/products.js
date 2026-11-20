@@ -4,26 +4,44 @@
    VELOCITY STORE
    PRODUCTS DATABASE + PRODUCT RENDERING
    ---------------------------------------------------------
+   UNIVERSAL TEMPLATE EDITOR READY
+
+   Product editing support:
+
+   - data-product-id
+   - data-product-field
+   - data-editable
+   - data-editable-type
+
+   Editable product fields:
+
+   - name
+   - price
+   - oldPrice
+   - currency
+   - category
+   - categoryName
+   - rating
+   - reviews
+   - badge
+   - image
+   - stock
+   - colors
+   - sizes
+
    IMAGE SYSTEM
 
-   - 8 real product cards
-   - Stable imageId per product
-   - image-1 -> product 1
-   - image-2 -> product 2
-   - ...
-   - image-8 -> product 8
-   - image-manifest.json can override filenames
-   - Built-in local image fallback map
-   - Local image has priority
-   - Web image fallback
-   - Final SVG fallback
-   - Ready for future Template Editor
+   - image-manifest.json priority
+   - local image priority
+   - web image fallback
+   - final SVG fallback
 
-   CART ANIMATION SUPPORT
+   CART SUPPORT
+
    - data-product-id
    - data-cart-id
    - data-cart-animation-id
-   - Compatible with velocity-cart-ui.js
+
 ========================================================= */
 
 (function () {
@@ -36,16 +54,9 @@
         'assets/images/image-manifest.json';
 
 
-    /*
-     * IMPORTANT
-     *
-     * Do NOT change these mappings here.
-     *
-     * image-manifest.json has priority.
-     *
-     * These values are only emergency fallbacks
-     * when the manifest is unavailable.
-     */
+    /* =====================================================
+       DEFAULT IMAGE MAP
+    ===================================================== */
 
     const DEFAULT_IMAGE_MAP = {
 
@@ -82,10 +93,6 @@
 
     const products = [
 
-        /* =================================================
-           PRODUCT 1
-        ================================================= */
-
         {
             id: 'velocity-001',
 
@@ -109,7 +116,15 @@
 
             imageId: 'image-1',
 
+            image: '',
+
+            localImage: '',
+
             webImage: '',
+
+            remoteImage: '',
+
+            resolvedImage: '',
 
             colors: [
                 'Black',
@@ -131,10 +146,6 @@
             newest: true
         },
 
-
-        /* =================================================
-           PRODUCT 2
-        ================================================= */
 
         {
             id: 'velocity-002',
@@ -159,7 +170,15 @@
 
             imageId: 'image-2',
 
+            image: '',
+
+            localImage: '',
+
             webImage: '',
+
+            remoteImage: '',
+
+            resolvedImage: '',
 
             colors: [
                 'Black',
@@ -180,10 +199,6 @@
             newest: true
         },
 
-
-        /* =================================================
-           PRODUCT 3
-        ================================================= */
 
         {
             id: 'velocity-003',
@@ -208,7 +223,15 @@
 
             imageId: 'image-3',
 
+            image: '',
+
+            localImage: '',
+
             webImage: '',
+
+            remoteImage: '',
+
+            resolvedImage: '',
 
             colors: [
                 'Black',
@@ -224,10 +247,6 @@
             newest: false
         },
 
-
-        /* =================================================
-           PRODUCT 4
-        ================================================= */
 
         {
             id: 'velocity-004',
@@ -252,7 +271,15 @@
 
             imageId: 'image-4',
 
+            image: '',
+
+            localImage: '',
+
             webImage: '',
+
+            remoteImage: '',
+
+            resolvedImage: '',
 
             colors: [
                 'Black',
@@ -268,10 +295,6 @@
             newest: false
         },
 
-
-        /* =================================================
-           PRODUCT 5
-        ================================================= */
 
         {
             id: 'velocity-005',
@@ -296,7 +319,15 @@
 
             imageId: 'image-5',
 
+            image: '',
+
+            localImage: '',
+
             webImage: '',
+
+            remoteImage: '',
+
+            resolvedImage: '',
 
             colors: [
                 'Black',
@@ -318,10 +349,6 @@
             newest: true
         },
 
-
-        /* =================================================
-           PRODUCT 6
-        ================================================= */
 
         {
             id: 'velocity-006',
@@ -346,7 +373,15 @@
 
             imageId: 'image-6',
 
+            image: '',
+
+            localImage: '',
+
             webImage: '',
+
+            remoteImage: '',
+
+            resolvedImage: '',
 
             colors: [
                 'White',
@@ -368,10 +403,6 @@
             newest: true
         },
 
-
-        /* =================================================
-           PRODUCT 7
-        ================================================= */
 
         {
             id: 'velocity-007',
@@ -396,7 +427,15 @@
 
             imageId: 'image-7',
 
+            image: '',
+
+            localImage: '',
+
             webImage: '',
+
+            remoteImage: '',
+
+            resolvedImage: '',
 
             colors: [
                 'Black',
@@ -412,10 +451,6 @@
             newest: false
         },
 
-
-        /* =================================================
-           PRODUCT 8
-        ================================================= */
 
         {
             id: 'velocity-008',
@@ -440,7 +475,15 @@
 
             imageId: 'image-8',
 
+            image: '',
+
+            localImage: '',
+
             webImage: '',
+
+            remoteImage: '',
+
+            resolvedImage: '',
 
             colors: [
                 'Black',
@@ -749,7 +792,6 @@
                     imageManifestLoaded =
                         false;
 
-
                     imageManifest = {
 
                         version: 1,
@@ -963,10 +1005,251 @@
 
 
     /* =====================================================
+       UPDATE PRODUCT
+       -----------------------------------------------------
+       Used by Universal Template Editor
+    ===================================================== */
+
+    function updateProduct(
+        productId,
+        changes = {}
+    ) {
+
+        const product =
+            getProductById(
+                productId
+            );
+
+
+        if (!product) {
+
+            return null;
+
+        }
+
+
+        if (
+            !changes ||
+            typeof changes !== 'object'
+        ) {
+
+            return product;
+
+        }
+
+
+        const allowedFields = [
+
+            'name',
+            'price',
+            'oldPrice',
+            'currency',
+            'category',
+            'categoryName',
+            'rating',
+            'reviews',
+            'badge',
+            'image',
+            'localImage',
+            'webImage',
+            'remoteImage',
+            'resolvedImage',
+            'stock',
+            'featured',
+            'newest'
+
+        ];
+
+
+        allowedFields.forEach(
+            field => {
+
+                if (
+                    Object.prototype.hasOwnProperty.call(
+                        changes,
+                        field
+                    )
+                ) {
+
+                    product[field] =
+                        changes[field];
+
+                }
+
+            }
+        );
+
+
+        if (
+            Object.prototype.hasOwnProperty.call(
+                changes,
+                'colors'
+            )
+        ) {
+
+            product.colors =
+                Array.isArray(
+                    changes.colors
+                )
+                    ? [
+                        ...changes.colors
+                    ]
+                    : [];
+
+        }
+
+
+        if (
+            Object.prototype.hasOwnProperty.call(
+                changes,
+                'sizes'
+            )
+        ) {
+
+            product.sizes =
+                Array.isArray(
+                    changes.sizes
+                )
+                    ? [
+                        ...changes.sizes
+                    ]
+                    : [];
+
+        }
+
+
+        document.dispatchEvent(
+            new CustomEvent(
+                'velocity:product-updated',
+                {
+                    detail: {
+
+                        product:
+                            getProductById(
+                                productId
+                            ),
+
+                        productId
+
+                    }
+                }
+            )
+        );
+
+
+        return product;
+
+    }
+
+
+    /* =====================================================
+       UPDATE PRODUCT FIELD
+    ===================================================== */
+
+    function updateProductField(
+        productId,
+        field,
+        value
+    ) {
+
+        const product =
+            getProductById(
+                productId
+            );
+
+
+        if (!product || !field) {
+
+            return null;
+
+        }
+
+
+        if (
+            field === 'price' ||
+            field === 'oldPrice' ||
+            field === 'rating' ||
+            field === 'reviews' ||
+            field === 'stock'
+        ) {
+
+            const numberValue =
+                Number(value);
+
+
+            if (
+                Number.isFinite(
+                    numberValue
+                )
+            ) {
+
+                value =
+                    numberValue;
+
+            }
+
+        }
+
+
+        if (
+            field === 'colors' ||
+            field === 'sizes'
+        ) {
+
+            if (
+                typeof value === 'string'
+            ) {
+
+                value =
+                    value
+                        .split(',')
+                        .map(
+                            item =>
+                                item.trim()
+                        )
+                        .filter(Boolean);
+
+            }
+
+        }
+
+
+        product[field] =
+            value;
+
+
+        document.dispatchEvent(
+            new CustomEvent(
+                'velocity:product-field-updated',
+                {
+                    detail: {
+
+                        productId,
+
+                        field,
+
+                        value,
+
+                        product
+
+                    }
+                }
+            )
+        );
+
+
+        return product;
+
+    }
+
+
+    /* =====================================================
        GET PRODUCT IMAGE CANDIDATES
     ===================================================== */
 
-    function getProductImageCandidates(product) {
+    function getProductImageCandidates(
+        product
+    ) {
 
         if (!product) {
 
@@ -1004,27 +1287,21 @@
         }
 
 
-        /*
-         * 1. Template Editor / resolved image
-         */
+        /* 1. Editor resolved image */
 
         addCandidate(
             product.resolvedImage
         );
 
 
-        /*
-         * 2. Explicit local image
-         */
+        /* 2. Explicit local image */
 
         addCandidate(
             product.localImage
         );
 
 
-        /*
-         * 3. image-manifest.json
-         */
+        /* 3. Manifest */
 
         if (
             product.imageId
@@ -1039,9 +1316,7 @@
         }
 
 
-        /*
-         * 4. Built-in fallback mapping
-         */
+        /* 4. Built-in local image */
 
         if (
             product.imageId
@@ -1056,36 +1331,28 @@
         }
 
 
-        /*
-         * 5. Legacy image
-         */
+        /* 5. Explicit image */
 
         addCandidate(
             product.image
         );
 
 
-        /*
-         * 6. Web image
-         */
+        /* 6. Web image */
 
         addCandidate(
             product.webImage
         );
 
 
-        /*
-         * 7. Remote image
-         */
+        /* 7. Remote image */
 
         addCandidate(
             product.remoteImage
         );
 
 
-        /*
-         * 8. Final SVG fallback
-         */
+        /* 8. Final fallback */
 
         addCandidate(
             FALLBACK_IMAGE
@@ -1119,7 +1386,9 @@
        IMAGE CANDIDATES ATTRIBUTE
     ===================================================== */
 
-    function getImageCandidatesAttribute(product) {
+    function getImageCandidatesAttribute(
+        product
+    ) {
 
         const candidates =
             getProductImageCandidates(
@@ -1148,7 +1417,9 @@
        LEGACY FALLBACK ATTRIBUTE
     ===================================================== */
 
-    function getImageFallbackAttribute(product) {
+    function getImageFallbackAttribute(
+        product
+    ) {
 
         const candidates =
             getProductImageCandidates(
@@ -1298,8 +1569,46 @@
 
 
     /* =====================================================
+       PRODUCT FIELD ATTRIBUTE
+    ===================================================== */
+
+    function productFieldAttributes(
+        product,
+        field,
+        type = 'text'
+    ) {
+
+        const productId =
+            escapeHtml(
+                product.id
+            );
+
+
+        const fieldName =
+            escapeHtml(
+                field
+            );
+
+
+        const editableKey =
+            escapeHtml(
+                `product_${product.id}_${field}`
+            );
+
+
+        return `
+            data-product-id="${productId}"
+            data-product-field="${fieldName}"
+            data-editable="${editableKey}"
+            data-editable-type="${type}"
+        `;
+
+    }
+
+
+    /* =====================================================
        CREATE PRODUCT CARD
-       ===================================================== */
+    ===================================================== */
 
     function createProductCard(product) {
 
@@ -1365,53 +1674,95 @@
         return `
 
             <article
+
                 class="product-card"
+
                 data-product-id="${productId}"
+
                 data-cart-animation-id="${productId}"
+
                 data-image-id="${escapeHtml(
                     product.imageId || ''
                 )}"
+
                 data-category="${category}"
+
+                data-editable="product_${productId}"
+
+                data-editable-type="product"
+
             >
 
+
+                <!-- =====================================
+                     PRODUCT IMAGE
+                ====================================== -->
+
                 <div class="product-image-wrapper">
+
 
                     ${
                         product.badge
                             ? `
-                                <span class="product-badge">
+
+                                <span
+
+                                    class="product-badge"
+
+                                    ${productFieldAttributes(
+                                        product,
+                                        'badge',
+                                        'text'
+                                    )}
+
+                                >
                                     ${badge}
                                 </span>
+
                             `
                             : ''
+
                     }
 
 
                     ${
                         discount > 0
                             ? `
-                                <span class="discount-badge">
+
+                                <span
+                                    class="discount-badge"
+                                    data-product-id="${productId}"
+                                    data-product-field="discount"
+                                >
                                     -${discount}%
                                 </span>
+
                             `
                             : ''
+
                     }
 
 
                     <button
+
                         class="wishlist-button ${
                             isFavorite
                                 ? 'active'
                                 : ''
                         }"
+
                         type="button"
+
                         data-wishlist-id="${productId}"
+
                         aria-label="${
                             isFavorite
                                 ? 'إزالة من المفضلة'
                                 : 'إضافة إلى المفضلة'
                         }"
+
                         aria-pressed="${isFavorite}"
+
                     >
 
                         ${
@@ -1424,83 +1775,179 @@
 
 
                     <img
+
                         class="product-image"
+
                         src="${escapeHtml(image)}"
+
                         alt="${productName}"
+
                         loading="lazy"
+
                         decoding="async"
+
                         ${getImageCandidatesAttribute(product)}
+
                         ${getImageFallbackAttribute(product)}
+
+                        ${productFieldAttributes(
+                            product,
+                            'image',
+                            'image'
+                        )}
+
                     />
 
 
                     <div class="product-overlay">
 
+
                         <button
+
                             class="quick-view-button"
+
                             type="button"
+
                             data-product-id="${productId}"
+
                         >
                             عرض سريع
                         </button>
 
 
                         <button
+
                             class="add-cart-button"
+
                             type="button"
+
                             data-cart-id="${productId}"
+
+                            data-product-id="${productId}"
+
                             data-cart-animation-id="${productId}"
+
                         >
                             أضف للسلة
                         </button>
+
 
                     </div>
 
                 </div>
 
 
+                <!-- =====================================
+                     PRODUCT INFORMATION
+                ====================================== -->
+
                 <div class="product-info">
 
-                    <div class="product-category">
+
+                    <!-- CATEGORY -->
+
+                    <div
+
+                        class="product-category"
+
+                        ${productFieldAttributes(
+                            product,
+                            'categoryName',
+                            'text'
+                        )}
+
+                    >
                         ${categoryName}
                     </div>
 
 
-                    <h3 class="product-name">
+                    <!-- PRODUCT NAME -->
+
+                    <h3
+
+                        class="product-name"
+
+                        ${productFieldAttributes(
+                            product,
+                            'name',
+                            'text'
+                        )}
+
+                    >
                         ${productName}
                     </h3>
 
 
+                    <!-- RATING -->
+
                     <div class="product-rating">
 
+
                         <div class="stars">
+
                             ${renderStars(
                                 product.rating
                             )}
+
                         </div>
 
 
-                        <span class="rating-value">
+                        <span
+
+                            class="rating-value"
+
+                            ${productFieldAttributes(
+                                product,
+                                'rating',
+                                'number'
+                            )}
+
+                        >
                             ${escapeHtml(
                                 product.rating
                             )}
                         </span>
 
 
-                        <span class="review-count">
+                        <span
+
+                            class="review-count"
+
+                            ${productFieldAttributes(
+                                product,
+                                'reviews',
+                                'number'
+                            )}
+
+                        >
                             (${escapeHtml(
                                 product.reviews
                             )})
                         </span>
 
+
                     </div>
 
 
+                    <!-- PRICE -->
+
                     <div class="product-bottom">
+
 
                         <div class="product-price-wrapper">
 
-                            <span class="product-price">
+
+                            <span
+
+                                class="product-price"
+
+                                ${productFieldAttributes(
+                                    product,
+                                    'price',
+                                    'number'
+                                )}
+
+                            >
 
                                 ${formatPrice(
                                     product.price,
@@ -1513,7 +1960,18 @@
                             ${
                                 product.oldPrice
                                     ? `
-                                        <span class="product-old-price">
+
+                                        <span
+
+                                            class="product-old-price"
+
+                                            ${productFieldAttributes(
+                                                product,
+                                                'oldPrice',
+                                                'number'
+                                            )}
+
+                                        >
 
                                             ${formatPrice(
                                                 product.oldPrice,
@@ -1521,13 +1979,150 @@
                                             )}
 
                                         </span>
+
                                     `
                                     : ''
                             }
 
+
+                            <span
+
+                                class="product-currency"
+
+                                hidden
+
+                                ${productFieldAttributes(
+                                    product,
+                                    'currency',
+                                    'text'
+                                )}
+
+                            >
+                                ${escapeHtml(
+                                    product.currency
+                                )}
+                            </span>
+
+
                         </div>
 
+
                     </div>
+
+
+                    <!-- =================================
+                         HIDDEN EDITOR DATA
+                    ================================== -->
+
+                    <div
+                        class="product-editor-data"
+                        hidden
+                        aria-hidden="true"
+                    >
+
+
+                        <span
+
+                            ${productFieldAttributes(
+                                product,
+                                'category',
+                                'text'
+                            )}
+
+                        >
+                            ${category}
+                        </span>
+
+
+                        <span
+
+                            ${productFieldAttributes(
+                                product,
+                                'stock',
+                                'number'
+                            )}
+
+                        >
+                            ${escapeHtml(
+                                product.stock
+                            )}
+                        </span>
+
+
+                        <span
+
+                            ${productFieldAttributes(
+                                product,
+                                'featured',
+                                'boolean'
+                            )}
+
+                        >
+                            ${product.featured
+                                ? 'true'
+                                : 'false'}
+                        </span>
+
+
+                        <span
+
+                            ${productFieldAttributes(
+                                product,
+                                'newest',
+                                'boolean'
+                            )}
+
+                        >
+                            ${product.newest
+                                ? 'true'
+                                : 'false'}
+                        </span>
+
+
+                        <span
+
+                            ${productFieldAttributes(
+                                product,
+                                'colors',
+                                'text'
+                            )}
+
+                        >
+                            ${escapeHtml(
+                                Array.isArray(
+                                    product.colors
+                                )
+                                    ? product.colors.join(
+                                        ', '
+                                    )
+                                    : ''
+                            )}
+                        </span>
+
+
+                        <span
+
+                            ${productFieldAttributes(
+                                product,
+                                'sizes',
+                                'text'
+                            )}
+
+                        >
+                            ${escapeHtml(
+                                Array.isArray(
+                                    product.sizes
+                                )
+                                    ? product.sizes.join(
+                                        ', '
+                                    )
+                                    : ''
+                            )}
+                        </span>
+
+
+                    </div>
+
 
                 </div>
 
@@ -1542,23 +2137,29 @@
        RENDER EMPTY STATE
     ===================================================== */
 
-    function renderEmptyState(element) {
+    function renderEmptyState(
+        element
+    ) {
 
         element.innerHTML = `
 
             <div class="products-empty">
 
+
                 <div class="products-empty-icon">
                     🛍️
                 </div>
+
 
                 <h3>
                     لا توجد منتجات
                 </h3>
 
+
                 <p>
                     جرب تغيير الفلاتر أو البحث عن منتج آخر.
                 </p>
+
 
             </div>
 
@@ -1640,6 +2241,11 @@
                 .join('');
 
 
+        bindProductImageFallbacks(
+            element
+        );
+
+
         if (
             window.VelocityWishlist &&
             typeof window.VelocityWishlist.updateUI ===
@@ -1686,6 +2292,117 @@
                     }
                 }
             )
+        );
+
+    }
+
+
+    /* =====================================================
+       IMAGE FALLBACK HANDLER
+    ===================================================== */
+
+    function bindProductImageFallbacks(
+        container
+    ) {
+
+        if (!container) {
+
+            return;
+
+        }
+
+
+        const images =
+            container.querySelectorAll(
+                '.product-image'
+            );
+
+
+        images.forEach(
+            image => {
+
+                if (
+                    image.dataset.velocityImageBound ===
+                    'true'
+                ) {
+
+                    return;
+
+                }
+
+
+                image.dataset.velocityImageBound =
+                    'true';
+
+
+                let candidates = [];
+
+
+                try {
+
+                    candidates =
+                        JSON.parse(
+                            image.dataset.imageCandidates ||
+                            '[]'
+                        );
+
+                } catch (
+                    error
+                ) {
+
+                    candidates = [];
+
+                }
+
+
+                let index = 0;
+
+
+                image.addEventListener(
+                    'error',
+                    function () {
+
+                        if (
+                            index >=
+                            candidates.length
+                        ) {
+
+                            if (
+                                image.src !==
+                                FALLBACK_IMAGE
+                            ) {
+
+                                image.src =
+                                    FALLBACK_IMAGE;
+
+                            }
+
+                            return;
+
+                        }
+
+
+                        const next =
+                            candidates[index];
+
+
+                        index++;
+
+
+                        if (
+                            next &&
+                            image.src !== next
+                        ) {
+
+                            image.src =
+                                next;
+
+                        }
+
+                    }
+                );
+
+            }
         );
 
     }
@@ -1901,6 +2618,288 @@
 
 
     /* =====================================================
+       SET PRODUCT IMAGE
+       -----------------------------------------------------
+       Universal Editor helper
+    ===================================================== */
+
+    function setProductImage(
+        productId,
+        image
+    ) {
+
+        const product =
+            getProductById(
+                productId
+            );
+
+
+        if (!product) {
+
+            return null;
+
+        }
+
+
+        product.resolvedImage =
+            String(
+                image ?? ''
+            ).trim();
+
+
+        product.image =
+            product.resolvedImage;
+
+
+        document.dispatchEvent(
+            new CustomEvent(
+                'velocity:product-image-updated',
+                {
+                    detail: {
+
+                        productId,
+
+                        image:
+                            product.resolvedImage,
+
+                        product
+
+                    }
+                }
+            )
+        );
+
+
+        return product;
+
+    }
+
+
+    /* =====================================================
+       REFRESH PRODUCT CARD
+    ===================================================== */
+
+    function refreshProductCard(
+        productId
+    ) {
+
+        const card =
+            document.querySelector(
+                `[data-product-id="${CSS.escape(
+                    String(productId)
+                )}"].product-card`
+            );
+
+
+        const product =
+            getProductById(
+                productId
+            );
+
+
+        if (
+            !card ||
+            !product
+        ) {
+
+            return;
+
+        }
+
+
+        const parent =
+            card.parentElement;
+
+
+        if (!parent) {
+
+            return;
+
+        }
+
+
+        const cards =
+            Array.from(
+                parent.children
+            );
+
+
+        const index =
+            cards.indexOf(
+                card
+            );
+
+
+        const newHtml =
+            createProductCard(
+                product
+            );
+
+
+        const temporary =
+            document.createElement(
+                'div'
+            );
+
+
+        temporary.innerHTML =
+            newHtml;
+
+
+        const newCard =
+            temporary.firstElementChild;
+
+
+        if (!newCard) {
+
+            return;
+
+        }
+
+
+        if (index >= 0) {
+
+            parent.replaceChild(
+                newCard,
+                card
+            );
+
+        } else {
+
+            card.replaceWith(
+                newCard
+            );
+
+        }
+
+
+        bindProductImageFallbacks(
+            parent
+        );
+
+
+        document.dispatchEvent(
+            new CustomEvent(
+                'velocity:product-card-refreshed',
+                {
+                    detail: {
+
+                        productId,
+
+                        product
+
+                    }
+                }
+            )
+        );
+
+    }
+
+
+    /* =====================================================
+       EDITOR MESSAGE BRIDGE
+       -----------------------------------------------------
+       Allows template-bridge.js / editor.js
+       to update product data directly.
+    ===================================================== */
+
+    window.addEventListener(
+        'message',
+        event => {
+
+            const message =
+                event.data;
+
+
+            if (
+                !message ||
+                typeof message !== 'object'
+            ) {
+
+                return;
+
+            }
+
+
+            if (
+                message.type ===
+                'SET_PRODUCT'
+            ) {
+
+                const productId =
+                    message.productId ||
+                    message.id;
+
+
+                const changes =
+                    message.product ||
+                    message.data ||
+                    message.changes ||
+                    {};
+
+
+                const product =
+                    updateProduct(
+                        productId,
+                        changes
+                    );
+
+
+                if (product) {
+
+                    refreshProductCard(
+                        productId
+                    );
+
+                }
+
+
+                return;
+
+            }
+
+
+            if (
+                message.type ===
+                'SET_PRODUCT_FIELD'
+            ) {
+
+                const productId =
+                    message.productId ||
+                    message.id;
+
+
+                const field =
+                    message.field;
+
+
+                const value =
+                    message.value;
+
+
+                const product =
+                    updateProductField(
+                        productId,
+                        field,
+                        value
+                    );
+
+
+                if (product) {
+
+                    refreshProductCard(
+                        productId
+                    );
+
+                }
+
+            }
+
+        }
+    );
+
+
+    /* =====================================================
        GLOBAL API
     ===================================================== */
 
@@ -1944,13 +2943,21 @@
 
         isImageManifestLoaded,
 
-        loadImageManifest
+        loadImageManifest,
+
+        updateProduct,
+
+        updateProductField,
+
+        setProductImage,
+
+        refreshProductCard
 
     };
 
 
     /* =====================================================
-       START MANIFEST
+       START IMAGE MANIFEST
     ===================================================== */
 
     loadImageManifest();
@@ -1965,8 +2972,13 @@
             'velocity:products-ready',
             {
                 detail: {
+
                     count:
-                        products.length
+                        products.length,
+
+                    products:
+                        getProducts()
+
                 }
             }
         )
