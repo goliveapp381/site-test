@@ -35,6 +35,10 @@
 
         animationToken: 0,
 
+        activeModal: null,
+
+        lastFocusedElement: null,
+
 
         /* =====================================================
            CONSTANTS
@@ -44,7 +48,7 @@
 
         ANIMATION_CLEANUP_DELAY: 1900,
 
-        MODAL_DELAY: 100,
+        MODAL_DELAY: 120,
 
         CLOSE_DURATION: 450,
 
@@ -87,9 +91,7 @@
             ) {
 
                 product =
-                    window.VelocityProducts.getProductById(
-                        productId
-                    );
+                    window.VelocityProducts.getProductById(productId);
 
             }
 
@@ -100,9 +102,7 @@
             ) {
 
                 product =
-                    window.VelocityCore.getProductById(
-                        productId
-                    );
+                    window.VelocityCore.getProductById(productId);
 
             }
 
@@ -118,9 +118,7 @@
                 typeof window.VelocityProducts.getProductImage === 'function'
             ) {
 
-                return window.VelocityProducts.getProductImage(
-                    product
-                ) || '';
+                return window.VelocityProducts.getProductImage(product) || '';
 
             }
 
@@ -129,9 +127,7 @@
                 typeof window.VelocityCore.getProductImage === 'function'
             ) {
 
-                return window.VelocityCore.getProductImage(
-                    product
-                ) || '';
+                return window.VelocityCore.getProductImage(product) || '';
 
             }
 
@@ -175,9 +171,7 @@
                 try {
 
                     const candidates =
-                        window.VelocityProducts.getProductImageCandidates(
-                            product
-                        );
+                        window.VelocityProducts.getProductImageCandidates(product);
 
                     return Array.isArray(candidates)
                         ? candidates.slice(1)
@@ -238,9 +232,7 @@
 
                 try {
 
-                    return window.VelocityProducts.renderStars(
-                        rating
-                    );
+                    return window.VelocityProducts.renderStars(rating);
 
                 } catch (error) {
 
@@ -268,23 +260,13 @@
                 return;
             }
 
-            CartUI.startCardExperience(
-                product,
-                false
-            );
+            CartUI.startCardExperience(product, false);
 
         },
 
 
         /* =====================================================
            HANDLE PRODUCT CARD CLICK
-
-           Click card:
-           1. Scale up
-           2. Smooth 720deg spin
-           3. Open product details
-
-           Does NOT add to cart.
         ===================================================== */
 
         handleCardClick(product, card) {
@@ -328,13 +310,10 @@
 
             CartUI.animationToken++;
 
-            const currentToken =
-                CartUI.animationToken;
+            const currentToken = CartUI.animationToken;
 
             CartUI.animationRunning = true;
-
             CartUI.pendingProduct = product;
-
             CartUI.cartConfirmed = false;
 
             CartUI.closeExistingModal();
@@ -356,53 +335,40 @@
 
             }
 
-            CartUI.animationTimer =
-                setTimeout(
-                    function () {
+            CartUI.animationTimer = setTimeout(function () {
 
-                        if (
-                            currentToken !== CartUI.animationToken
-                        ) {
-                            return;
-                        }
+                if (currentToken !== CartUI.animationToken) {
+                    return;
+                }
 
-                        CartUI.animationTimer = null;
+                CartUI.animationTimer = null;
+                CartUI.animationRunning = false;
 
-                        CartUI.animationRunning = false;
+                const finishedProduct = CartUI.pendingProduct;
 
-                        const finishedProduct =
-                            CartUI.pendingProduct;
+                CartUI.pendingProduct = null;
 
-                        CartUI.pendingProduct = null;
+                if (!finishedProduct) {
+                    return;
+                }
 
-                        if (!finishedProduct) {
-                            return;
-                        }
+                if (!preview && !CartUI.cartConfirmed) {
 
-                        /*
-                         * Add-to-cart mode:
-                         * Only open modal if cart confirms addition.
-                         */
+                    console.warn(
+                        '[Velocity Store] Cart addition not confirmed.'
+                    );
 
-                        if (!preview && !CartUI.cartConfirmed) {
+                    return;
 
-                            console.warn(
-                                '[Velocity Store] Cart addition not confirmed.'
-                            );
+                }
 
-                            return;
-
-                        }
-
-                        CartUI.scheduleModal(
-                            finishedProduct,
-                            CartUI.MODAL_DELAY,
-                            preview
-                        );
-
-                    },
-                    CartUI.ANIMATION_DURATION + 50
+                CartUI.scheduleModal(
+                    finishedProduct,
+                    CartUI.MODAL_DELAY,
+                    preview
                 );
+
+            }, CartUI.ANIMATION_DURATION + 50);
 
         },
 
@@ -413,10 +379,7 @@
 
         openProductExperience(product, card) {
 
-            return CartUI.handleCardClick(
-                product,
-                card
-            );
+            return CartUI.handleCardClick(product, card);
 
         },
 
@@ -436,20 +399,10 @@
                 button.dataset.productId;
 
             if (!productId) {
-
-                const card =
-                    button.closest('.product-card');
-
-                if (card) {
-                    CartUI.animateCard(card);
-                }
-
                 return;
-
             }
 
-            const product =
-                CartUI.getProductById(productId);
+            const product = CartUI.getProductById(productId);
 
             if (!product) {
 
@@ -473,39 +426,26 @@
 
         findProductCard(productId) {
 
-            if (
-                productId === undefined ||
-                productId === null
-            ) {
+            if (productId === undefined || productId === null) {
                 return null;
             }
 
-            const wanted =
-                String(productId);
+            const wanted = String(productId);
 
-            const cards =
-                document.querySelectorAll(
-                    '.product-card'
-                );
+            const cards = document.querySelectorAll('.product-card');
 
             for (let i = 0; i < cards.length; i++) {
 
                 const card = cards[i];
 
                 const ids = [
-
                     card.dataset.productId,
-
                     card.dataset.id,
-
                     card.dataset.cartAnimationId
-
                 ];
 
                 if (
-                    ids.some(
-                        id => String(id || '') === wanted
-                    )
+                    ids.some(id => String(id || '') === wanted)
                 ) {
 
                     return card;
@@ -521,15 +461,6 @@
 
         /* =====================================================
            CARD ANIMATION
-
-           CSS animation must use:
-           velocityPremiumCardSpin
-
-           Duration:
-           1800ms
-
-           Rotation:
-           720deg
         ===================================================== */
 
         animateCard(card) {
@@ -544,22 +475,11 @@
                 'velocity-cart-launch'
             );
 
-            const oldGlow =
-                card.querySelector(
-                    '.velocity-cart-glow'
-                );
+            const oldGlow = card.querySelector('.velocity-cart-glow');
 
             if (oldGlow) {
-
-                oldGlow.classList.remove(
-                    'active'
-                );
-
+                oldGlow.classList.remove('active');
             }
-
-            /*
-             * Force animation restart.
-             */
 
             void card.offsetWidth;
 
@@ -568,23 +488,15 @@
                 'velocity-cart-launch'
             );
 
-            let glow =
-                card.querySelector(
-                    '.velocity-cart-glow'
-                );
+            let glow = card.querySelector('.velocity-cart-glow');
 
             if (!glow) {
 
-                glow =
-                    document.createElement('div');
+                glow = document.createElement('div');
 
-                glow.className =
-                    'velocity-cart-glow';
+                glow.className = 'velocity-cart-glow';
 
-                glow.setAttribute(
-                    'aria-hidden',
-                    'true'
-                );
+                glow.setAttribute('aria-hidden', 'true');
 
                 card.appendChild(glow);
 
@@ -596,34 +508,19 @@
 
             glow.classList.add('active');
 
-            /*
-             * Cleanup after animation.
-             */
+            setTimeout(function () {
 
-            setTimeout(
-                function () {
+                card.classList.remove(
+                    'velocity-cart-spin',
+                    'velocity-cart-spinning',
+                    'velocity-cart-launch'
+                );
 
-                    if (!card) {
-                        return;
-                    }
+                if (glow && glow.parentNode) {
+                    glow.classList.remove('active');
+                }
 
-                    card.classList.remove(
-                        'velocity-cart-spin',
-                        'velocity-cart-spinning',
-                        'velocity-cart-launch'
-                    );
-
-                    if (glow && glow.parentNode) {
-
-                        glow.classList.remove(
-                            'active'
-                        );
-
-                    }
-
-                },
-                CartUI.ANIMATION_CLEANUP_DELAY
-            );
+            }, CartUI.ANIMATION_CLEANUP_DELAY);
 
         },
 
@@ -655,12 +552,39 @@
 
 
         /* =====================================================
+           CART EVENT LISTENER
+           Supports the existing cart.js event.
+        ===================================================== */
+
+        bindCartEvents() {
+
+            if (CartUI._cartEventsBound) {
+                return;
+            }
+
+            CartUI._cartEventsBound = true;
+
+            document.addEventListener(
+                'velocity:cart-changed',
+                function () {
+
+                    if (CartUI.animationRunning) {
+                        CartUI.cartConfirmed = true;
+                    }
+
+                }
+            );
+
+        },
+
+
+        /* =====================================================
            SCHEDULE MODAL
         ===================================================== */
 
         scheduleModal(
             product,
-            delay = 100,
+            delay = 120,
             preview = false
         ) {
 
@@ -668,30 +592,21 @@
                 return;
             }
 
-            clearTimeout(
-                CartUI.modalTimer
-            );
+            clearTimeout(CartUI.modalTimer);
 
-            CartUI.modalTimer =
-                setTimeout(
-                    function () {
+            CartUI.modalTimer = setTimeout(function () {
 
-                        CartUI.modalTimer = null;
+                CartUI.modalTimer = null;
 
-                        if (CartUI.animationRunning) {
-                            return;
-                        }
+                if (CartUI.animationRunning) {
+                    return;
+                }
 
-                        CartUI.openModal(
-                            product,
-                            {
-                                preview: preview
-                            }
-                        );
+                CartUI.openModal(product, {
+                    preview: preview
+                });
 
-                    },
-                    delay
-                );
+            }, delay);
 
         },
 
@@ -700,122 +615,85 @@
            OPEN PRODUCT MODAL
         ===================================================== */
 
-        openModal(
-            product,
-            options = {}
-        ) {
+        openModal(product, options = {}) {
 
             if (!product) {
                 return;
             }
 
-            const isPreview =
-                options.preview === true;
+            const isPreview = options.preview === true;
 
             CartUI.closeExistingModal();
 
-            const modal =
-                document.createElement('div');
+            CartUI.lastFocusedElement = document.activeElement;
 
-            modal.id =
-                'velocity-added-cart-modal';
+            const modal = document.createElement('div');
 
-            modal.className =
-                'velocity-added-cart-modal';
+            modal.id = 'velocity-added-cart-modal';
 
-            modal.setAttribute(
-                'aria-hidden',
-                'false'
-            );
+            modal.className = 'velocity-added-cart-modal';
+
+            modal.setAttribute('aria-hidden', 'true');
 
 
             /* =================================================
                IMAGE SYSTEM
-               Manifest system remains untouched.
+               Original manifest system preserved.
             ================================================= */
 
-            const image =
-                CartUI.getProductImage(product);
+            const image = CartUI.getProductImage(product);
 
-            const fallback =
-                CartUI.getFallbackImage();
+            const fallback = CartUI.getFallbackImage();
 
-            const candidates =
-                CartUI.getImageCandidates(product);
+            const candidates = CartUI.getImageCandidates(product);
 
 
             /* =================================================
                PRODUCT INFORMATION
             ================================================= */
 
-            const name =
-                CartUI.escapeHTML(
-                    product.name || 'Product'
-                );
+            const name = CartUI.escapeHTML(
+                product.name || 'Product'
+            );
 
-            const category =
-                CartUI.escapeHTML(
-                    product.categoryName ||
-                    product.category ||
-                    'Premium Collection'
-                );
+            const category = CartUI.escapeHTML(
+                product.categoryName ||
+                product.category ||
+                'Premium Collection'
+            );
 
-            const rating =
-                Number(product.rating || 0);
+            const rating = Number(product.rating || 0);
 
-            const stars =
-                CartUI.getStars(rating);
+            const stars = CartUI.getStars(rating);
 
-            const price =
-                CartUI.escapeHTML(
-                    CartUI.formatPrice(product)
-                );
+            const price = CartUI.escapeHTML(
+                CartUI.formatPrice(product)
+            );
 
-            const description =
-                CartUI.escapeHTML(
-                    product.description ||
-                    'Premium product selected for your Velocity collection.'
-                );
+            const description = CartUI.escapeHTML(
+                product.description ||
+                'Premium product selected for your Velocity collection.'
+            );
 
-            const productId =
-                CartUI.escapeAttribute(
-                    product.id
-                );
+            const productId = CartUI.escapeAttribute(product.id);
 
-            const safeImage =
-                CartUI.escapeAttribute(
-                    image || fallback
-                );
+            const safeImage = CartUI.escapeAttribute(image || fallback);
 
-            const safeFallback =
-                CartUI.escapeAttribute(
-                    fallback
-                );
+            const safeFallback = CartUI.escapeAttribute(fallback);
 
-            const safeCandidates =
-                CartUI.escapeAttribute(
-                    JSON.stringify(candidates)
-                );
+            const safeCandidates = CartUI.escapeAttribute(
+                JSON.stringify(candidates)
+            );
 
-            const safeProductName =
-                CartUI.escapeAttribute(
-                    product.name || 'Product'
-                );
+            const safeProductName = CartUI.escapeAttribute(
+                product.name || 'Product'
+            );
 
+            const sku = CartUI.escapeHTML(
+                product.sku || product.id || 'VELOCITY'
+            );
 
-            /* =================================================
-               OPTIONAL PRODUCT INFORMATION
-            ================================================= */
-
-            const sku =
-                CartUI.escapeHTML(
-                    product.sku ||
-                    product.id ||
-                    'VELOCITY'
-                );
-
-            const stock =
-                product.stock;
+            const stock = product.stock;
 
             const stockText =
                 stock === undefined || stock === null
@@ -824,63 +702,60 @@
                         ? `${Number(stock)} available`
                         : 'Out of stock';
 
-            const safeStock =
-                CartUI.escapeHTML(stockText);
+            const safeStock = CartUI.escapeHTML(stockText);
+
+            const outOfStock =
+                stock !== undefined &&
+                stock !== null &&
+                Number(stock) <= 0;
 
 
             /* =================================================
                MODAL MODE
             ================================================= */
 
-            const kicker =
-                isPreview
-                    ? 'PRODUCT DETAILS'
-                    : 'ADDED TO CART';
+            const kicker = isPreview
+                ? 'PRODUCT DETAILS'
+                : 'ADDED TO CART';
 
-            const badge =
-                isPreview
-                    ? 'VIEW'
-                    : 'ADDED';
+            const badge = isPreview
+                ? 'VIEW'
+                : 'ADDED';
 
-            const statusTitle =
-                isPreview
-                    ? 'Product Details'
-                    : 'Ready in cart';
+            const statusTitle = isPreview
+                ? 'Product Details'
+                : 'Ready in cart';
 
-            const statusSubtitle =
-                isPreview
-                    ? 'Premium selection'
-                    : '1 item added';
+            const statusSubtitle = isPreview
+                ? 'Premium selection'
+                : '1 item added';
 
-            const statusIcon =
-                isPreview
-                    ? '◆'
-                    : '✓';
+            const statusIcon = isPreview ? '◆' : '✓';
 
 
-            const primaryButton =
-                isPreview
-                    ? `
-                        <button
-                            type="button"
-                            class="velocity-added-btn velocity-added-btn-primary"
-                            data-added-cart-add
-                            data-product-id="${productId}"
-                        >
-                            <span>Add to Cart</span>
-                            <span class="velocity-added-btn-arrow">→</span>
-                        </button>
-                    `
-                    : `
-                        <button
-                            type="button"
-                            class="velocity-added-btn velocity-added-btn-primary"
-                            data-added-cart-view
-                        >
-                            <span>View Cart</span>
-                            <span class="velocity-added-btn-arrow">→</span>
-                        </button>
-                    `;
+            const primaryButton = isPreview
+                ? `
+                    <button
+                        type="button"
+                        class="velocity-added-btn velocity-added-btn-primary"
+                        data-added-cart-add
+                        data-product-id="${productId}"
+                        ${outOfStock ? 'disabled' : ''}
+                    >
+                        <span>Add to Cart</span>
+                        <span class="velocity-added-btn-arrow">→</span>
+                    </button>
+                `
+                : `
+                    <button
+                        type="button"
+                        class="velocity-added-btn velocity-added-btn-primary"
+                        data-added-cart-view
+                    >
+                        <span>View Cart</span>
+                        <span class="velocity-added-btn-arrow">→</span>
+                    </button>
+                `;
 
 
             /* =================================================
@@ -893,7 +768,6 @@
                     class="velocity-added-backdrop"
                     data-added-cart-close
                 ></div>
-
 
                 <div
                     class="velocity-added-shell"
@@ -912,9 +786,6 @@
                         aria-hidden="true"
                     ></div>
 
-
-                    <!-- DECORATIVE ORBS -->
-
                     <div
                         class="velocity-added-orb velocity-added-orb-one"
                         aria-hidden="true"
@@ -930,21 +801,15 @@
                         aria-hidden="true"
                     ></div>
 
-
-                    <!-- WAVES -->
-
                     <div
-                        class="velocity-added-wave velocity-added-wave-one"
+                        class="velocity-added-wave velocity-wave-1"
                         aria-hidden="true"
                     ></div>
 
                     <div
-                        class="velocity-added-wave velocity-added-wave-two"
+                        class="velocity-added-wave velocity-wave-2"
                         aria-hidden="true"
                     ></div>
-
-
-                    <!-- CLOSE -->
 
                     <button
                         type="button"
@@ -955,11 +820,7 @@
                         ×
                     </button>
 
-
                     <div class="velocity-added-grid">
-
-
-                        <!-- PRODUCT IMAGE -->
 
                         <div class="velocity-added-visual">
 
@@ -973,14 +834,12 @@
                                 aria-hidden="true"
                             ></div>
 
-
                             <div class="velocity-added-image-wrap">
 
                                 <div
                                     class="velocity-added-image-glow"
                                     aria-hidden="true"
                                 ></div>
-
 
                                 <div class="velocity-added-image-card">
 
@@ -1001,7 +860,6 @@
 
                                 </div>
 
-
                                 <div
                                     class="velocity-added-floating-dot dot-one"
                                     aria-hidden="true"
@@ -1019,49 +877,32 @@
 
                             </div>
 
-
                             <div class="velocity-added-success-badge">
 
                                 <span class="velocity-added-check">
                                     ${statusIcon}
                                 </span>
 
-                                <span>
-                                    ${badge}
-                                </span>
+                                <span>${badge}</span>
 
                             </div>
 
                         </div>
 
-
-                        <!-- PRODUCT DETAILS -->
-
                         <div class="velocity-added-info">
 
-
                             <div class="velocity-added-kicker">
-
-                                <span
-                                    class="velocity-added-kicker-dot"
-                                ></span>
-
+                                <span class="velocity-added-kicker-dot"></span>
                                 ${kicker}
-
                             </div>
-
 
                             <h2 id="velocity-added-title">
                                 ${name}
                             </h2>
 
-
                             <p class="velocity-added-category">
                                 ${category}
                             </p>
-
-
-                            <!-- RATING -->
 
                             <div class="velocity-added-rating">
 
@@ -1070,44 +911,26 @@
                                 </span>
 
                                 <span class="velocity-added-rating-number">
-
-                                    ${
-                                        rating > 0
-                                            ? rating.toFixed(1)
-                                            : 'New'
-                                    }
-
+                                    ${rating > 0 ? rating.toFixed(1) : 'New'}
                                 </span>
 
                             </div>
-
-
-                            <!-- DESCRIPTION -->
 
                             <p class="velocity-added-description">
                                 ${description}
                             </p>
 
-
                             <div class="velocity-added-divider"></div>
-
-
-                            <!-- PRODUCT META -->
 
                             <div class="velocity-added-meta">
 
                                 <div class="velocity-added-price-box">
 
-                                    <span>
-                                        PRICE
-                                    </span>
+                                    <span>PRICE</span>
 
-                                    <strong>
-                                        ${price}
-                                    </strong>
+                                    <strong>${price}</strong>
 
                                 </div>
-
 
                                 <div class="velocity-added-status">
 
@@ -1117,13 +940,9 @@
 
                                     <div>
 
-                                        <strong>
-                                            ${statusTitle}
-                                        </strong>
+                                        <strong>${statusTitle}</strong>
 
-                                        <small>
-                                            ${statusSubtitle}
-                                        </small>
+                                        <small>${statusSubtitle}</small>
 
                                     </div>
 
@@ -1131,35 +950,19 @@
 
                             </div>
 
-
-                            <!-- EXTRA INFORMATION -->
-
                             <div class="velocity-added-extra">
 
                                 <div>
-
                                     <span>PRODUCT ID</span>
-
-                                    <strong>
-                                        ${sku}
-                                    </strong>
-
+                                    <strong>${sku}</strong>
                                 </div>
 
                                 <div>
-
                                     <span>AVAILABILITY</span>
-
-                                    <strong>
-                                        ${safeStock}
-                                    </strong>
-
+                                    <strong>${safeStock}</strong>
                                 </div>
 
                             </div>
-
-
-                            <!-- ACTIONS -->
 
                             <div class="velocity-added-actions">
 
@@ -1175,16 +978,11 @@
 
                             </div>
 
-
-                            <!-- FOOTER -->
-
                             <div class="velocity-added-footer-line">
 
                                 <span></span>
 
-                                <small>
-                                    VELOCITY STORE
-                                </small>
+                                <small>VELOCITY STORE</small>
 
                                 <span></span>
 
@@ -1200,10 +998,13 @@
 
 
             /* =================================================
-               APPEND MODAL
+               APPEND TO BODY
+               Keeps homepage visible behind modal.
             ================================================= */
 
             document.body.appendChild(modal);
+
+            CartUI.activeModal = modal;
 
 
             /* =================================================
@@ -1217,9 +1018,7 @@
 
                 try {
 
-                    window.VelocityCore.attachImageFallbacks(
-                        modal
-                    );
+                    window.VelocityCore.attachImageFallbacks(modal);
 
                 } catch (error) {
 
@@ -1234,198 +1033,199 @@
 
 
             /* =================================================
-               OPEN ANIMATION
+               OPEN MODAL
+               IMPORTANT: CSS uses .open, not .active.
             ================================================= */
-
-            requestAnimationFrame(
-                function () {
-
-                    requestAnimationFrame(
-                        function () {
-
-                            if (
-                                modal &&
-                                modal.parentNode
-                            ) {
-
-                                modal.classList.add('active');
-
-                            }
-
-                        }
-                    );
-
-                }
-            );
-
 
             document.body.classList.add(
                 'velocity-added-cart-open'
             );
+
+            requestAnimationFrame(function () {
+
+                requestAnimationFrame(function () {
+
+                    if (
+                        !modal ||
+                        !modal.parentNode
+                    ) {
+                        return;
+                    }
+
+                    modal.classList.add('open');
+
+                    modal.setAttribute('aria-hidden', 'false');
+
+                });
+
+            });
 
 
             /* =================================================
                FOCUS CLOSE BUTTON
             ================================================= */
 
-            setTimeout(
-                function () {
+            setTimeout(function () {
 
-                    if (!modal.parentNode) {
-                        return;
-                    }
+                if (!modal.parentNode) {
+                    return;
+                }
 
-                    const close =
-                        modal.querySelector(
-                            '.velocity-added-close'
-                        );
+                const close = modal.querySelector(
+                    '.velocity-added-close'
+                );
 
-                    if (close) {
-                        close.focus();
-                    }
+                if (close) {
+                    close.focus();
+                }
 
-                },
-                350
-            );
+            }, 350);
 
 
             /* =================================================
                MODAL EVENTS
             ================================================= */
 
-            modal.addEventListener(
-                'click',
-                function (event) {
+            modal.addEventListener('click', function (event) {
 
-                    const closeButton =
-                        event.target.closest(
-                            '[data-added-cart-close]'
-                        );
+                const target = event.target;
 
-                    if (closeButton) {
-
-                        event.preventDefault();
-
-                        CartUI.closeModal();
-
-                        return;
-
-                    }
+                if (!(target instanceof Element)) {
+                    return;
+                }
 
 
-                    const continueButton =
-                        event.target.closest(
-                            '[data-added-cart-continue]'
-                        );
+                const closeButton = target.closest(
+                    '[data-added-cart-close]'
+                );
 
-                    if (continueButton) {
+                if (closeButton) {
 
-                        event.preventDefault();
+                    event.preventDefault();
 
-                        CartUI.closeModal();
+                    CartUI.closeModal();
 
-                        return;
+                    return;
 
-                    }
-
-
-                    const viewCartButton =
-                        event.target.closest(
-                            '[data-added-cart-view]'
-                        );
-
-                    if (viewCartButton) {
-
-                        event.preventDefault();
-
-                        CartUI.closeModal();
-
-                        setTimeout(
-                            function () {
-
-                                if (
-                                    window.VelocityCart &&
-                                    typeof window.VelocityCart.open === 'function'
-                                ) {
-
-                                    window.VelocityCart.open();
-
-                                } else {
-
-                                    const cartButton =
-                                        document.querySelector(
-                                            '[data-cart-open], #cartButton'
-                                        );
-
-                                    if (cartButton) {
-                                        cartButton.click();
-                                    }
-
-                                }
-
-                            },
-                            180
-                        );
-
-                        return;
-
-                    }
+                }
 
 
-                    const addButton =
-                        event.target.closest(
-                            '[data-added-cart-add]'
-                        );
+                const continueButton = target.closest(
+                    '[data-added-cart-continue]'
+                );
 
-                    if (addButton) {
+                if (continueButton) {
 
-                        event.preventDefault();
+                    event.preventDefault();
 
-                        const id =
-                            addButton.dataset.productId;
+                    CartUI.closeModal();
+
+                    return;
+
+                }
+
+
+                const viewCartButton = target.closest(
+                    '[data-added-cart-view]'
+                );
+
+                if (viewCartButton) {
+
+                    event.preventDefault();
+
+                    CartUI.closeModal();
+
+                    setTimeout(function () {
 
                         if (
-                            !id ||
-                            !window.VelocityCart ||
-                            typeof window.VelocityCart.add !== 'function'
+                            window.VelocityCart &&
+                            typeof window.VelocityCart.open === 'function'
                         ) {
 
-                            console.warn(
-                                '[Velocity Store] Cart add API unavailable.'
+                            window.VelocityCart.open();
+
+                        } else {
+
+                            const cartButton = document.querySelector(
+                                '[data-cart-open], #cartButton'
                             );
 
-                            return;
+                            if (cartButton) {
+                                cartButton.click();
+                            }
 
                         }
 
-                        addButton.disabled = true;
+                    }, 180);
 
-                        addButton.classList.add('loading');
+                    return;
+
+                }
+
+
+                const addButton = target.closest(
+                    '[data-added-cart-add]'
+                );
+
+                if (addButton) {
+
+                    event.preventDefault();
+
+                    const id = addButton.dataset.productId;
+
+                    if (
+                        !id ||
+                        !window.VelocityCart ||
+                        typeof window.VelocityCart.add !== 'function'
+                    ) {
+
+                        console.warn(
+                            '[Velocity Store] Cart add API unavailable.'
+                        );
+
+                        return;
+
+                    }
+
+                    addButton.disabled = true;
+
+                    addButton.classList.add('loading');
+
+                    try {
 
                         window.VelocityCart.add(id);
 
                         CartUI.closeModal();
 
+                    } catch (error) {
+
+                        addButton.disabled = false;
+
+                        addButton.classList.remove('loading');
+
+                        console.error(
+                            '[Velocity Store] Add to cart failed:',
+                            error
+                        );
+
                     }
 
                 }
-            );
+
+            });
 
 
             /* =================================================
                ESC KEY
             ================================================= */
 
-            modal._velocityEscapeHandler =
-                function (event) {
+            modal._velocityEscapeHandler = function (event) {
 
-                    if (event.key === 'Escape') {
+                if (event.key === 'Escape') {
+                    CartUI.closeModal();
+                }
 
-                        CartUI.closeModal();
-
-                    }
-
-                };
+            };
 
             document.addEventListener(
                 'keydown',
@@ -1441,22 +1241,21 @@
 
         closeModal() {
 
-            clearTimeout(
-                CartUI.modalTimer
-            );
+            clearTimeout(CartUI.modalTimer);
 
             CartUI.modalTimer = null;
 
-            const modal =
-                document.querySelector(
-                    '#velocity-added-cart-modal'
-                );
+            const modal = document.querySelector(
+                '#velocity-added-cart-modal'
+            );
 
             if (!modal) {
 
                 document.body.classList.remove(
                     'velocity-added-cart-open'
                 );
+
+                CartUI.activeModal = null;
 
                 return;
 
@@ -1473,32 +1272,32 @@
 
             }
 
-            modal.classList.remove('active');
+            modal.classList.remove('open');
 
-            modal.setAttribute(
-                'aria-hidden',
-                'true'
-            );
+            modal.setAttribute('aria-hidden', 'true');
 
             document.body.classList.remove(
                 'velocity-added-cart-open'
             );
 
-            setTimeout(
-                function () {
+            CartUI.activeModal = null;
 
-                    if (
-                        modal &&
-                        modal.parentNode
-                    ) {
+            setTimeout(function () {
 
-                        modal.remove();
+                if (modal && modal.parentNode) {
+                    modal.remove();
+                }
 
-                    }
+                if (
+                    CartUI.lastFocusedElement &&
+                    document.contains(CartUI.lastFocusedElement)
+                ) {
 
-                },
-                CartUI.CLOSE_DURATION
-            );
+                    CartUI.lastFocusedElement.focus();
+
+                }
+
+            }, CartUI.CLOSE_DURATION);
 
         },
 
@@ -1520,16 +1319,13 @@
 
         closeExistingModal() {
 
-            clearTimeout(
-                CartUI.modalTimer
-            );
+            clearTimeout(CartUI.modalTimer);
 
             CartUI.modalTimer = null;
 
-            const old =
-                document.querySelector(
-                    '#velocity-added-cart-modal'
-                );
+            const old = document.querySelector(
+                '#velocity-added-cart-modal'
+            );
 
             if (old) {
 
@@ -1546,6 +1342,8 @@
 
             }
 
+            CartUI.activeModal = null;
+
             document.body.classList.remove(
                 'velocity-added-cart-open'
             );
@@ -1560,6 +1358,8 @@
     ========================================================= */
 
     window.VelocityCartUI = CartUI;
+
+    CartUI.bindCartEvents();
 
 
 })();
