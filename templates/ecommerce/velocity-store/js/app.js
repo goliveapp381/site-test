@@ -93,10 +93,6 @@
 
         initializeModules() {
 
-            /* =========================================
-               CART
-            ========================================= */
-
             if (
                 window.VelocityCart &&
                 typeof window.VelocityCart.init === 'function'
@@ -118,10 +114,6 @@
             }
 
 
-            /* =========================================
-               WISHLIST
-            ========================================= */
-
             if (
                 window.VelocityWishlist &&
                 typeof window.VelocityWishlist.init === 'function'
@@ -142,10 +134,6 @@
 
             }
 
-
-            /* =========================================
-               PRODUCTS / FILTERS
-            ========================================= */
 
             if (
                 window.VelocityFilters &&
@@ -207,17 +195,16 @@
                 'click',
                 function (event) {
 
+
                     /* =========================================
                        ADD TO CART
-                       -----------------------------------------
-                       Add To Cart remains independent from
-                       Product Card cinematic preview.
                     ========================================= */
 
                     const addButton =
                         event.target.closest(
                             '.add-cart-button, [data-cart-id]'
                         );
+
 
                     if (
                         addButton &&
@@ -228,7 +215,8 @@
 
                         if (
                             window.VelocityCartUI &&
-                            typeof window.VelocityCartUI.handleAddToCart === 'function'
+                            typeof window.VelocityCartUI.handleAddToCart ===
+                            'function'
                         ) {
 
                             try {
@@ -248,34 +236,14 @@
 
                         }
 
-                        /*
-                         * IMPORTANT:
-                         *
-                         * Do NOT preventDefault.
-                         * Do NOT stopPropagation.
-                         * Do NOT return here.
-                         *
-                         * cart.js must receive this click
-                         * and execute VelocityCart.add().
-                         */
-
                     }
 
 
                     /* =========================================
                        PRODUCT CARD CINEMATIC PREVIEW
                        -----------------------------------------
-                       Click anywhere on the Product Card.
-                       
-                       Card:
-                       0deg → 720deg
-                       
-                       Then:
-                       Product Information Modal
-                       
-                       Buttons / links inside the card are
-                       excluded so Add To Cart, Wishlist,
-                       Quick View, etc. keep their functions.
+                       ANYWHERE ON CARD
+                       except interactive controls.
                     ========================================= */
 
                     const productCard =
@@ -283,24 +251,32 @@
                             '.product-card'
                         );
 
+
+                    const clickedInteractiveElement =
+                        event.target.closest(
+                            'button,' +
+                            'a,' +
+                            'input,' +
+                            'select,' +
+                            'textarea,' +
+                            'label,' +
+                            '[data-cart-id],' +
+                            '.add-cart-button,' +
+                            '.quick-view-button,' +
+                            '[data-wishlist-toggle]'
+                        );
+
+
                     if (
                         productCard &&
-                        !addButton &&
-                        !event.target.closest('button') &&
-                        !event.target.closest('a') &&
-                        !event.target.closest('input') &&
-                        !event.target.closest('select') &&
-                        !event.target.closest('textarea') &&
-                        !event.target.closest('[data-cart-id]') &&
-                        !event.target.closest('.add-cart-button') &&
-                        !event.target.closest('.quick-view-button') &&
-                        !event.target.closest('[data-wishlist-toggle]')
+                        !clickedInteractiveElement
                     ) {
 
                         const productId =
                             productCard.dataset.productId ||
                             productCard.dataset.cartAnimationId ||
                             productCard.dataset.id;
+
 
                         if (productId) {
 
@@ -313,7 +289,8 @@
 
                             if (
                                 window.VelocityProducts &&
-                                typeof window.VelocityProducts.getProductById === 'function'
+                                typeof window.VelocityProducts.getProductById ===
+                                'function'
                             ) {
 
                                 try {
@@ -342,7 +319,8 @@
                             if (
                                 !product &&
                                 window.VelocityCore &&
-                                typeof window.VelocityCore.getProductById === 'function'
+                                typeof window.VelocityCore.getProductById ===
+                                'function'
                             ) {
 
                                 try {
@@ -365,18 +343,21 @@
 
 
                             /* =================================
-                               START CINEMATIC EXPERIENCE
+                               START CARD EXPERIENCE
                             ================================= */
 
                             if (
                                 product &&
                                 window.VelocityCartUI &&
-                                typeof window.VelocityCartUI.openProductExperience === 'function'
+                                typeof window.VelocityCartUI.handleCardClick ===
+                                'function'
                             ) {
 
                                 try {
 
-                                    window.VelocityCartUI.openProductExperience(
+                                    event.preventDefault();
+
+                                    window.VelocityCartUI.handleCardClick(
                                         product,
                                         productCard
                                     );
@@ -394,7 +375,15 @@
 
                         }
 
-                        return;
+
+                        /*
+                         * Important:
+                         * Do not allow this click to continue
+                         * into unrelated click handlers.
+                         */
+                        if (productCard) {
+                            return;
+                        }
 
                     }
 
@@ -414,7 +403,8 @@
 
                         if (
                             window.VelocityCartUI &&
-                            typeof window.VelocityCartUI.closeProductModal === 'function'
+                            typeof window.VelocityCartUI.closeProductModal ===
+                            'function'
                         ) {
 
                             window.VelocityCartUI.closeProductModal();
@@ -464,7 +454,9 @@
                     ========================================= */
 
                     const menuButton =
-                        event.target.closest('[data-mobile-menu]');
+                        event.target.closest(
+                            '[data-mobile-menu]'
+                        );
 
                     if (menuButton) {
 
@@ -472,7 +464,8 @@
 
                         if (
                             window.VelocityUI &&
-                            typeof window.VelocityUI.toggleMobileMenu === 'function'
+                            typeof window.VelocityUI.toggleMobileMenu ===
+                            'function'
                         ) {
 
                             window.VelocityUI.toggleMobileMenu();
@@ -495,7 +488,8 @@
 
                         if (
                             window.VelocityUI &&
-                            typeof window.VelocityUI.closeMobileMenu === 'function'
+                            typeof window.VelocityUI.closeMobileMenu ===
+                            'function'
                         ) {
 
                             window.VelocityUI.closeMobileMenu();
@@ -516,7 +510,8 @@
 
                         if (
                             window.VelocityUI &&
-                            typeof window.VelocityUI.closeMobileMenu === 'function'
+                            typeof window.VelocityUI.closeMobileMenu ===
+                            'function'
                         ) {
 
                             window.VelocityUI.closeMobileMenu();
@@ -531,7 +526,9 @@
                     ========================================= */
 
                     const scrollButton =
-                        event.target.closest('[data-scroll-to]');
+                        event.target.closest(
+                            '[data-scroll-to]'
+                        );
 
                     if (scrollButton) {
 
@@ -539,7 +536,8 @@
 
                         if (
                             window.VelocityUI &&
-                            typeof window.VelocityUI.scrollTo === 'function'
+                            typeof window.VelocityUI.scrollTo ===
+                            'function'
                         ) {
 
                             window.VelocityUI.scrollTo(
@@ -558,7 +556,9 @@
                     ========================================= */
 
                     const searchOpen =
-                        event.target.closest('[data-search-open]');
+                        event.target.closest(
+                            '[data-search-open]'
+                        );
 
                     if (searchOpen) {
 
@@ -566,7 +566,8 @@
 
                         if (
                             window.VelocityUI &&
-                            typeof window.VelocityUI.openSearch === 'function'
+                            typeof window.VelocityUI.openSearch ===
+                            'function'
                         ) {
 
                             window.VelocityUI.openSearch();
@@ -593,7 +594,8 @@
 
                         if (
                             window.VelocityUI &&
-                            typeof window.VelocityUI.closeSearch === 'function'
+                            typeof window.VelocityUI.closeSearch ===
+                            'function'
                         ) {
 
                             window.VelocityUI.closeSearch();
@@ -606,7 +608,9 @@
 
 
                     const searchOverlay =
-                        document.querySelector('#searchOverlay');
+                        document.querySelector(
+                            '#searchOverlay'
+                        );
 
                     if (
                         searchOverlay &&
@@ -615,7 +619,8 @@
 
                         if (
                             window.VelocityUI &&
-                            typeof window.VelocityUI.closeSearch === 'function'
+                            typeof window.VelocityUI.closeSearch ===
+                            'function'
                         ) {
 
                             window.VelocityUI.closeSearch();
@@ -632,7 +637,9 @@
                     ========================================= */
 
                     const searchSubmit =
-                        event.target.closest('#searchSubmit');
+                        event.target.closest(
+                            '#searchSubmit'
+                        );
 
                     if (searchSubmit) {
 
@@ -640,7 +647,8 @@
 
                         if (
                             window.VelocityUI &&
-                            typeof window.VelocityUI.performSearch === 'function'
+                            typeof window.VelocityUI.performSearch ===
+                            'function'
                         ) {
 
                             window.VelocityUI.performSearch();
@@ -666,35 +674,49 @@
                         event.preventDefault();
 
                         const category =
-                            categoryButton.dataset.categoryFilter || 'all';
+                            categoryButton.dataset.categoryFilter ||
+                            'all';
 
                         if (
                             window.VelocityFilters &&
-                            typeof window.VelocityFilters.setCategory === 'function'
+                            typeof window.VelocityFilters.setCategory ===
+                            'function'
                         ) {
 
-                            window.VelocityFilters.setCategory(category);
+                            window.VelocityFilters.setCategory(
+                                category
+                            );
 
                         } else if (
                             window.VelocityUI &&
-                            typeof window.VelocityUI.fallbackCategoryFilter === 'function'
+                            typeof window.VelocityUI.fallbackCategoryFilter ===
+                            'function'
                         ) {
 
-                            window.VelocityUI.fallbackCategoryFilter(category);
+                            window.VelocityUI.fallbackCategoryFilter(
+                                category
+                            );
 
                         }
 
                         if (
-                            categoryButton.classList.contains('category-card') ||
-                            categoryButton.closest('.category-card')
+                            categoryButton.classList.contains(
+                                'category-card'
+                            ) ||
+                            categoryButton.closest(
+                                '.category-card'
+                            )
                         ) {
 
                             if (
                                 window.VelocityUI &&
-                                typeof window.VelocityUI.scrollTo === 'function'
+                                typeof window.VelocityUI.scrollTo ===
+                                'function'
                             ) {
 
-                                window.VelocityUI.scrollTo('#products');
+                                window.VelocityUI.scrollTo(
+                                    '#products'
+                                );
 
                             }
 
@@ -710,7 +732,9 @@
                     ========================================= */
 
                     const resetButton =
-                        event.target.closest('[data-filter-reset]');
+                        event.target.closest(
+                            '[data-filter-reset]'
+                        );
 
                     if (resetButton) {
 
@@ -718,14 +742,16 @@
 
                         if (
                             window.VelocityFilters &&
-                            typeof window.VelocityFilters.reset === 'function'
+                            typeof window.VelocityFilters.reset ===
+                            'function'
                         ) {
 
                             window.VelocityFilters.reset();
 
                         } else if (
                             window.VelocityCore &&
-                            typeof window.VelocityCore.renderProducts === 'function'
+                            typeof window.VelocityCore.renderProducts ===
+                            'function'
                         ) {
 
                             window.VelocityCore.renderProducts();
@@ -742,7 +768,9 @@
                     ========================================= */
 
                     const cartOpen =
-                        event.target.closest('[data-cart-open]');
+                        event.target.closest(
+                            '[data-cart-open]'
+                        );
 
                     if (cartOpen) {
 
@@ -750,7 +778,8 @@
 
                         if (
                             window.VelocityCart &&
-                            typeof window.VelocityCart.open === 'function'
+                            typeof window.VelocityCart.open ===
+                            'function'
                         ) {
 
                             window.VelocityCart.open();
@@ -767,7 +796,9 @@
                     ========================================= */
 
                     const wishlistOpen =
-                        event.target.closest('[data-wishlist-open]');
+                        event.target.closest(
+                            '[data-wishlist-open]'
+                        );
 
                     if (wishlistOpen) {
 
@@ -775,7 +806,8 @@
 
                         if (
                             window.VelocityUI &&
-                            typeof window.VelocityUI.openWishlist === 'function'
+                            typeof window.VelocityUI.openWishlist ===
+                            'function'
                         ) {
 
                             window.VelocityUI.openWishlist();
@@ -802,7 +834,8 @@
 
                         if (
                             window.VelocityUI &&
-                            typeof window.VelocityUI.openQuickView === 'function'
+                            typeof window.VelocityUI.openQuickView ===
+                            'function'
                         ) {
 
                             window.VelocityUI.openQuickView(
@@ -834,7 +867,8 @@
 
                         if (
                             window.VelocityUI &&
-                            typeof window.VelocityUI.closeSearch === 'function'
+                            typeof window.VelocityUI.closeSearch ===
+                            'function'
                         ) {
 
                             window.VelocityUI.closeSearch();
@@ -843,7 +877,8 @@
 
                         if (
                             window.VelocityUI &&
-                            typeof window.VelocityUI.openQuickView === 'function'
+                            typeof window.VelocityUI.openQuickView ===
+                            'function'
                         ) {
 
                             window.VelocityUI.openQuickView(
@@ -872,11 +907,14 @@
 
                         if (
                             window.VelocityUI &&
-                            typeof window.VelocityUI.closeQuickView === 'function'
+                            typeof window.VelocityUI.closeQuickView ===
+                            'function'
                         ) {
 
                             window.VelocityUI.closeQuickView(
-                                document.querySelector('#quick-view-modal')
+                                document.querySelector(
+                                    '#quick-view-modal'
+                                )
                             );
 
                         }
@@ -891,7 +929,9 @@
                     ========================================= */
 
                     const quickAdd =
-                        event.target.closest('[data-quick-add]');
+                        event.target.closest(
+                            '[data-quick-add]'
+                        );
 
                     if (quickAdd) {
 
@@ -902,30 +942,36 @@
 
                         const product =
                             window.VelocityCore &&
-                            typeof window.VelocityCore.getProductById === 'function'
-                                ? window.VelocityCore.getProductById(productId)
+                            typeof window.VelocityCore.getProductById ===
+                            'function'
+
+                                ? window.VelocityCore.getProductById(
+                                    productId
+                                )
+
                                 : null;
+
 
                         if (
                             window.VelocityUI &&
-                            typeof window.VelocityUI.closeQuickView === 'function'
+                            typeof window.VelocityUI.closeQuickView ===
+                            'function'
                         ) {
 
                             window.VelocityUI.closeQuickView(
-                                document.querySelector('#quick-view-modal')
+                                document.querySelector(
+                                    '#quick-view-modal'
+                                )
                             );
 
                         }
 
 
-                        /* =====================================
-                           START CART CINEMATIC EXPERIENCE
-                        ===================================== */
-
                         if (
                             product &&
                             window.VelocityCartUI &&
-                            typeof window.VelocityCartUI.prepareExperience === 'function'
+                            typeof window.VelocityCartUI.prepareExperience ===
+                            'function'
                         ) {
 
                             window.VelocityCartUI.prepareExperience(
@@ -935,13 +981,10 @@
                         }
 
 
-                        /* =====================================
-                           REAL CART ADD
-                        ===================================== */
-
                         if (
                             window.VelocityCart &&
-                            typeof window.VelocityCart.add === 'function'
+                            typeof window.VelocityCart.add ===
+                            'function'
                         ) {
 
                             window.VelocityCart.add(
@@ -970,7 +1013,8 @@
 
                         if (
                             window.VelocityCartUI &&
-                            typeof window.VelocityCartUI.closeModal === 'function'
+                            typeof window.VelocityCartUI.closeModal ===
+                            'function'
                         ) {
 
                             window.VelocityCartUI.closeModal();
@@ -997,25 +1041,30 @@
 
                         if (
                             window.VelocityCartUI &&
-                            typeof window.VelocityCartUI.closeModal === 'function'
+                            typeof window.VelocityCartUI.closeModal ===
+                            'function'
                         ) {
 
                             window.VelocityCartUI.closeModal();
 
                         }
 
-                        setTimeout(function () {
+                        setTimeout(
+                            function () {
 
-                            if (
-                                window.VelocityCart &&
-                                typeof window.VelocityCart.open === 'function'
-                            ) {
+                                if (
+                                    window.VelocityCart &&
+                                    typeof window.VelocityCart.open ===
+                                    'function'
+                                ) {
 
-                                window.VelocityCart.open();
+                                    window.VelocityCart.open();
 
-                            }
+                                }
 
-                        }, 220);
+                            },
+                            220
+                        );
 
                         return;
 
@@ -1037,7 +1086,8 @@
 
                         if (
                             window.VelocityCartUI &&
-                            typeof window.VelocityCartUI.closeModal === 'function'
+                            typeof window.VelocityCartUI.closeModal ===
+                            'function'
                         ) {
 
                             window.VelocityCartUI.closeModal();
@@ -1073,24 +1123,30 @@
                         input.value.trim();
 
                     document
-                        .querySelectorAll('[data-product-search]')
-                        .forEach(function (other) {
+                        .querySelectorAll(
+                            '[data-product-search]'
+                        )
+                        .forEach(
+                            function (other) {
 
-                            if (
-                                other !== input &&
-                                other.value !== value
-                            ) {
+                                if (
+                                    other !== input &&
+                                    other.value !== value
+                                ) {
 
-                                other.value = value;
+                                    other.value =
+                                        value;
+
+                                }
 
                             }
-
-                        });
+                        );
 
                     if (
                         input.id === 'searchInput' &&
                         window.VelocityUI &&
-                        typeof window.VelocityUI.renderSearchResults === 'function'
+                        typeof window.VelocityUI.renderSearchResults ===
+                        'function'
                     ) {
 
                         window.VelocityUI.renderSearchResults(
@@ -1101,7 +1157,8 @@
 
                     if (
                         window.VelocityFilters &&
-                        typeof window.VelocityFilters.setSearch === 'function'
+                        typeof window.VelocityFilters.setSearch ===
+                        'function'
                     ) {
 
                         window.VelocityFilters.setSearch(
@@ -1133,7 +1190,8 @@
 
                     if (
                         window.VelocityFilters &&
-                        typeof window.VelocityFilters.setSort === 'function'
+                        typeof window.VelocityFilters.setSort ===
+                        'function'
                     ) {
 
                         window.VelocityFilters.setSort(
@@ -1174,12 +1232,15 @@
                                 : '';
 
                         if (
-                            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+                            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+                                email
+                            )
                         ) {
 
                             if (
                                 window.VelocityUI &&
-                                typeof window.VelocityUI.showNotification === 'function'
+                                typeof window.VelocityUI.showNotification ===
+                                'function'
                             ) {
 
                                 window.VelocityUI.showNotification(
@@ -1195,7 +1256,8 @@
 
                         if (
                             window.VelocityUI &&
-                            typeof window.VelocityUI.showNotification === 'function'
+                            typeof window.VelocityUI.showNotification ===
+                            'function'
                         ) {
 
                             window.VelocityUI.showNotification(
@@ -1224,7 +1286,8 @@
                     if (
                         window.innerWidth > 900 &&
                         window.VelocityUI &&
-                        typeof window.VelocityUI.closeMobileMenu === 'function'
+                        typeof window.VelocityUI.closeMobileMenu ===
+                        'function'
                     ) {
 
                         window.VelocityUI.closeMobileMenu();
@@ -1247,30 +1310,30 @@
                         return;
                     }
 
-
                     if (
                         window.VelocityUI &&
-                        typeof window.VelocityUI.closeMobileMenu === 'function'
+                        typeof window.VelocityUI.closeMobileMenu ===
+                        'function'
                     ) {
 
                         window.VelocityUI.closeMobileMenu();
 
                     }
 
-
                     if (
                         window.VelocityUI &&
-                        typeof window.VelocityUI.closeSearch === 'function'
+                        typeof window.VelocityUI.closeSearch ===
+                        'function'
                     ) {
 
                         window.VelocityUI.closeSearch();
 
                     }
 
-
                     if (
                         window.VelocityUI &&
-                        typeof window.VelocityUI.closeQuickView === 'function'
+                        typeof window.VelocityUI.closeQuickView ===
+                        'function'
                     ) {
 
                         window.VelocityUI.closeQuickView(
@@ -1281,30 +1344,30 @@
 
                     }
 
-
                     if (
                         window.VelocityCartUI &&
-                        typeof window.VelocityCartUI.closeProductModal === 'function'
+                        typeof window.VelocityCartUI.closeProductModal ===
+                        'function'
                     ) {
 
                         window.VelocityCartUI.closeProductModal();
 
                     }
 
-
                     if (
                         window.VelocityCartUI &&
-                        typeof window.VelocityCartUI.closeModal === 'function'
+                        typeof window.VelocityCartUI.closeModal ===
+                        'function'
                     ) {
 
                         window.VelocityCartUI.closeModal();
 
                     }
 
-
                     if (
                         window.VelocityCart &&
-                        typeof window.VelocityCart.close === 'function'
+                        typeof window.VelocityCart.close ===
+                        'function'
                     ) {
 
                         window.VelocityCart.close();
@@ -1325,17 +1388,18 @@
 
                     if (
                         window.VelocityCore &&
-                        typeof window.VelocityCore.setupImageFallbacks === 'function'
+                        typeof window.VelocityCore.setupImageFallbacks ===
+                        'function'
                     ) {
 
                         window.VelocityCore.setupImageFallbacks();
 
                     }
 
-
                     if (
                         window.VelocityAnimations &&
-                        typeof window.VelocityAnimations.refresh === 'function'
+                        typeof window.VelocityAnimations.refresh ===
+                        'function'
                     ) {
 
                         try {
@@ -1369,10 +1433,10 @@
                         '[Velocity Store] Image manifest ready.'
                     );
 
-
                     if (
                         window.VelocityFilters &&
-                        typeof window.VelocityFilters.apply === 'function'
+                        typeof window.VelocityFilters.apply ===
+                        'function'
                     ) {
 
                         try {
@@ -1386,10 +1450,10 @@
                                 error
                             );
 
-
                             if (
                                 window.VelocityCore &&
-                                typeof window.VelocityCore.renderProducts === 'function'
+                                typeof window.VelocityCore.renderProducts ===
+                                'function'
                             ) {
 
                                 window.VelocityCore.renderProducts();
@@ -1400,7 +1464,8 @@
 
                     } else if (
                         window.VelocityCore &&
-                        typeof window.VelocityCore.renderProducts === 'function'
+                        typeof window.VelocityCore.renderProducts ===
+                        'function'
                     ) {
 
                         window.VelocityCore.renderProducts();
@@ -1418,7 +1483,8 @@
                         searchInput &&
                         searchInput.value.trim() &&
                         window.VelocityUI &&
-                        typeof window.VelocityUI.renderSearchResults === 'function'
+                        typeof window.VelocityUI.renderSearchResults ===
+                        'function'
                     ) {
 
                         window.VelocityUI.renderSearchResults(
@@ -1430,7 +1496,8 @@
 
                     if (
                         window.VelocityCore &&
-                        typeof window.VelocityCore.setupImageFallbacks === 'function'
+                        typeof window.VelocityCore.setupImageFallbacks ===
+                        'function'
                     ) {
 
                         window.VelocityCore.setupImageFallbacks();
@@ -1454,7 +1521,6 @@
                             '#products-grid'
                         );
 
-
                     if (
                         grid &&
                         !grid.children.length
@@ -1462,14 +1528,16 @@
 
                         if (
                             window.VelocityFilters &&
-                            typeof window.VelocityFilters.apply === 'function'
+                            typeof window.VelocityFilters.apply ===
+                            'function'
                         ) {
 
                             window.VelocityFilters.apply();
 
                         } else if (
                             window.VelocityCore &&
-                            typeof window.VelocityCore.renderProducts === 'function'
+                            typeof window.VelocityCore.renderProducts ===
+                            'function'
                         ) {
 
                             window.VelocityCore.renderProducts();
@@ -1492,7 +1560,8 @@
 
                     if (
                         window.VelocityWishlist &&
-                        typeof window.VelocityWishlist.updateUI === 'function'
+                        typeof window.VelocityWishlist.updateUI ===
+                        'function'
                     ) {
 
                         window.VelocityWishlist.updateUI();
@@ -1513,17 +1582,18 @@
 
                     if (
                         window.VelocityCore &&
-                        typeof window.VelocityCore.setupImageFallbacks === 'function'
+                        typeof window.VelocityCore.setupImageFallbacks ===
+                        'function'
                     ) {
 
                         window.VelocityCore.setupImageFallbacks();
 
                     }
 
-
                     if (
                         window.VelocityCartUI &&
-                        typeof window.VelocityCartUI.cartChanged === 'function'
+                        typeof window.VelocityCartUI.cartChanged ===
+                        'function'
                     ) {
 
                         window.VelocityCartUI.cartChanged();
