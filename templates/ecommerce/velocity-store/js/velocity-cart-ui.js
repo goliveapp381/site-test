@@ -5,10 +5,12 @@
    CART CINEMATIC UI
    ---------------------------------------------------------
    - Add To Cart cinematic animation
+   - Product Card cinematic preview
    - EXACT 2 FULL ROTATIONS
    - EXACT 720deg rotateY
    - Glow effect
    - Premium Added To Cart modal
+   - Premium Product Details modal
    - Cart modal actions
    - Safe animation timing
    - Manifest/image system untouched
@@ -45,7 +47,7 @@
 
 
         /* =====================================================
-           PREPARE EXPERIENCE
+           PREPARE ADD TO CART EXPERIENCE
         ===================================================== */
 
         prepareExperience(product) {
@@ -60,9 +62,7 @@
              * from running at the same time.
              */
             if (CartUI.animationRunning) {
-
                 return;
-
             }
 
 
@@ -91,7 +91,7 @@
 
 
             /*
-             * Find the exact product card.
+             * Find exact product card.
              */
             const card =
                 CartUI.findProductCard(
@@ -110,11 +110,6 @@
 
             } else {
 
-                /*
-                 * If the card disappeared because
-                 * the products were re-rendered,
-                 * don't leave the system locked.
-                 */
                 console.warn(
                     '[Velocity Store] Product card not found for animation:',
                     product.id
@@ -127,45 +122,17 @@
              * =================================================
              * EXACT TIMELINE
              *
-             * 0ms
-             *    ↓
-             * 0°
+             * 0ms       → 0°
+             * 175ms     → 90°
+             * 350ms     → 180°
+             * 525ms     → 270°
+             * 700ms     → 360°
+             * 875ms     → 450°
+             * 1050ms    → 540°
+             * 1225ms    → 630°
+             * 1400ms    → 720°
              *
-             * 175ms
-             *    ↓
-             * 90°
-             *
-             * 350ms
-             *    ↓
-             * 180°
-             *
-             * 525ms
-             *    ↓
-             * 270°
-             *
-             * 700ms
-             *    ↓
-             * 360°
-             *
-             * 875ms
-             *    ↓
-             * 450°
-             *
-             * 1050ms
-             *    ↓
-             * 540°
-             *
-             * 1225ms
-             *    ↓
-             * 630°
-             *
-             * 1400ms
-             *    ↓
-             * 720°
-             *
-             * +120ms
-             *    ↓
-             * PREMIUM MODAL
+             * +120ms    → MODAL
              * =================================================
              */
 
@@ -177,7 +144,7 @@
 
 
                         /*
-                         * Animation has visually finished.
+                         * Animation visually finished.
                          */
                         CartUI.animationRunning = false;
 
@@ -190,17 +157,15 @@
 
 
                         if (!finishedProduct) {
-
                             return;
-
                         }
 
 
                         /*
                          * IMPORTANT:
                          *
-                         * Do NOT open the modal unless
-                         * cart.js confirmed the addition.
+                         * For Add To Cart mode,
+                         * cart.js must confirm the addition.
                          */
                         if (
                             !CartUI.cartConfirmed
@@ -216,12 +181,122 @@
 
 
                         /*
-                         * Open premium modal after
-                         * the 720deg animation.
+                         * Open Added To Cart modal.
                          */
                         CartUI.scheduleModal(
                             finishedProduct,
-                            CartUI.MODAL_DELAY
+                            CartUI.MODAL_DELAY,
+                            false
+                        );
+
+                    },
+                    CartUI.ANIMATION_DURATION + 50
+                );
+
+        },
+
+
+        /* =====================================================
+           HANDLE PRODUCT CARD CLICK
+           -----------------------------------------------------
+           Card click does NOT add product to cart.
+           It only:
+           1. Animates card 720°
+           2. Opens premium product details modal
+        ===================================================== */
+
+        handleCardClick(product, card) {
+
+            if (!product || !card) {
+                return;
+            }
+
+
+            /*
+             * Prevent another cinematic animation
+             * from starting simultaneously.
+             */
+            if (CartUI.animationRunning) {
+                return;
+            }
+
+
+            /*
+             * Clear old timers.
+             */
+            clearTimeout(
+                CartUI.animationTimer
+            );
+
+            clearTimeout(
+                CartUI.modalTimer
+            );
+
+
+            CartUI.animationTimer = null;
+
+            CartUI.modalTimer = null;
+
+
+            /*
+             * Card preview is independent
+             * from cart confirmation.
+             */
+            CartUI.animationRunning = true;
+
+            CartUI.pendingProduct = product;
+
+            CartUI.cartConfirmed = false;
+
+
+            /*
+             * Close an already open modal.
+             */
+            CartUI.closeExistingModal();
+
+
+            /*
+             * Start exact 720° cinematic animation.
+             */
+            CartUI.animateCard(
+                card
+            );
+
+
+            /*
+             * Wait until the complete animation
+             * finishes before showing details.
+             */
+            CartUI.animationTimer =
+                setTimeout(
+                    function () {
+
+                        CartUI.animationTimer = null;
+
+                        CartUI.animationRunning = false;
+
+
+                        const finishedProduct =
+                            CartUI.pendingProduct;
+
+
+                        CartUI.pendingProduct = null;
+
+
+                        if (!finishedProduct) {
+                            return;
+                        }
+
+
+                        /*
+                         * Open product information modal.
+                         *
+                         * preview = true
+                         */
+                        CartUI.scheduleModal(
+                            finishedProduct,
+                            CartUI.MODAL_DELAY,
+                            true
                         );
 
                     },
@@ -325,7 +400,7 @@
             /*
              * IMPORTANT:
              *
-             * Start the cinematic experience BEFORE
+             * Start cinematic experience BEFORE
              * cart.js processes the actual add.
              */
             CartUI.prepareExperience(
@@ -358,12 +433,60 @@
 
 
             /*
-             * First try the exact animation ID.
+             * First try exact animation ID.
              */
-            const animationCard =
-                document.querySelector(
-                    `.product-card[data-cart-animation-id="${CSS.escape(wanted)}"]`
-                );
+            let animationCard = null;
+
+
+            try {
+
+                animationCard =
+                    document.querySelector(
+                        `.product-card[data-cart-animation-id="${CSS.escape(wanted)}"]`
+                    );
+
+            } catch (error) {
+
+                /*
+                 * CSS.escape may not exist in
+                 * some older browsers.
+                 */
+                const cards =
+                    document.querySelectorAll(
+                        '.product-card'
+                    );
+
+
+                for (
+                    let i = 0;
+                    i < cards.length;
+                    i++
+                ) {
+
+                    const card =
+                        cards[i];
+
+
+                    const cardAnimationId =
+                        card.dataset.cartAnimationId ||
+                        '';
+
+
+                    if (
+                        String(
+                            cardAnimationId
+                        ) === wanted
+                    ) {
+
+                        animationCard = card;
+
+                        break;
+
+                    }
+
+                }
+
+            }
 
 
             if (animationCard) {
@@ -458,8 +581,7 @@
             /*
              * Force browser reflow.
              *
-             * This guarantees the animation
-             * restarts every time.
+             * Guarantees animation restart.
              */
             void card.offsetWidth;
 
@@ -469,7 +591,6 @@
              * EXACT 2 FULL ROTATIONS
              *
              * 360deg = 1 rotation
-             *
              * 720deg = 2 rotations
              * =================================================
              */
@@ -531,15 +652,13 @@
 
 
             /*
-             * Cleanup.
+             * Cleanup after animation.
              */
             setTimeout(
                 function () {
 
                     if (!card) {
-
                         return;
-
                     }
 
 
@@ -593,8 +712,7 @@
              *
              * velocity:cart-changed
              *
-             * This means the product was successfully
-             * added to the cart.
+             * This confirms successful cart addition.
              */
             CartUI.cartConfirmed = true;
 
@@ -607,7 +725,8 @@
 
         scheduleModal(
             product,
-            delay = 120
+            delay = 120,
+            preview = false
         ) {
 
             if (!product) {
@@ -629,8 +748,7 @@
 
                         /*
                          * If another experience started
-                         * while waiting, don't open an
-                         * outdated modal.
+                         * while waiting, don't open outdated modal.
                          */
                         if (
                             CartUI.animationRunning
@@ -645,7 +763,10 @@
                          * Open modal.
                          */
                         CartUI.openModal(
-                            product
+                            product,
+                            {
+                                preview: preview
+                            }
                         );
 
                     },
@@ -657,13 +778,26 @@
 
         /* =====================================================
            OPEN MODAL
+           -----------------------------------------------------
+           preview = false
+           → Added To Cart modal
+           
+           preview = true
+           → Product Details modal
         ===================================================== */
 
-        openModal(product) {
+        openModal(
+            product,
+            options = {}
+        ) {
 
             if (!product) {
                 return;
             }
+
+
+            const isPreview =
+                options.preview === true;
 
 
             /*
@@ -931,6 +1065,40 @@
 
 
             /* =================================================
+               MODE TEXT
+            ================================================= */
+
+            const kicker =
+                isPreview
+                    ? 'PRODUCT DETAILS'
+                    : 'ADDED TO CART';
+
+
+            const badge =
+                isPreview
+                    ? 'VIEW'
+                    : 'ADDED';
+
+
+            const statusTitle =
+                isPreview
+                    ? 'Product Details'
+                    : 'Ready in cart';
+
+
+            const statusSubtitle =
+                isPreview
+                    ? 'Premium selection'
+                    : '1 item added';
+
+
+            const statusIcon =
+                isPreview
+                    ? '◆'
+                    : '✓';
+
+
+            /* =================================================
                MODAL HTML
             ================================================= */
 
@@ -1003,6 +1171,7 @@
 
                     <div class="velocity-added-grid">
 
+
                         <!-- =================================
                              VISUAL
                         ================================= -->
@@ -1073,11 +1242,11 @@
                             <div class="velocity-added-success-badge">
 
                                 <span class="velocity-added-check">
-                                    ✓
+                                    ${statusIcon}
                                 </span>
 
                                 <span>
-                                    ADDED
+                                    ${badge}
                                 </span>
 
                             </div>
@@ -1097,7 +1266,7 @@
                                     class="velocity-added-kicker-dot"
                                 ></span>
 
-                                ADDED TO CART
+                                ${kicker}
 
                             </div>
 
@@ -1155,18 +1324,18 @@
                                 <div class="velocity-added-status">
 
                                     <span class="velocity-added-status-icon">
-                                        ✓
+                                        ${statusIcon}
                                     </span>
 
 
                                     <div>
 
                                         <strong>
-                                            Ready in cart
+                                            ${statusTitle}
                                         </strong>
 
                                         <small>
-                                            1 item added
+                                            ${statusSubtitle}
                                         </small>
 
                                     </div>
@@ -1185,7 +1354,11 @@
                                 >
 
                                     <span>
-                                        View Cart
+                                        ${
+                                            isPreview
+                                                ? 'View Cart'
+                                                : 'View Cart'
+                                        }
                                     </span>
 
                                     <span class="velocity-added-btn-arrow">
@@ -1239,6 +1412,8 @@
 
             /* =================================================
                IMAGE FALLBACK
+               ------------------------------------------------
+               Manifest/image system remains untouched.
             ================================================= */
 
             if (
