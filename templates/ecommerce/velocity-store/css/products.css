@@ -1,0 +1,974 @@
+/* =========================================================
+   VELOCITY STORE
+   PRODUCTS / CATEGORIES / PRODUCT CARDS
+========================================================= */
+
+
+/* =========================================================
+   CATEGORIES
+========================================================= */
+
+.category-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 14px;
+}
+
+.category-card {
+    position: relative;
+
+    min-height: 280px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+
+    padding: 26px;
+
+    overflow: hidden;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        var(--radius-lg);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,0.06),
+            rgba(255,255,255,0.015)
+        );
+
+    color: var(--white);
+
+    text-align: left;
+
+    cursor: pointer;
+
+    transition:
+        transform var(--transition),
+        border-color var(--transition),
+        background var(--transition);
+}
+
+.category-card::before {
+    content: "";
+
+    position: absolute;
+
+    width: 180px;
+    height: 180px;
+
+    top: -60px;
+    right: -60px;
+
+    border-radius: 50%;
+
+    background:
+        var(--accent);
+
+    opacity: 0.08;
+
+    filter: blur(20px);
+
+    transition:
+        transform 700ms ease;
+}
+
+.category-card:hover {
+    transform:
+        translateY(-10px);
+
+    border-color:
+        rgba(217,255,63,0.3);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(217,255,63,0.09),
+            rgba(255,255,255,0.02)
+        );
+}
+
+.category-card:hover::before {
+    transform:
+        scale(2.2);
+}
+
+.category-number {
+    position: absolute;
+
+    top: 22px;
+    right: 24px;
+
+    color: var(--text-muted);
+
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.category-icon {
+    width: 54px;
+    height: 54px;
+
+    display: grid;
+    place-items: center;
+
+    margin-bottom: auto;
+
+    border-radius: 16px;
+
+    background:
+        rgba(217,255,63,0.08);
+
+    color: var(--accent);
+
+    font-size: 22px;
+}
+
+.category-card strong {
+    font-size: 23px;
+    font-weight: 850;
+}
+
+.category-card small {
+    margin-top: 4px;
+
+    color: var(--text-muted);
+
+    font-size: 11px;
+}
+
+.category-arrow {
+    position: absolute;
+
+    right: 24px;
+    bottom: 26px;
+
+    color: var(--accent);
+
+    font-size: 20px;
+
+    transition:
+        transform var(--transition);
+}
+
+.category-card:hover .category-arrow {
+    transform:
+        translateX(7px);
+}
+
+
+/* =========================================================
+   PRODUCTS
+========================================================= */
+
+.product-controls {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 7px;
+}
+
+.filter-button {
+    padding:
+        10px 15px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius: 100px;
+
+    background:
+        rgba(255,255,255,0.03);
+
+    color: var(--text-muted);
+
+    font-size: 11px;
+    font-weight: 750;
+
+    cursor: pointer;
+
+    transition:
+        background var(--transition),
+        color var(--transition),
+        border-color var(--transition);
+}
+
+.filter-button:hover,
+.filter-button.active {
+    border-color:
+        var(--accent);
+
+    background:
+        var(--accent);
+
+    color: var(--black);
+}
+
+.products-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 16px;
+}
+
+
+/* =========================================================
+   PRODUCT CARD
+========================================================= */
+
+.product-card {
+    position: relative;
+
+    overflow: hidden;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        var(--radius-md);
+
+    background:
+        var(--surface);
+
+    /*
+       Important for cinematic 3D rotation.
+    */
+    transform-style: preserve-3d;
+
+    perspective: 1400px;
+
+    backface-visibility: hidden;
+
+    will-change: transform;
+
+    transition:
+        transform var(--transition),
+        border-color var(--transition),
+        box-shadow var(--transition);
+}
+
+.product-card:hover {
+    transform:
+        translateY(-9px);
+
+    border-color:
+        rgba(217,255,63,0.22);
+
+    box-shadow:
+        0 30px 70px
+        rgba(0,0,0,0.35);
+}
+
+
+/*
+   While cinematic animation is running,
+   the hover transform must not interfere.
+*/
+
+.product-card.velocity-cart-spin:hover,
+.product-card.velocity-cart-spinning:hover {
+    transform: none;
+}
+
+
+/* =========================================================
+   PRODUCT IMAGE
+========================================================= */
+
+.product-image {
+    position: relative;
+
+    width: 100%;
+
+    aspect-ratio: 1 / 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    isolation: isolate;
+
+    background:
+        radial-gradient(
+            circle at 50% 35%,
+            rgba(217,255,63,0.08),
+            transparent 38%
+        ),
+        linear-gradient(
+            135deg,
+            #1d1d23,
+            #0e0e12
+        );
+}
+
+.product-image::after {
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 1;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,255,255,0.045),
+            transparent 38%,
+            rgba(0,0,0,0.08)
+        );
+
+    opacity: 0.7;
+}
+
+.product-image img {
+    position: relative;
+
+    z-index: 0;
+
+    display: block;
+
+    width: 88%;
+    height: 88%;
+
+    object-fit: contain;
+
+    object-position: center;
+
+    border-radius: 12px;
+
+    filter:
+        drop-shadow(
+            0 18px 28px
+            rgba(0,0,0,0.32)
+        );
+
+    transform:
+        translateZ(0)
+        scale(1);
+
+    transition:
+        transform 700ms
+        cubic-bezier(.2,.8,.2,1),
+        filter 700ms
+        cubic-bezier(.2,.8,.2,1);
+}
+
+.product-card:hover .product-image img {
+    transform:
+        translateY(-4px)
+        scale(1.045);
+
+    filter:
+        drop-shadow(
+            0 25px 38px
+            rgba(0,0,0,0.42)
+        );
+}
+
+.product-image img[src*="data:image"] {
+    object-fit: contain;
+}
+
+.product-image-placeholder {
+    position: relative;
+
+    z-index: 2;
+
+    width: 140px;
+    height: 140px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+
+    background:
+        rgba(217,255,63,0.07);
+
+    color: var(--accent);
+
+    font-weight: 900;
+
+    letter-spacing: 0.08em;
+
+    box-shadow:
+        0 0 70px
+        rgba(217,255,63,0.12);
+}
+
+
+/* =========================================================
+   PRODUCT BADGE
+========================================================= */
+
+.product-badge {
+    position: absolute;
+
+    top: 13px;
+    left: 13px;
+
+    z-index: 4;
+
+    padding:
+        7px 9px;
+
+    border-radius: 8px;
+
+    background: var(--accent);
+
+    color: var(--black);
+
+    font-size: 8px;
+    font-weight: 950;
+
+    letter-spacing: 0.08em;
+}
+
+
+/* =========================================================
+   PRODUCT WISHLIST
+========================================================= */
+
+.product-wishlist {
+    position: absolute;
+
+    top: 12px;
+    right: 12px;
+
+    z-index: 5;
+
+    width: 38px;
+    height: 38px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+
+    background:
+        rgba(8,8,11,0.7);
+
+    color: var(--white);
+
+    cursor: pointer;
+
+    backdrop-filter:
+        blur(10px);
+
+    transition:
+        background var(--transition),
+        color var(--transition),
+        transform var(--transition);
+}
+
+.product-wishlist:hover,
+.product-wishlist.active {
+    background:
+        var(--accent);
+
+    color: var(--black);
+
+    transform:
+        scale(1.08);
+}
+
+
+/* =========================================================
+   PRODUCT INFO
+========================================================= */
+
+.product-info {
+    padding: 18px;
+}
+
+.product-category {
+    color: var(--text-muted);
+
+    font-size: 9px;
+    font-weight: 800;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.12em;
+}
+
+.product-name {
+    margin:
+        7px 0 8px;
+
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.product-rating {
+    color: var(--accent);
+
+    font-size: 10px;
+}
+
+.product-price {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    margin-top: 12px;
+}
+
+.product-price strong {
+    font-size: 16px;
+}
+
+.product-price del {
+    color: var(--text-muted);
+
+    font-size: 11px;
+}
+
+.product-add {
+    width: 100%;
+
+    margin-top: 14px;
+
+    min-height: 42px;
+
+    border-radius: 11px;
+
+    background:
+        rgba(255,255,255,0.06);
+
+    color: var(--white);
+
+    font-size: 11px;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+        background var(--transition),
+        color var(--transition),
+        transform var(--transition);
+}
+
+.product-add:hover {
+    background: var(--accent);
+
+    color: var(--black);
+
+    transform:
+        translateY(-2px);
+}
+
+.products-empty {
+    padding: 70px 20px;
+
+    border:
+        1px dashed var(--border-light);
+
+    border-radius: var(--radius-lg);
+
+    text-align: center;
+}
+
+.products-empty h3 {
+    margin: 0 0 8px;
+}
+
+.products-empty p {
+    margin: 0;
+
+    color: var(--text-muted);
+}
+
+
+/* =========================================================
+   CINEMATIC PRODUCT CARD
+   EXACTLY TWO FULL ROTATIONS = 720deg
+========================================================= */
+
+.product-card.velocity-cart-spin,
+.product-card.velocity-cart-spinning {
+
+    z-index: 100;
+
+    transform-style: preserve-3d;
+
+    perspective: 1400px;
+
+    backface-visibility: hidden;
+
+    animation:
+        velocityCartSpin
+        1400ms
+        cubic-bezier(.18,.72,.20,1)
+        both;
+}
+
+
+/*
+   Extra cinematic state.
+*/
+
+.product-card.velocity-cart-launch {
+    will-change: transform;
+
+    filter:
+        brightness(1.12)
+        saturate(1.15);
+}
+
+
+/* =========================================================
+   EXACT 720 DEG ROTATION
+========================================================= */
+
+@keyframes velocityCartSpin {
+
+    0% {
+        transform:
+            perspective(1400px)
+            rotateY(0deg)
+            rotateZ(0deg)
+            scale(1);
+    }
+
+    12.5% {
+        transform:
+            perspective(1400px)
+            rotateY(90deg)
+            rotateZ(2deg)
+            scale(1.02);
+    }
+
+    25% {
+        transform:
+            perspective(1400px)
+            rotateY(180deg)
+            rotateZ(4deg)
+            scale(1.04);
+    }
+
+    37.5% {
+        transform:
+            perspective(1400px)
+            rotateY(270deg)
+            rotateZ(2deg)
+            scale(1.06);
+    }
+
+    50% {
+        transform:
+            perspective(1400px)
+            rotateY(360deg)
+            rotateZ(0deg)
+            scale(1.08);
+    }
+
+    62.5% {
+        transform:
+            perspective(1400px)
+            rotateY(450deg)
+            rotateZ(-2deg)
+            scale(1.06);
+    }
+
+    75% {
+        transform:
+            perspective(1400px)
+            rotateY(540deg)
+            rotateZ(-4deg)
+            scale(1.04);
+    }
+
+    87.5% {
+        transform:
+            perspective(1400px)
+            rotateY(630deg)
+            rotateZ(-2deg)
+            scale(1.02);
+    }
+
+    100% {
+        transform:
+            perspective(1400px)
+            rotateY(720deg)
+            rotateZ(0deg)
+            scale(1);
+    }
+}
+
+
+/* =========================================================
+   PRODUCT IMAGE CINEMATIC
+========================================================= */
+
+.product-card.velocity-cart-spin .product-image,
+.product-card.velocity-cart-spinning .product-image {
+    animation:
+        velocityImagePulse
+        1400ms
+        ease
+        both;
+}
+
+.product-card.velocity-cart-spin .product-image img,
+.product-card.velocity-cart-spinning .product-image img {
+    animation:
+        velocityProductImageSpin
+        1400ms
+        cubic-bezier(.2,.75,.25,1)
+        both;
+}
+
+
+/* =========================================================
+   CARD GLOW
+========================================================= */
+
+.product-card.velocity-cart-spin::before,
+.product-card.velocity-cart-spinning::before {
+
+    content: "";
+
+    position: absolute;
+
+    inset: -3px;
+
+    z-index: -1;
+
+    border-radius: inherit;
+
+    background:
+        linear-gradient(
+            135deg,
+            transparent 20%,
+            rgba(217,255,63,0.95),
+            transparent 70%
+        );
+
+    opacity: 0;
+
+    filter:
+        blur(12px);
+
+    pointer-events: none;
+
+    animation:
+        velocityCardGlow
+        1400ms
+        ease
+        both;
+}
+
+
+/* =========================================================
+   IMAGE SPIN
+========================================================= */
+
+@keyframes velocityProductImageSpin {
+
+    0% {
+        transform:
+            translateZ(0)
+            scale(1)
+            rotate(0deg);
+    }
+
+    35% {
+        transform:
+            translateZ(100px)
+            scale(1.08)
+            rotate(-5deg);
+    }
+
+    50% {
+        transform:
+            translateZ(120px)
+            scale(1.12)
+            rotate(0deg);
+    }
+
+    75% {
+        transform:
+            translateZ(100px)
+            scale(1.08)
+            rotate(5deg);
+    }
+
+    100% {
+        transform:
+            translateZ(0)
+            scale(1)
+            rotate(0deg);
+    }
+}
+
+
+/* =========================================================
+   IMAGE PULSE
+========================================================= */
+
+@keyframes velocityImagePulse {
+
+    0% {
+        box-shadow:
+            inset 0 0 0
+            rgba(217,255,63,0);
+    }
+
+    45% {
+        box-shadow:
+            inset 0 0 80px
+            rgba(217,255,63,0.18);
+    }
+
+    100% {
+        box-shadow:
+            inset 0 0 0
+            rgba(217,255,63,0);
+    }
+}
+
+
+/* =========================================================
+   CARD GLOW ANIMATION
+========================================================= */
+
+@keyframes velocityCardGlow {
+
+    0% {
+        opacity: 0;
+
+        transform:
+            scale(0.8);
+    }
+
+    30% {
+        opacity: 0.9;
+
+        transform:
+            scale(1.02);
+    }
+
+    70% {
+        opacity: 0.6;
+
+        transform:
+            scale(1.08);
+    }
+
+    100% {
+        opacity: 0;
+
+        transform:
+            scale(1.2);
+    }
+}
+
+
+/* =========================================================
+   RESPONSIVE PRODUCTS
+========================================================= */
+
+@media (max-width: 1100px) {
+
+    .products-grid {
+        grid-template-columns:
+            repeat(3, 1fr);
+    }
+
+    .category-grid {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+}
+
+
+@media (max-width: 800px) {
+
+    .products-grid {
+        grid-template-columns:
+            repeat(2, 1fr);
+
+        gap: 12px;
+    }
+
+    .product-info {
+        padding: 14px;
+    }
+}
+
+
+@media (max-width: 520px) {
+
+    .category-grid {
+        grid-template-columns:
+            1fr;
+    }
+
+    .products-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 10px;
+    }
+
+    .product-image img {
+        width: 84%;
+        height: 84%;
+
+        border-radius: 10px;
+    }
+
+    .product-badge {
+        top: 8px;
+        left: 8px;
+
+        padding:
+            6px 7px;
+
+        font-size: 7px;
+    }
+
+    .product-wishlist {
+        top: 8px;
+        right: 8px;
+
+        width: 34px;
+        height: 34px;
+    }
+
+    .product-name {
+        font-size: 13px;
+    }
+
+    .product-price {
+        gap: 5px;
+    }
+
+    .product-price strong {
+        font-size: 14px;
+    }
+
+    .product-add {
+        min-height: 38px;
+
+        margin-top: 10px;
+
+        font-size: 10px;
+    }
+  }
