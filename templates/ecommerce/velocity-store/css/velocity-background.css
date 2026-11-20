@@ -1,35 +1,521 @@
 /* =========================================================
    VELOCITY STORE
-   CINEMATIC BACKGROUND
+   PREMIUM BACKGROUND SYSTEM
    ---------------------------------------------------------
-   - Canvas only
-   - No circles
-   - No rings
-   - No layout modifications
-   - No pointer interference
+   - Subtle background grid
+   - VERY SMALL click waves
+   - No large circles
+   - No big rings
+   - No hover effects
+   - No interference with product cards
 ========================================================= */
 
 
 /* =========================================================
-   BACKGROUND CANVAS
+   VARIABLES
 ========================================================= */
 
-#velocityBackgroundCanvas {
+:root {
+
+    --velocity-bg-grid-size: 48px;
+
+    --velocity-bg-grid-opacity: 0.025;
+
+}
+
+
+/* =========================================================
+   BACKGROUND GRID
+========================================================= */
+
+body::before {
+
+    content: "";
 
     position: fixed;
 
     inset: 0;
 
-    width: 100%;
-    height: 100%;
-
-    display: block;
+    z-index: 0;
 
     pointer-events: none;
 
+    background-image:
+
+        linear-gradient(
+            rgba(
+                255,
+                255,
+                255,
+                var(--velocity-bg-grid-opacity)
+            ) 1px,
+            transparent 1px
+        ),
+
+        linear-gradient(
+            90deg,
+            rgba(
+                255,
+                255,
+                255,
+                var(--velocity-bg-grid-opacity)
+            ) 1px,
+            transparent 1px
+        );
+
+    background-size:
+        var(--velocity-bg-grid-size)
+        var(--velocity-bg-grid-size);
+
+    mask-image:
+        radial-gradient(
+            ellipse at center,
+            black 0%,
+            rgba(0,0,0,.55) 45%,
+            transparent 100%
+        );
+
+    -webkit-mask-image:
+        radial-gradient(
+            ellipse at center,
+            black 0%,
+            rgba(0,0,0,.55) 45%,
+            transparent 100%
+        );
+
+}
+
+
+/* =========================================================
+   SOFT BACKGROUND ATMOSPHERE
+========================================================= */
+
+body::after {
+
+    content: "";
+
+    position: fixed;
+
+    inset: 0;
+
     z-index: 0;
 
-    opacity: 1;
+    pointer-events: none;
+
+    background:
+
+        radial-gradient(
+            circle at 50% 20%,
+            rgba(
+                255,
+                255,
+                255,
+                .015
+            ),
+            transparent 42%
+        );
+
+}
+
+
+/* =========================================================
+   BACKGROUND EFFECT LAYER
+========================================================= */
+
+.velocity-background-layer {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1;
+
+    pointer-events: none;
+
+    overflow: hidden;
+
+}
+
+
+/* =========================================================
+   TINY CLICK POINT
+========================================================= */
+
+.velocity-click-point {
+
+    position: fixed;
+
+    width: 2px;
+
+    height: 2px;
+
+    margin-left: -1px;
+
+    margin-top: -1px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            .16
+        );
+
+    box-shadow:
+        0 0 4px
+        rgba(
+            255,
+            255,
+            255,
+            .06
+        );
+
+    pointer-events: none;
+
+    animation:
+        velocityClickPoint
+        260ms
+        ease-out
+        forwards;
+
+}
+
+
+/* =========================================================
+   VERY SMALL CENTER GLOW
+========================================================= */
+
+.velocity-background-glow {
+
+    position: fixed;
+
+    width: 8px;
+
+    height: 8px;
+
+    margin-left: -4px;
+
+    margin-top: -4px;
+
+    border-radius: 50%;
+
+    background:
+
+        radial-gradient(
+            circle,
+            rgba(
+                255,
+                255,
+                255,
+                .055
+            ) 0%,
+
+            rgba(
+                255,
+                255,
+                255,
+                .018
+            ) 40%,
+
+            transparent 72%
+        );
+
+    filter: blur(1.5px);
+
+    opacity: 0;
+
+    transform:
+        scale(.4);
+
+    pointer-events: none;
+
+    animation:
+        velocityTinyGlow
+        300ms
+        ease-out
+        forwards;
+
+}
+
+
+/* =========================================================
+   VERY SMALL MAIN WAVE
+   ---------------------------------------------------------
+   IMPORTANT:
+   Much smaller than before.
+========================================================= */
+
+.velocity-background-wave {
+
+    position: fixed;
+
+    width: 38px;
+
+    height: 1px;
+
+    margin-left: -19px;
+
+    margin-top: -.5px;
+
+    border: 0;
+
+    border-radius: 999px;
+
+    background:
+
+        linear-gradient(
+            90deg,
+
+            transparent 0%,
+
+            rgba(
+                255,
+                255,
+                255,
+                .018
+            ) 20%,
+
+            rgba(
+                255,
+                255,
+                255,
+                .075
+            ) 50%,
+
+            rgba(
+                255,
+                255,
+                255,
+                .018
+            ) 80%,
+
+            transparent 100%
+        );
+
+    box-shadow:
+
+        0 0 4px
+        rgba(
+            255,
+            255,
+            255,
+            .025
+        );
+
+    opacity: 0;
+
+    transform:
+        scaleX(.05);
+
+    pointer-events: none;
+
+    animation:
+
+        velocityHorizontalWave
+        430ms
+        cubic-bezier(
+            .22,
+            .61,
+            .36,
+            1
+        )
+        forwards;
+
+}
+
+
+/* =========================================================
+   VERY SMALL SECONDARY WAVE
+========================================================= */
+
+.velocity-background-ring {
+
+    position: fixed;
+
+    width: 22px;
+
+    height: 1px;
+
+    margin-left: -11px;
+
+    margin-top: -.5px;
+
+    border: 0;
+
+    border-radius: 999px;
+
+    background:
+
+        linear-gradient(
+            90deg,
+
+            transparent 0%,
+
+            rgba(
+                255,
+                255,
+                255,
+                .035
+            ) 50%,
+
+            transparent 100%
+        );
+
+    box-shadow: none;
+
+    opacity: 0;
+
+    transform:
+        scaleX(.05);
+
+    pointer-events: none;
+
+    animation:
+
+        velocitySecondWave
+        350ms
+        ease-out
+        forwards;
+
+}
+
+
+/* =========================================================
+   MAIN WAVE ANIMATION
+========================================================= */
+
+@keyframes velocityHorizontalWave {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            scaleX(.05);
+
+    }
+
+    12% {
+
+        opacity: .24;
+
+    }
+
+    45% {
+
+        opacity: .13;
+
+    }
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            scaleX(1);
+
+    }
+
+}
+
+
+/* =========================================================
+   SECOND WAVE ANIMATION
+========================================================= */
+
+@keyframes velocitySecondWave {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            scaleX(.05);
+
+    }
+
+    18% {
+
+        opacity: .14;
+
+    }
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            scaleX(1);
+
+    }
+
+}
+
+
+/* =========================================================
+   TINY GLOW ANIMATION
+========================================================= */
+
+@keyframes velocityTinyGlow {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            scale(.4);
+
+    }
+
+    20% {
+
+        opacity: .24;
+
+    }
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            scale(1);
+
+    }
+
+}
+
+
+/* =========================================================
+   CLICK POINT ANIMATION
+========================================================= */
+
+@keyframes velocityClickPoint {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            scale(.4);
+
+    }
+
+    20% {
+
+        opacity: .22;
+
+    }
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            scale(1.15);
+
+    }
 
 }
 
@@ -42,9 +528,14 @@
     prefers-reduced-motion: reduce
 ) {
 
-    #velocityBackgroundCanvas {
+    .velocity-background-wave,
+    .velocity-background-ring,
+    .velocity-background-glow,
+    .velocity-click-point {
 
-        display: none;
+        animation: none !important;
+
+        display: none !important;
 
     }
 
