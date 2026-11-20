@@ -2,25 +2,63 @@
 
 /* =========================================================
    VELOCITY STORE
-   BACKGROUND INTERACTION
+   CINEMATIC WATER BACKGROUND
    ---------------------------------------------------------
-   - Grid background
-   - Click effect ONLY on empty background
-   - NEVER on product cards
-   - NEVER on buttons / links / inputs
-   - NEVER on UI overlays
+   - Canvas based background
+   - Subtle grid
+   - Real water-like distortion
+   - Small waves from click position
+   - No circular DOM elements
    - No hover effects
+   - Product cards protected
 ========================================================= */
 
 (function () {
 
     const VelocityBackground = {
 
-        layer: null,
+        canvas: null,
+
+        ctx: null,
+
+        width: 0,
+
+        height: 0,
+
+        dpr: 1,
 
         initialized: false,
 
-        MAX_EFFECTS: 3,
+        ripples: [],
+
+        lastFrame: 0,
+
+
+        /* =====================================================
+           CONFIG
+        ===================================================== */
+
+        config: {
+
+            gridSize: 48,
+
+            gridOpacity: 0.035,
+
+            gridColor: 255,
+
+            rippleLife: 720,
+
+            rippleStrength: 8,
+
+            rippleRadius: 145,
+
+            rippleSpeed: 0.9,
+
+            maxRipples: 3,
+
+            animationSpeed: 1
+
+        },
 
 
         /* =====================================================
@@ -33,52 +71,146 @@
                 return;
             }
 
-            this.createLayer();
+
+            this.createCanvas();
+
+            this.resize();
 
             this.bindEvents();
 
+            window.addEventListener(
+                'resize',
+                () => {
+                    this.resize();
+                },
+                {
+                    passive: true
+                }
+            );
+
+
             this.initialized = true;
+
+            requestAnimationFrame(
+                (time) => {
+                    this.animate(time);
+                }
+            );
         },
 
 
         /* =====================================================
-           CREATE LAYER
+           CREATE CANVAS
         ===================================================== */
 
-        createLayer() {
+        createCanvas() {
 
-            let layer =
-                document.querySelector(
-                    '.velocity-background-layer'
+            /*
+             * Remove old canvas if exists
+             */
+
+            const oldCanvas =
+                document.getElementById(
+                    'velocityBackgroundCanvas'
                 );
 
-            if (!layer) {
-
-                layer =
-                    document.createElement('div');
-
-                layer.className =
-                    'velocity-background-layer';
-
-                layer.setAttribute(
-                    'aria-hidden',
-                    'true'
-                );
-
-                document.body.prepend(layer);
+            if (oldCanvas) {
+                oldCanvas.remove();
             }
 
-            this.layer = layer;
+
+            const canvas =
+                document.createElement('canvas');
+
+            canvas.id =
+                'velocityBackgroundCanvas';
+
+            canvas.setAttribute(
+                'aria-hidden',
+                'true'
+            );
+
+
+            document.body.prepend(
+                canvas
+            );
+
+
+            this.canvas = canvas;
+
+            this.ctx =
+                canvas.getContext(
+                    '2d',
+                    {
+                        alpha: true
+                    }
+                );
         },
 
 
         /* =====================================================
-           CHECK IF CLICK IS ALLOWED
+           RESIZE
+        ===================================================== */
+
+        resize() {
+
+            if (!this.canvas || !this.ctx) {
+                return;
+            }
+
+
+            this.dpr =
+                Math.min(
+                    window.devicePixelRatio || 1,
+                    2
+                );
+
+
+            this.width =
+                window.innerWidth;
+
+            this.height =
+                window.innerHeight;
+
+
+            this.canvas.width =
+                Math.floor(
+                    this.width * this.dpr
+                );
+
+            this.canvas.height =
+                Math.floor(
+                    this.height * this.dpr
+                );
+
+
+            this.canvas.style.width =
+                `${this.width}px`;
+
+            this.canvas.style.height =
+                `${this.height}px`;
+
+
+            this.ctx.setTransform(
+                this.dpr,
+                0,
+                0,
+                this.dpr,
+                0,
+                0
+            );
+        },
+
+
+        /* =====================================================
+           EVENT PROTECTION
         ===================================================== */
 
         isBackgroundClick(event) {
 
-            const target = event.target;
+            const target =
+                event.target;
+
 
             if (
                 !(target instanceof Element)
@@ -88,8 +220,7 @@
 
 
             /*
-             * IMPORTANT:
-             * Anything inside a product card = BLOCK
+             * PRODUCT CARD
              */
 
             if (
@@ -102,7 +233,7 @@
 
 
             /*
-             * BLOCK ALL INTERACTIVE ELEMENTS
+             * BUTTONS / LINKS
              */
 
             if (
@@ -125,7 +256,7 @@
 
 
             /*
-             * BLOCK MODALS / DRAWERS / OVERLAYS
+             * MODALS / OVERLAYS
              */
 
             if (
@@ -148,23 +279,20 @@
 
 
             /*
-             * EXTRA SAFETY:
-             * Check the actual element at the click point.
-             *
-             * This catches cases where another transparent
-             * element is involved.
+             * EXTRA PRODUCT CHECK
              */
 
-            const elementAtPoint =
+            const pointElement =
                 document.elementFromPoint(
                     event.clientX,
                     event.clientY
                 );
 
+
             if (
-                elementAtPoint &&
-                elementAtPoint.closest &&
-                elementAtPoint.closest(
+                pointElement &&
+                pointElement.closest &&
+                pointElement.closest(
                     '.product-card'
                 )
             ) {
@@ -187,8 +315,7 @@
                 (event) => {
 
                     /*
-                     * Mouse:
-                     * only LEFT click
+                     * Only left mouse button
                      */
 
                     if (
@@ -200,8 +327,7 @@
 
 
                     /*
-                     * TOUCH / PEN / MOUSE:
-                     * ONLY EMPTY BACKGROUND
+                     * ONLY BACKGROUND
                      */
 
                     if (
@@ -213,120 +339,471 @@
                     }
 
 
-                    this.createEffect(
+                    this.addRipple(
                         event.clientX,
                         event.clientY
                     );
 
                 },
                 {
-                    passive: true,
-                    capture: false
+                    passive: true
                 }
             );
         },
 
 
         /* =====================================================
-           CREATE EFFECT
+           ADD RIPPLE
         ===================================================== */
 
-        createEffect(x, y) {
+        addRipple(x, y) {
 
-            if (!this.layer) {
+            /*
+             * Keep only a few active waves
+             */
+
+            if (
+                this.ripples.length >=
+                this.config.maxRipples
+            ) {
+
+                this.ripples.shift();
+
+            }
+
+
+            this.ripples.push({
+
+                x: x,
+
+                y: y,
+
+                start:
+                    performance.now(),
+
+                life:
+                    this.config.rippleLife,
+
+                strength:
+                    this.config.rippleStrength,
+
+                radius:
+                    this.config.rippleRadius
+
+            });
+        },
+
+
+        /* =====================================================
+           DRAW BACKGROUND
+        ===================================================== */
+
+        drawBackground(time) {
+
+            const ctx =
+                this.ctx;
+
+
+            if (!ctx) {
                 return;
             }
 
 
+            ctx.clearRect(
+                0,
+                0,
+                this.width,
+                this.height
+            );
+
+
             /*
-             * LIMIT EFFECTS
+             * Draw only subtle grid.
              */
 
-            while (
-                this.layer.children.length >=
-                this.MAX_EFFECTS
+            const size =
+                this.config.gridSize;
+
+
+            const color =
+                this.config.gridColor;
+
+
+            const baseOpacity =
+                this.config.gridOpacity;
+
+
+            ctx.lineWidth = 1;
+
+
+            /*
+             * Vertical lines
+             */
+
+            for (
+                let x = 0;
+                x <= this.width + size;
+                x += size
             ) {
-                this.layer.firstElementChild?.remove();
+
+                this.drawDistortedLine(
+                    ctx,
+                    true,
+                    x,
+                    time,
+                    color,
+                    baseOpacity
+                );
             }
 
 
             /*
-             * GLOW
+             * Horizontal lines
              */
 
-            const glow =
-                document.createElement('span');
+            for (
+                let y = 0;
+                y <= this.height + size;
+                y += size
+            ) {
 
-            glow.className =
-                'velocity-background-glow';
-
-            glow.style.left =
-                `${x}px`;
-
-            glow.style.top =
-                `${y}px`;
-
-
-            /*
-             * SMALL WAVE
-             */
-
-            const wave =
-                document.createElement('span');
-
-            wave.className =
-                'velocity-background-wave';
-
-            wave.style.left =
-                `${x}px`;
-
-            wave.style.top =
-                `${y}px`;
+                this.drawDistortedLine(
+                    ctx,
+                    false,
+                    y,
+                    time,
+                    color,
+                    baseOpacity
+                );
+            }
+        },
 
 
-            /*
-             * SMALL RING
-             */
+        /* =====================================================
+           DRAW DISTORTED LINE
+        ===================================================== */
 
-            const ring =
-                document.createElement('span');
+        drawDistortedLine(
+            ctx,
+            vertical,
+            position,
+            time,
+            color,
+            opacity
+        ) {
 
-            ring.className =
-                'velocity-background-ring';
-
-            ring.style.left =
-                `${x}px`;
-
-            ring.style.top =
-                `${y}px`;
-
-
-            /*
-             * ADD
-             */
-
-            this.layer.appendChild(glow);
-
-            this.layer.appendChild(wave);
-
-            this.layer.appendChild(ring);
+            const step = 14;
 
 
-            /*
-             * REMOVE
-             */
+            ctx.beginPath();
 
-            window.setTimeout(
-                () => {
 
-                    glow.remove();
+            let first = true;
 
-                    wave.remove();
 
-                    ring.remove();
+            if (vertical) {
 
-                },
-                1000
+                for (
+                    let y = -step;
+                    y <= this.height + step;
+                    y += step
+                ) {
+
+                    const distortion =
+                        this.getDistortion(
+                            position,
+                            y,
+                            time,
+                            true
+                        );
+
+
+                    const px =
+                        position +
+                        distortion;
+
+
+                    if (first) {
+
+                        ctx.moveTo(
+                            px,
+                            y
+                        );
+
+                        first = false;
+
+                    } else {
+
+                        ctx.lineTo(
+                            px,
+                            y
+                        );
+                    }
+                }
+
+            } else {
+
+                for (
+                    let x = -step;
+                    x <= this.width + step;
+                    x += step
+                ) {
+
+                    const distortion =
+                        this.getDistortion(
+                            x,
+                            position,
+                            time,
+                            false
+                        );
+
+
+                    const py =
+                        position +
+                        distortion;
+
+
+                    if (first) {
+
+                        ctx.moveTo(
+                            x,
+                            py
+                        );
+
+                        first = false;
+
+                    } else {
+
+                        ctx.lineTo(
+                            x,
+                            py
+                        );
+                    }
+                }
+            }
+
+
+            ctx.strokeStyle =
+                `rgba(
+                    ${color},
+                    ${color},
+                    ${color},
+                    ${opacity}
+                )`;
+
+
+            ctx.stroke();
+        },
+
+
+        /* =====================================================
+           DISTORTION
+        ===================================================== */
+
+        getDistortion(
+            x,
+            y,
+            time,
+            vertical
+        ) {
+
+            let total =
+                0;
+
+
+            for (
+                let i = 0;
+                i < this.ripples.length;
+                i++
+            ) {
+
+                const ripple =
+                    this.ripples[i];
+
+
+                const dx =
+                    x -
+                    ripple.x;
+
+
+                const dy =
+                    y -
+                    ripple.y;
+
+
+                const distance =
+                    Math.sqrt(
+                        dx * dx +
+                        dy * dy
+                    );
+
+
+                const elapsed =
+                    time -
+                    ripple.start;
+
+
+                const progress =
+                    elapsed /
+                    ripple.life;
+
+
+                if (
+                    progress < 0 ||
+                    progress > 1
+                ) {
+                    continue;
+                }
+
+
+                /*
+                 * Wave travels outward
+                 */
+
+                const waveRadius =
+                    progress *
+                    ripple.radius;
+
+
+                const waveWidth =
+                    38;
+
+
+                const difference =
+                    Math.abs(
+                        distance -
+                        waveRadius
+                    );
+
+
+                if (
+                    difference >
+                    waveWidth
+                ) {
+                    continue;
+                }
+
+
+                /*
+                 * Smooth wave strength
+                 */
+
+                const envelope =
+                    1 -
+                    (
+                        difference /
+                        waveWidth
+                    );
+
+
+                const fade =
+                    1 -
+                    progress;
+
+
+                const wave =
+                    Math.sin(
+                        (
+                            difference /
+                            waveWidth
+                        ) *
+                        Math.PI
+                    );
+
+
+                /*
+                 * Direction of distortion
+                 */
+
+                let direction;
+
+
+                if (vertical) {
+
+                    direction =
+                        dx /
+                        Math.max(
+                            distance,
+                            1
+                        );
+
+                } else {
+
+                    direction =
+                        dy /
+                        Math.max(
+                            distance,
+                            1
+                        );
+                }
+
+
+                total +=
+
+                    direction *
+
+                    wave *
+
+                    envelope *
+
+                    fade *
+
+                    ripple.strength;
+            }
+
+
+            return total;
+        },
+
+
+        /* =====================================================
+           CLEAN RIPPLE DATA
+        ===================================================== */
+
+        cleanupRipples(time) {
+
+            this.ripples =
+                this.ripples.filter(
+                    (ripple) => {
+
+                        return (
+                            time -
+                            ripple.start
+                        ) <
+                        ripple.life;
+                    }
+                );
+        },
+
+
+        /* =====================================================
+           ANIMATION LOOP
+        ===================================================== */
+
+        animate(time) {
+
+            this.lastFrame =
+                time;
+
+
+            this.cleanupRipples(
+                time
+            );
+
+
+            this.drawBackground(
+                time
+            );
+
+
+            requestAnimationFrame(
+                (nextTime) => {
+
+                    this.animate(
+                        nextTime
+                    );
+
+                }
             );
         }
 
