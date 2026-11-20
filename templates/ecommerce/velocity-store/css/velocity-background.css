@@ -1,52 +1,38 @@
 /* =========================================================
-   VELOCITY BACKGROUND
-   PREMIUM INTERACTIVE ATMOSPHERE
-
-   - Subtle grid
-   - Click-origin waves
-   - Soft cinematic glow
-   - Lightweight
-   - Does not block interaction
+   VELOCITY STORE
+   SUBTLE BACKGROUND RIPPLE
 ========================================================= */
 
 :root {
-    --velocity-bg-grid-size: 54px;
-    --velocity-bg-grid-opacity: 0.035;
-    --velocity-bg-wave-duration: 1250ms;
+    --velocity-bg-grid-size: 48px;
+    --velocity-bg-grid-opacity: 0.025;
 }
 
 
 /* =========================================================
-   GLOBAL BACKGROUND LAYER
-========================================================= */
-
-body {
-    position: relative;
-    isolation: isolate;
-}
-
-
-/* =========================================================
-   SUBTLE GRID
+   BACKGROUND GRID
 ========================================================= */
 
 body::before {
     content: "";
+
     position: fixed;
     inset: 0;
 
-    z-index: -3;
+    z-index: 0;
 
     pointer-events: none;
 
     background-image:
         linear-gradient(
-            rgba(255, 255, 255, var(--velocity-bg-grid-opacity)) 1px,
+            rgba(255,255,255,var(--velocity-bg-grid-opacity))
+            1px,
             transparent 1px
         ),
         linear-gradient(
             90deg,
-            rgba(255, 255, 255, var(--velocity-bg-grid-opacity)) 1px,
+            rgba(255,255,255,var(--velocity-bg-grid-opacity))
+            1px,
             transparent 1px
         );
 
@@ -58,7 +44,7 @@ body::before {
         radial-gradient(
             ellipse at center,
             black 0%,
-            rgba(0, 0, 0, 0.7) 45%,
+            rgba(0,0,0,.55) 45%,
             transparent 100%
         );
 
@@ -66,16 +52,14 @@ body::before {
         radial-gradient(
             ellipse at center,
             black 0%,
-            rgba(0, 0, 0, 0.7) 45%,
+            rgba(0,0,0,.55) 45%,
             transparent 100%
         );
-
-    opacity: 0.8;
 }
 
 
 /* =========================================================
-   SOFT ATMOSPHERIC LIGHT
+   ATMOSPHERE
 ========================================================= */
 
 body::after {
@@ -84,31 +68,21 @@ body::after {
     position: fixed;
     inset: 0;
 
-    z-index: -4;
+    z-index: 0;
 
     pointer-events: none;
 
     background:
         radial-gradient(
             circle at 50% 20%,
-            rgba(255, 255, 255, 0.035),
-            transparent 34%
-        ),
-        radial-gradient(
-            circle at 15% 75%,
-            rgba(120, 140, 255, 0.025),
-            transparent 30%
-        ),
-        radial-gradient(
-            circle at 85% 65%,
-            rgba(180, 100, 255, 0.02),
-            transparent 30%
+            rgba(255,255,255,.015),
+            transparent 42%
         );
 }
 
 
 /* =========================================================
-   INTERACTION ROOT
+   EFFECT LAYER
 ========================================================= */
 
 .velocity-background-layer {
@@ -124,312 +98,189 @@ body::after {
 
 
 /* =========================================================
-   CLICK POINT
+   SMALL CLICK POINT
 ========================================================= */
 
 .velocity-click-point {
-    position: absolute;
+    position: fixed;
 
-    width: 8px;
-    height: 8px;
+    width: 2px;
+    height: 2px;
+
+    margin-left: -1px;
+    margin-top: -1px;
 
     border-radius: 50%;
 
-    transform:
-        translate(-50%, -50%)
-        scale(0);
-
     background:
-        radial-gradient(
-            circle,
-            rgba(255, 255, 255, 0.9) 0%,
-            rgba(255, 255, 255, 0.35) 35%,
-            transparent 75%
-        );
+        rgba(255,255,255,.22);
 
     box-shadow:
-        0 0 18px rgba(255, 255, 255, 0.22),
-        0 0 45px rgba(120, 150, 255, 0.14);
+        0 0 7px rgba(255,255,255,.10);
+
+    pointer-events: none;
 
     animation:
         velocityClickPoint
-        500ms
-        cubic-bezier(.16, 1, .3, 1)
+        320ms
+        ease-out
         forwards;
 }
 
 
 /* =========================================================
-   MAIN WAVE
-========================================================= */
-
-.velocity-background-wave {
-    position: absolute;
-
-    width: 80px;
-    height: 80px;
-
-    border-radius: 50%;
-
-    transform:
-        translate(-50%, -50%)
-        scale(0.05);
-
-    border:
-        1px solid rgba(255, 255, 255, 0.28);
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(255, 255, 255, 0.045) 0%,
-            rgba(130, 160, 255, 0.025) 35%,
-            transparent 68%
-        );
-
-    box-shadow:
-        0 0 20px rgba(255, 255, 255, 0.08),
-        inset 0 0 25px rgba(255, 255, 255, 0.025);
-
-    animation:
-        velocityBackgroundWave
-        var(--velocity-bg-wave-duration)
-        cubic-bezier(.16, .72, .24, 1)
-        forwards;
-}
-
-
-/* =========================================================
-   SECONDARY WAVE
-========================================================= */
-
-.velocity-background-wave::before {
-    content: "";
-
-    position: absolute;
-    inset: 14px;
-
-    border-radius: inherit;
-
-    border:
-        1px solid rgba(255, 255, 255, 0.09);
-
-    opacity: 0;
-
-    animation:
-        velocityInnerWave
-        var(--velocity-bg-wave-duration)
-        cubic-bezier(.16, .72, .24, 1)
-        forwards;
-}
-
-
-/* =========================================================
-   THIRD WAVE
-========================================================= */
-
-.velocity-background-wave::after {
-    content: "";
-
-    position: absolute;
-
-    inset: 28px;
-
-    border-radius: inherit;
-
-    border:
-        1px solid rgba(150, 170, 255, 0.08);
-
-    opacity: 0;
-
-    animation:
-        velocityInnerWave
-        var(--velocity-bg-wave-duration)
-        80ms
-        cubic-bezier(.16, .72, .24, 1)
-        forwards;
-}
-
-
-/* =========================================================
-   LIGHT RING
-========================================================= */
-
-.velocity-background-ring {
-    position: absolute;
-
-    width: 24px;
-    height: 24px;
-
-    border-radius: 50%;
-
-    transform:
-        translate(-50%, -50%)
-        scale(0);
-
-    border:
-        1px solid rgba(255, 255, 255, 0.22);
-
-    animation:
-        velocityRing
-        950ms
-        cubic-bezier(.16, 1, .3, 1)
-        forwards;
-}
-
-
-/* =========================================================
-   RADIAL LIGHT
+   SOFT RIPPLE LIGHT
 ========================================================= */
 
 .velocity-background-glow {
-    position: absolute;
+    position: fixed;
 
-    width: 280px;
-    height: 280px;
+    width: 34px;
+    height: 34px;
+
+    margin-left: -17px;
+    margin-top: -17px;
 
     border-radius: 50%;
-
-    transform:
-        translate(-50%, -50%)
-        scale(0.15);
 
     background:
         radial-gradient(
             circle,
-            rgba(255, 255, 255, 0.055) 0%,
-            rgba(120, 150, 255, 0.035) 20%,
-            rgba(120, 150, 255, 0.012) 42%,
+            rgba(255,255,255,.035) 0%,
+            rgba(255,255,255,.012) 35%,
             transparent 72%
         );
 
-    filter: blur(8px);
+    filter: blur(4px);
 
     opacity: 0;
+
+    transform: scale(.3);
+
+    pointer-events: none;
 
     animation:
         velocityGlow
-        1050ms
-        cubic-bezier(.16, 1, .3, 1)
+        500ms
+        ease-out
         forwards;
 }
 
 
 /* =========================================================
-   DIAGONAL ENERGY LINES
+   RIPPLE
+   ---------------------------------------------------------
+   ماشي دائرة قوية
+   غير موجة خفيفة كتخرج من نقطة الضغط
 ========================================================= */
 
-.velocity-background-energy {
-    position: absolute;
+.velocity-background-wave {
+    position: fixed;
 
-    width: 420px;
-    height: 1px;
+    width: 90px;
+    height: 90px;
 
-    transform:
-        translate(-50%, -50%)
-        rotate(0deg)
-        scaleX(0);
+    margin-left: -45px;
+    margin-top: -45px;
 
-    transform-origin: center;
+    border-radius: 50%;
 
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 255, 255, 0.10),
-            transparent
-        );
+    border:
+        1px solid
+        rgba(255,255,255,.045);
+
+    background: transparent;
 
     opacity: 0;
 
-    animation:
-        velocityEnergy
-        900ms
-        cubic-bezier(.16, 1, .3, 1)
-        forwards;
-}
-
-.velocity-background-energy.energy-two {
     transform:
-        translate(-50%, -50%)
-        rotate(90deg)
-        scaleX(0);
+        scale(.08);
+
+    pointer-events: none;
+
+    animation:
+        velocityBackgroundWave
+        620ms
+        cubic-bezier(
+            .22,
+            .61,
+            .36,
+            1
+        )
+        forwards;
 }
 
 
 /* =========================================================
-   ANIMATIONS
+   SECOND VERY SOFT RIPPLE
 ========================================================= */
 
-@keyframes velocityClickPoint {
+.velocity-background-ring {
+    position: fixed;
 
-    0% {
-        opacity: 0;
-        transform:
-            translate(-50%, -50%)
-            scale(0);
-    }
+    width: 58px;
+    height: 58px;
 
-    30% {
-        opacity: 1;
-        transform:
-            translate(-50%, -50%)
-            scale(1);
-    }
+    margin-left: -29px;
+    margin-top: -29px;
 
-    100% {
-        opacity: 0;
-        transform:
-            translate(-50%, -50%)
-            scale(1.7);
-    }
+    border-radius: 50%;
+
+    border:
+        1px solid
+        rgba(255,255,255,.025);
+
+    background: transparent;
+
+    opacity: 0;
+
+    transform:
+        scale(.1);
+
+    pointer-events: none;
+
+    animation:
+        velocityRing
+        520ms
+        cubic-bezier(
+            .22,
+            .61,
+            .36,
+            1
+        )
+        forwards;
 }
 
+
+/* =========================================================
+   RIPPLE ANIMATION
+========================================================= */
 
 @keyframes velocityBackgroundWave {
 
     0% {
-        opacity: 0.95;
+        opacity: 0;
 
         transform:
-            translate(-50%, -50%)
-            scale(0.05);
+            scale(.08);
     }
 
-    55% {
-        opacity: 0.42;
+    12% {
+        opacity: .35;
     }
 
     100% {
         opacity: 0;
 
         transform:
-            translate(-50%, -50%)
-            scale(14);
+            scale(1);
     }
 }
 
 
-@keyframes velocityInnerWave {
-
-    0% {
-        opacity: 0;
-
-        transform:
-            scale(0.2);
-    }
-
-    25% {
-        opacity: 0.65;
-    }
-
-    100% {
-        opacity: 0;
-
-        transform:
-            scale(3.8);
-    }
-}
-
+/* =========================================================
+   INNER RIPPLE
+========================================================= */
 
 @keyframes velocityRing {
 
@@ -437,23 +288,25 @@ body::after {
         opacity: 0;
 
         transform:
-            translate(-50%, -50%)
-            scale(0);
+            scale(.1);
     }
 
-    25% {
-        opacity: 0.45;
+    15% {
+        opacity: .22;
     }
 
     100% {
         opacity: 0;
 
         transform:
-            translate(-50%, -50%)
-            scale(18);
+            scale(1);
     }
 }
 
+
+/* =========================================================
+   SOFT LIGHT
+========================================================= */
 
 @keyframes velocityGlow {
 
@@ -461,77 +314,44 @@ body::after {
         opacity: 0;
 
         transform:
-            translate(-50%, -50%)
-            scale(0.15);
+            scale(.3);
     }
 
-    25% {
-        opacity: 1;
+    20% {
+        opacity: .35;
     }
 
     100% {
         opacity: 0;
 
         transform:
-            translate(-50%, -50%)
-            scale(2.3);
+            scale(1);
     }
 }
 
 
-@keyframes velocityEnergy {
+/* =========================================================
+   CLICK POINT
+========================================================= */
+
+@keyframes velocityClickPoint {
 
     0% {
         opacity: 0;
 
         transform:
-            translate(-50%, -50%)
-            rotate(0deg)
-            scaleX(0);
+            scale(.5);
     }
 
-    25% {
-        opacity: 0.45;
-    }
-
-    100% {
-        opacity: 0;
-
-        transform:
-            translate(-50%, -50%)
-            rotate(0deg)
-            scaleX(1);
-    }
-}
-
-
-.velocity-background-energy.energy-two {
-    animation-name: velocityEnergyVertical;
-}
-
-
-@keyframes velocityEnergyVertical {
-
-    0% {
-        opacity: 0;
-
-        transform:
-            translate(-50%, -50%)
-            rotate(90deg)
-            scaleX(0);
-    }
-
-    25% {
-        opacity: 0.35;
+    20% {
+        opacity: .35;
     }
 
     100% {
         opacity: 0;
 
         transform:
-            translate(-50%, -50%)
-            rotate(90deg)
-            scaleX(1);
+            scale(1.4);
     }
 }
 
@@ -540,15 +360,17 @@ body::after {
    REDUCED MOTION
 ========================================================= */
 
-@media (prefers-reduced-motion: reduce) {
+@media (
+    prefers-reduced-motion: reduce
+) {
 
     .velocity-background-wave,
     .velocity-background-ring,
     .velocity-background-glow,
-    .velocity-background-energy,
     .velocity-click-point {
-        animation: none !important;
-        opacity: 0 !important;
-    }
 
+        animation: none !important;
+
+        display: none !important;
+    }
 }
