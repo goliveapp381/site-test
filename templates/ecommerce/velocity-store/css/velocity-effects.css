@@ -1,22 +1,22 @@
+
 /* =========================================================
    VELOCITY STORE
    CINEMATIC EFFECTS / MODALS / VISUAL EFFECTS
+   PREMIUM PRODUCT EXPERIENCE
 ========================================================= */
 
 
 /* =========================================================
-   ADDED TO CART / PRODUCT DETAILS CINEMATIC MODAL
+   ADDED TO CART / PRODUCT DETAILS MODAL
 ========================================================= */
 
 .velocity-added-modal {
     position: fixed;
-
     inset: 0;
 
     z-index: 8500;
 
     display: flex;
-
     align-items: center;
     justify-content: center;
 
@@ -37,9 +37,13 @@
     pointer-events: auto;
 }
 
+
+/* =========================================================
+   MODAL BACKDROP
+========================================================= */
+
 .velocity-added-backdrop {
     position: absolute;
-
     inset: 0;
 
     background:
@@ -50,29 +54,27 @@
         ),
         rgba(2,2,4,0.86);
 
-    backdrop-filter:
-        blur(18px);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
 }
+
+
+/* =========================================================
+   MODAL SHELL
+========================================================= */
 
 .velocity-added-shell {
     position: relative;
-
     z-index: 2;
 
-    width:
-        min(1000px, 100%);
-
-    max-height:
-        min(760px, 90vh);
+    width: min(1000px, 100%);
+    max-height: min(760px, 90vh);
+    max-height: min(760px, 90dvh);
 
     overflow: hidden;
 
-    border:
-        1px solid
-        rgba(217,255,63,0.2);
-
-    border-radius:
-        34px;
+    border: 1px solid rgba(217,255,63,0.2);
+    border-radius: 34px;
 
     background:
         radial-gradient(
@@ -92,10 +94,8 @@
         );
 
     box-shadow:
-        0 50px 150px
-        rgba(0,0,0,0.7),
-        0 0 100px
-        rgba(217,255,63,0.08);
+        0 50px 150px rgba(0,0,0,0.7),
+        0 0 100px rgba(217,255,63,0.08);
 
     transform:
         translateY(60px)
@@ -105,8 +105,7 @@
     opacity: 0;
 
     transition:
-        transform 700ms
-        cubic-bezier(.16,1,.3,1),
+        transform 700ms cubic-bezier(.16,1,.3,1),
         opacity 500ms ease;
 }
 
@@ -124,122 +123,104 @@
    MODAL DECORATIVE GLOWS
 ========================================================= */
 
-.velocity-added-shell::before {
+.velocity-added-shell::before,
+.velocity-added-shell::after {
     content: "";
 
     position: absolute;
 
+    z-index: 0;
+
+    border-radius: 50%;
+
+    pointer-events: none;
+}
+
+.velocity-added-shell::before {
     width: 320px;
     height: 320px;
 
     top: -170px;
     right: -100px;
 
-    border-radius: 50%;
-
-    background:
-        var(--accent);
+    background: var(--accent);
 
     opacity: 0.09;
-
-    filter:
-        blur(50px);
+    filter: blur(50px);
 
     animation:
         velocityModalOrb
-        6s
-        ease-in-out
-        infinite;
+        6s ease-in-out infinite;
 }
 
 .velocity-added-shell::after {
-    content: "";
-
-    position: absolute;
-
     width: 260px;
     height: 260px;
 
     bottom: -150px;
     left: -90px;
 
-    border-radius: 50%;
-
-    background:
-        #8fae16;
+    background: #8fae16;
 
     opacity: 0.08;
-
-    filter:
-        blur(45px);
+    filter: blur(45px);
 
     animation:
         velocityModalOrbReverse
-        7s
-        ease-in-out
-        infinite;
+        7s ease-in-out infinite;
 }
 
 
 /* =========================================================
-   MODAL WAVES
+   MODAL DECORATIVE WAVES
 ========================================================= */
 
+.velocity-added-wave,
 .velocity-wave {
     position: absolute;
 
     left: -10%;
 
     width: 120%;
-
     height: 220px;
 
+    border: 1px solid rgba(217,255,63,0.08);
     border-radius: 50%;
 
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(217,255,63,0.04),
+        transparent
+    );
+
+    filter: blur(0.2px);
+
     pointer-events: none;
-
-    border:
-        1px solid
-        rgba(217,255,63,0.08);
-
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            rgba(217,255,63,0.04),
-            transparent
-        );
-
-    filter:
-        blur(0.2px);
 }
 
+.velocity-added-wave.velocity-wave-1,
 .velocity-wave-1 {
     top: 54%;
 
-    transform:
-        rotate(-8deg);
+    transform: rotate(-8deg);
 
     animation:
         velocityWaveMove
-        7s
-        ease-in-out
-        infinite;
+        7s ease-in-out infinite;
 }
 
+.velocity-added-wave.velocity-wave-2,
 .velocity-wave-2 {
     top: 62%;
 
     opacity: 0.55;
 
-    transform:
-        rotate(7deg);
+    transform: rotate(7deg);
 
     animation:
         velocityWaveMoveReverse
-        9s
-        ease-in-out
-        infinite;
+        9s ease-in-out infinite;
 }
 
 
@@ -250,12 +231,13 @@
 .velocity-added-orb {
     position: absolute;
 
+    z-index: 1;
+
     border-radius: 50%;
 
     pointer-events: none;
 
-    filter:
-        blur(1px);
+    filter: blur(1px);
 }
 
 .velocity-added-orb-one {
@@ -265,18 +247,14 @@
     top: 22%;
     left: 7%;
 
-    background:
-        var(--accent);
+    background: var(--accent);
 
     box-shadow:
-        0 0 25px
-        rgba(217,255,63,0.8);
+        0 0 25px rgba(217,255,63,0.8);
 
     animation:
         velocityOrbFloat
-        4s
-        ease-in-out
-        infinite;
+        4s ease-in-out infinite;
 }
 
 .velocity-added-orb-two {
@@ -286,18 +264,14 @@
     top: 18%;
     right: 28%;
 
-    background:
-        var(--accent);
+    background: var(--accent);
 
     box-shadow:
-        0 0 20px
-        rgba(217,255,63,0.7);
+        0 0 20px rgba(217,255,63,0.7);
 
     animation:
         velocityOrbFloat
-        5s
-        ease-in-out
-        infinite reverse;
+        5s ease-in-out infinite reverse;
 }
 
 .velocity-added-orb-three {
@@ -307,25 +281,21 @@
     right: 8%;
     bottom: 22%;
 
-    background:
-        var(--white);
+    background: var(--white);
 
     opacity: 0.5;
 
     box-shadow:
-        0 0 20px
-        rgba(255,255,255,0.4);
+        0 0 20px rgba(255,255,255,0.4);
 
     animation:
         velocityOrbFloat
-        6s
-        ease-in-out
-        infinite;
+        6s ease-in-out infinite;
 }
 
 
 /* =========================================================
-   MODAL CLOSE
+   MODAL CLOSE BUTTON
 ========================================================= */
 
 .velocity-added-close {
@@ -334,7 +304,7 @@
     top: 18px;
     right: 18px;
 
-    z-index: 20;
+    z-index: 30;
 
     width: 44px;
     height: 44px;
@@ -342,23 +312,19 @@
     display: grid;
     place-items: center;
 
-    border:
-        1px solid
-        rgba(255,255,255,0.1);
-
+    border: 1px solid rgba(255,255,255,0.1);
     border-radius: 50%;
 
-    background:
-        rgba(0,0,0,0.45);
-
+    background: rgba(0,0,0,0.45);
     color: var(--white);
 
     font-size: 24px;
+    line-height: 1;
 
     cursor: pointer;
 
-    backdrop-filter:
-        blur(12px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 
     transition:
         background var(--transition),
@@ -367,11 +333,8 @@
 }
 
 .velocity-added-close:hover {
-    background:
-        var(--accent);
-
-    color:
-        var(--black);
+    background: var(--accent);
+    color: var(--black);
 
     transform:
         rotate(90deg)
@@ -380,7 +343,7 @@
 
 
 /* =========================================================
-   MODAL GRID
+   MODAL CONTENT GRID
 ========================================================= */
 
 .velocity-added-grid {
@@ -391,7 +354,8 @@
     display: grid;
 
     grid-template-columns:
-        0.95fr 1.05fr;
+        minmax(0, 0.95fr)
+        minmax(0, 1.05fr);
 
     align-items: center;
 
@@ -404,16 +368,16 @@
 
 
 /* =========================================================
-   MODAL PRODUCT VISUAL
+   PRODUCT VISUAL
 ========================================================= */
 
 .velocity-added-visual {
     position: relative;
 
+    min-width: 0;
     min-height: 470px;
 
     display: grid;
-
     place-items: center;
 }
 
@@ -423,42 +387,37 @@
     width: 330px;
     height: 330px;
 
+    max-width: 90%;
+    max-height: 90%;
+
     border-radius: 50%;
 
-    background:
-        var(--accent);
+    background: var(--accent);
 
     opacity: 0.08;
-
-    filter:
-        blur(60px);
+    filter: blur(60px);
 
     animation:
         velocityImageGlow
-        4s
-        ease-in-out
-        infinite;
+        4s ease-in-out infinite;
 }
+
+
+/* =========================================================
+   PRODUCT IMAGE WRAPPER
+========================================================= */
 
 .velocity-added-image-wrap {
     position: relative;
 
-    width:
-        min(400px, 100%);
-
-    aspect-ratio:
-        1 / 1;
+    width: min(400px, 100%);
+    aspect-ratio: 1 / 1;
 
     display: grid;
-
     place-items: center;
 
-    border:
-        1px solid
-        rgba(217,255,63,0.16);
-
-    border-radius:
-        30px;
+    border: 1px solid rgba(217,255,63,0.16);
+    border-radius: 30px;
 
     background:
         radial-gradient(
@@ -473,16 +432,13 @@
         );
 
     box-shadow:
-        0 35px 100px
-        rgba(0,0,0,0.5);
+        0 35px 100px rgba(0,0,0,0.5);
 
-    transform:
-        rotate(-3deg);
+    transform: rotate(-3deg);
 
     animation:
         velocityImageEntrance
-        900ms
-        cubic-bezier(.16,1,.3,1)
+        900ms cubic-bezier(.16,1,.3,1)
         both;
 }
 
@@ -490,47 +446,185 @@
     content: "";
 
     position: absolute;
-
     inset: 14px;
 
-    border:
-        1px solid
-        rgba(217,255,63,0.08);
-
-    border-radius:
-        23px;
+    border: 1px solid rgba(217,255,63,0.08);
+    border-radius: 23px;
 
     pointer-events: none;
 
     animation:
         velocityImageBorderPulse
-        3s
-        ease-in-out
-        infinite;
+        3s ease-in-out infinite;
 }
 
 .velocity-added-image-wrap img {
     position: relative;
-
     z-index: 3;
+
+    display: block;
 
     width: 84%;
     height: 84%;
 
     object-fit: contain;
+    object-position: center;
 
     border-radius: 16px;
 
-    filter:
-        drop-shadow(
-            0 30px 45px
-            rgba(0,0,0,0.5)
-        );
+    filter: drop-shadow(
+        0 30px 45px rgba(0,0,0,0.5)
+    );
 }
 
 
 /* =========================================================
-   MODAL INFO
+   PRODUCT IMAGE SHINE
+========================================================= */
+
+.velocity-added-image-shine {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 4;
+
+    overflow: hidden;
+
+    border-radius: inherit;
+
+    pointer-events: none;
+}
+
+.velocity-added-image-shine::after {
+    content: "";
+
+    position: absolute;
+
+    top: -30%;
+    left: -100%;
+
+    width: 55%;
+    height: 160%;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,0.13),
+        transparent
+    );
+
+    transform: rotate(25deg);
+
+    animation:
+        velocityImageShine
+        5s ease-in-out infinite;
+}
+
+@keyframes velocityImageShine {
+    0% {
+        left: -100%;
+    }
+
+    45%,
+    100% {
+        left: 150%;
+    }
+}
+
+
+/* =========================================================
+   IMAGE RING
+========================================================= */
+
+.velocity-added-ring {
+    position: absolute;
+
+    width: 112%;
+    height: 112%;
+
+    border: 1px solid rgba(217,255,63,0.12);
+    border-radius: 50%;
+
+    pointer-events: none;
+
+    animation:
+        velocityRingRotate
+        18s linear infinite;
+}
+
+@keyframes velocityRingRotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* =========================================================
+   FLOATING DOTS
+========================================================= */
+
+.velocity-added-floating-dot {
+    position: absolute;
+
+    z-index: 5;
+
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: var(--accent);
+
+    box-shadow:
+        0 0 18px rgba(217,255,63,0.8);
+
+    pointer-events: none;
+
+    animation:
+        velocityOrbFloat
+        4s ease-in-out infinite;
+}
+
+
+/* =========================================================
+   SUCCESS BADGE
+========================================================= */
+
+.velocity-added-success-badge {
+    position: absolute;
+
+    left: 18px;
+    bottom: 18px;
+
+    z-index: 8;
+
+    display: inline-flex;
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 10px 13px;
+
+    border: 1px solid rgba(217,255,63,0.2);
+    border-radius: 100px;
+
+    background: rgba(8,8,11,0.82);
+    color: var(--accent);
+
+    font-size: 10px;
+    font-weight: 850;
+
+    backdrop-filter: blur(12px);
+}
+
+
+/* =========================================================
+   PRODUCT INFORMATION
 ========================================================= */
 
 .velocity-added-info {
@@ -538,34 +632,31 @@
 
     z-index: 12;
 
-    padding:
-        20px 10px;
+    min-width: 0;
+
+    padding: 20px 10px;
 }
+
+
+/* =========================================================
+   KICKER
+========================================================= */
 
 .velocity-added-kicker {
     display: inline-flex;
-
     align-items: center;
 
     gap: 8px;
 
-    padding:
-        8px 11px;
+    padding: 8px 11px;
 
-    border:
-        1px solid
-        rgba(217,255,63,0.22);
-
+    border: 1px solid rgba(217,255,63,0.22);
     border-radius: 100px;
 
-    background:
-        rgba(217,255,63,0.07);
-
-    color:
-        var(--accent);
+    background: rgba(217,255,63,0.07);
+    color: var(--accent);
 
     font-size: 9px;
-
     font-weight: 900;
 
     letter-spacing: 0.15em;
@@ -577,197 +668,282 @@
     width: 6px;
     height: 6px;
 
+    flex: 0 0 6px;
+
     border-radius: 50%;
 
-    background:
-        var(--accent);
+    background: var(--accent);
 
     box-shadow:
-        0 0 14px
-        rgba(217,255,63,0.8);
+        0 0 14px rgba(217,255,63,0.8);
 
     animation:
         velocityKickerPulse
-        1.5s
-        ease-in-out
-        infinite;
+        1.5s ease-in-out infinite;
 }
 
+
+/* =========================================================
+   PRODUCT TITLE
+========================================================= */
+
 .velocity-added-info h2 {
-    margin:
-        20px 0 8px;
+    margin: 20px 0 8px;
 
     max-width: 520px;
 
-    font-size:
-        clamp(36px, 5vw, 62px);
+    color: var(--white);
 
-    line-height:
-        0.92;
+    font-size: clamp(36px, 5vw, 62px);
+    font-weight: 900;
 
-    letter-spacing:
-        -0.06em;
+    line-height: 0.98;
+    letter-spacing: -0.06em;
+
+    overflow-wrap: anywhere;
 }
 
+
+/* =========================================================
+   PRODUCT CATEGORY
+========================================================= */
+
 .velocity-added-category {
-    color:
-        var(--text-muted);
+    color: var(--text-muted);
 
     font-size: 11px;
 
-    text-transform:
-        uppercase;
-
-    letter-spacing:
-        0.13em;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
 }
+
+
+/* =========================================================
+   PRODUCT RATING
+========================================================= */
 
 .velocity-added-rating {
-    margin-top:
-        18px;
+    margin-top: 18px;
 
-    color:
-        var(--accent);
+    color: var(--accent);
 
-    font-size:
-        13px;
-
-    letter-spacing:
-        0.08em;
+    font-size: 13px;
+    letter-spacing: 0.08em;
 }
 
-.velocity-added-price {
-    margin-top:
-        18px;
 
-    display:
-        flex;
+/* =========================================================
+   PRODUCT PRICE
+========================================================= */
 
-    align-items:
-        baseline;
+.velocity-added-price,
+.velocity-added-price-box {
+    margin-top: 18px;
 
-    gap:
-        12px;
+    display: flex;
+    align-items: baseline;
+
+    gap: 12px;
 }
 
-.velocity-added-price strong {
-    color:
-        var(--white);
+.velocity-added-price strong,
+.velocity-added-price-box strong {
+    color: var(--white);
 
-    font-size:
-        30px;
-
-    font-weight:
-        950;
+    font-size: 30px;
+    font-weight: 950;
 }
 
-.velocity-added-price del {
-    color:
-        var(--text-muted);
-
-    font-size:
-        13px;
+.velocity-added-price del,
+.velocity-added-price-box del {
+    color: var(--text-muted);
+    font-size: 13px;
 }
 
-.velocity-added-message {
-    max-width:
-        470px;
 
-    margin:
-        20px 0 0;
+/* =========================================================
+   PRODUCT DESCRIPTION
+========================================================= */
 
-    color:
-        var(--text-soft);
+.velocity-added-message,
+.velocity-added-description {
+    max-width: 470px;
 
-    font-size:
-        13px;
+    margin: 20px 0 0;
 
-    line-height:
-        1.8;
+    color: var(--text-soft);
+
+    font-size: 13px;
+    line-height: 1.8;
 }
+
+
+/* =========================================================
+   PRODUCT DIVIDER
+========================================================= */
+
+.velocity-added-divider {
+    width: 100%;
+    height: 1px;
+
+    margin: 22px 0;
+
+    background: linear-gradient(
+        90deg,
+        rgba(217,255,63,0.3),
+        rgba(255,255,255,0.04),
+        transparent
+    );
+}
+
+
+/* =========================================================
+   PRODUCT META / AVAILABILITY
+========================================================= */
+
+.velocity-added-meta,
+.velocity-added-extra {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 10px 18px;
+
+    margin-top: 18px;
+
+    color: var(--text-muted);
+
+    font-size: 11px;
+}
+
+.velocity-added-status {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 8px;
+
+    color: var(--accent);
+
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.velocity-added-status::before {
+    content: "";
+
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: var(--accent);
+
+    box-shadow:
+        0 0 12px rgba(217,255,63,0.7);
+}
+
+
+/* =========================================================
+   MODAL ACTIONS
+========================================================= */
 
 .velocity-added-actions {
-    display:
-        flex;
+    display: flex;
+    flex-wrap: wrap;
 
-    flex-wrap:
-        wrap;
+    gap: 10px;
 
-    gap:
-        10px;
-
-    margin-top:
-        30px;
+    margin-top: 30px;
 }
 
-.velocity-added-actions button {
-    min-height:
-        52px;
+.velocity-added-actions button,
+.velocity-added-btn {
+    min-height: 52px;
 
-    padding:
-        0 20px;
+    padding: 0 20px;
 
-    border-radius:
-        14px;
+    border-radius: 14px;
 
-    font-size:
-        12px;
+    font-size: 12px;
+    font-weight: 850;
 
-    font-weight:
-        850;
-
-    cursor:
-        pointer;
+    cursor: pointer;
 
     transition:
         transform var(--transition),
         background var(--transition),
         color var(--transition),
+        border-color var(--transition),
         box-shadow var(--transition);
 }
 
-.velocity-added-view-cart {
-    background:
-        var(--accent);
 
-    color:
-        var(--black);
+/* =========================================================
+   PRIMARY ACTION
+========================================================= */
 
-    box-shadow:
-        0 15px 45px
-        rgba(217,255,63,0.12);
-}
+.velocity-added-view-cart,
+.velocity-added-btn-primary {
+    border: 1px solid var(--accent);
 
-.velocity-added-view-cart:hover {
-    transform:
-        translateY(-4px);
+    background: var(--accent);
+    color: var(--black);
 
     box-shadow:
-        0 20px 55px
-        rgba(217,255,63,0.2);
+        0 15px 45px rgba(217,255,63,0.12);
 }
 
-.velocity-added-continue {
-    border:
-        1px solid
-        var(--border-light);
+.velocity-added-view-cart:hover,
+.velocity-added-btn-primary:hover {
+    transform: translateY(-4px);
 
-    background:
-        rgba(255,255,255,0.04);
-
-    color:
-        var(--white);
+    box-shadow:
+        0 20px 55px rgba(217,255,63,0.2);
 }
 
-.velocity-added-continue:hover {
-    transform:
-        translateY(-4px);
 
-    border-color:
-        var(--accent);
+/* =========================================================
+   SECONDARY ACTION
+========================================================= */
 
-    background:
-        rgba(217,255,63,0.06);
+.velocity-added-continue,
+.velocity-added-btn-secondary {
+    border: 1px solid var(--border-light);
+
+    background: rgba(255,255,255,0.04);
+    color: var(--white);
+}
+
+.velocity-added-continue:hover,
+.velocity-added-btn-secondary:hover {
+    transform: translateY(-4px);
+
+    border-color: var(--accent);
+
+    background: rgba(217,255,63,0.06);
+}
+
+
+/* =========================================================
+   FOOTER DECORATIVE LINE
+========================================================= */
+
+.velocity-added-footer-line {
+    position: absolute;
+
+    right: 50px;
+    bottom: 0;
+    left: 50px;
+
+    height: 1px;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(217,255,63,0.35),
+        transparent
+    );
+
+    pointer-events: none;
 }
 
 
@@ -776,113 +952,76 @@
 ========================================================= */
 
 @keyframes velocityModalOrb {
-
     0%,
     100% {
-        transform:
-            translate3d(0,0,0)
-            scale(1);
+        transform: translate3d(0,0,0) scale(1);
     }
 
     50% {
-        transform:
-            translate3d(-60px,45px,0)
-            scale(1.18);
+        transform: translate3d(-60px,45px,0) scale(1.18);
     }
 }
 
 @keyframes velocityModalOrbReverse {
-
     0%,
     100% {
-        transform:
-            translate3d(0,0,0)
-            scale(1);
+        transform: translate3d(0,0,0) scale(1);
     }
 
     50% {
-        transform:
-            translate3d(70px,-35px,0)
-            scale(1.15);
+        transform: translate3d(70px,-35px,0) scale(1.15);
     }
 }
 
 @keyframes velocityWaveMove {
-
     0%,
     100% {
-        transform:
-            translateX(-3%)
-            rotate(-8deg)
-            scaleY(1);
+        transform: translateX(-3%) rotate(-8deg) scaleY(1);
     }
 
     50% {
-        transform:
-            translateX(4%)
-            rotate(-5deg)
-            scaleY(1.2);
+        transform: translateX(4%) rotate(-5deg) scaleY(1.2);
     }
 }
 
 @keyframes velocityWaveMoveReverse {
-
     0%,
     100% {
-        transform:
-            translateX(4%)
-            rotate(7deg)
-            scaleY(1);
+        transform: translateX(4%) rotate(7deg) scaleY(1);
     }
 
     50% {
-        transform:
-            translateX(-4%)
-            rotate(10deg)
-            scaleY(1.15);
+        transform: translateX(-4%) rotate(10deg) scaleY(1.15);
     }
 }
 
 @keyframes velocityOrbFloat {
-
     0%,
     100% {
-        transform:
-            translate3d(0,0,0);
+        transform: translate3d(0,0,0);
     }
 
     50% {
-        transform:
-            translate3d(0,-20px,0)
-            scale(1.25);
+        transform: translate3d(0,-20px,0) scale(1.25);
     }
 }
 
 @keyframes velocityImageGlow {
-
     0%,
     100% {
-        transform:
-            scale(0.9);
-
-        opacity:
-            0.06;
+        transform: scale(0.9);
+        opacity: 0.06;
     }
 
     50% {
-        transform:
-            scale(1.15);
-
-        opacity:
-            0.13;
+        transform: scale(1.15);
+        opacity: 0.13;
     }
 }
 
 @keyframes velocityImageEntrance {
-
     from {
-        opacity:
-            0;
+        opacity: 0;
 
         transform:
             rotate(-10deg)
@@ -891,8 +1030,7 @@
     }
 
     to {
-        opacity:
-            1;
+        opacity: 1;
 
         transform:
             rotate(-3deg)
@@ -902,69 +1040,71 @@
 }
 
 @keyframes velocityImageBorderPulse {
-
     0%,
     100% {
-        opacity:
-            0.35;
+        opacity: 0.35;
     }
 
     50% {
-        opacity:
-            0.9;
+        opacity: 0.9;
     }
 }
 
 @keyframes velocityKickerPulse {
-
     0%,
     100% {
-        transform:
-            scale(1);
-
-        opacity:
-            0.8;
+        transform: scale(1);
+        opacity: 0.8;
     }
 
     50% {
-        transform:
-            scale(1.35);
-
-        opacity:
-            1;
+        transform: scale(1.35);
+        opacity: 1;
     }
 }
 
 
 /* =========================================================
-   CINEMATIC MODAL RESPONSIVE
+   TABLET RESPONSIVE
 ========================================================= */
 
 @media (max-width: 1100px) {
-
     .velocity-added-grid {
         gap: 20px;
-
         padding: 40px;
+    }
+
+    .velocity-added-visual {
+        min-height: 390px;
     }
 }
 
 
+/* =========================================================
+   MOBILE / TABLET MODAL
+========================================================= */
+
 @media (max-width: 800px) {
+    .velocity-added-modal {
+        padding: 16px;
+    }
+
+    .velocity-added-shell {
+        max-height: 88vh;
+        max-height: 88dvh;
+
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
 
     .velocity-added-grid {
-        grid-template-columns:
-            1fr;
+        grid-template-columns: minmax(0, 1fr);
 
         min-height: auto;
 
-        max-height:
-            88vh;
+        gap: 18px;
 
-        overflow-y: auto;
-
-        padding:
-            45px 25px 30px;
+        padding: 55px 25px 30px;
     }
 
     .velocity-added-visual {
@@ -972,93 +1112,149 @@
     }
 
     .velocity-added-image-wrap {
-        width:
-            min(330px, 85%);
+        width: min(330px, 85%);
     }
 
     .velocity-added-info {
-        padding:
-            0 5px 20px;
-
+        padding: 0 5px 20px;
         text-align: center;
     }
 
     .velocity-added-info h2 {
-        margin-inline: auto;
+        margin-right: auto;
+        margin-left: auto;
+    }
+
+    .velocity-added-message,
+    .velocity-added-description {
+        margin-right: auto;
+        margin-left: auto;
+    }
+
+    .velocity-added-price,
+    .velocity-added-price-box {
+        justify-content: center;
+    }
+
+    .velocity-added-meta,
+    .velocity-added-extra {
+        justify-content: center;
     }
 
     .velocity-added-actions {
         justify-content: center;
     }
+
+    .velocity-added-footer-line {
+        right: 25px;
+        left: 25px;
+    }
 }
 
 
-@media (max-width: 520px) {
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
 
+@media (max-width: 520px) {
     .velocity-added-modal {
-        padding:
-            10px;
+        padding: 10px;
     }
 
     .velocity-added-shell {
-        border-radius:
-            25px;
+        width: 100%;
+
+        max-height: 92vh;
+        max-height: 92dvh;
+
+        border-radius: 25px;
     }
 
     .velocity-added-grid {
-        padding:
-            45px 18px 25px;
+        gap: 10px;
+        padding: 48px 18px 25px;
     }
 
     .velocity-added-visual {
-        min-height:
-            250px;
+        min-height: 250px;
     }
 
     .velocity-added-image-wrap {
-        width:
-            min(280px, 88%);
+        width: min(280px, 88%);
+        border-radius: 22px;
+    }
 
-        border-radius:
-            22px;
+    .velocity-added-image-wrap::before {
+        inset: 10px;
+        border-radius: 17px;
     }
 
     .velocity-added-info h2 {
-        font-size:
-            clamp(32px, 11vw, 48px);
+        font-size: clamp(32px, 11vw, 48px);
     }
 
-    .velocity-added-price {
-        justify-content:
-            center;
+    .velocity-added-price strong,
+    .velocity-added-price-box strong {
+        font-size: 26px;
     }
 
-    .velocity-added-message {
-        font-size:
-            12px;
+    .velocity-added-message,
+    .velocity-added-description {
+        font-size: 12px;
     }
 
     .velocity-added-actions {
-        flex-direction:
-            column;
+        flex-direction: column;
     }
 
-    .velocity-added-actions button {
-        width:
-            100%;
+    .velocity-added-actions button,
+    .velocity-added-btn {
+        width: 100%;
     }
 
     .velocity-added-close {
-        top:
-            12px;
+        top: 12px;
+        right: 12px;
 
-        right:
-            12px;
-
-        width:
-            40px;
-
-        height:
-            40px;
+        width: 40px;
+        height: 40px;
     }
-      }
+
+    .velocity-added-success-badge {
+        left: 10px;
+        bottom: 10px;
+
+        padding: 8px 10px;
+        font-size: 9px;
+    }
+
+    .velocity-added-footer-line {
+        right: 18px;
+        left: 18px;
+    }
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    .velocity-added-modal,
+    .velocity-added-shell,
+    .velocity-added-shell::before,
+    .velocity-added-shell::after,
+    .velocity-added-orb,
+    .velocity-added-image-glow,
+    .velocity-added-image-wrap,
+    .velocity-added-image-wrap::before,
+    .velocity-added-image-shine::after,
+    .velocity-added-ring,
+    .velocity-added-floating-dot,
+    .velocity-added-kicker::before,
+    .velocity-wave,
+    .velocity-added-wave {
+        animation: none !important;
+        transition-duration: 0.01ms !important;
+    }
+}
