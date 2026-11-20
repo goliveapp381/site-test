@@ -12,6 +12,7 @@
    - Checkout event
    - Safe initialization
    - Add-to-cart cinematic flow handled by App / CartUI
+   - No interference with Product Card Preview
 ========================================================= */
 
 (function () {
@@ -61,10 +62,6 @@
 
             }
 
-
-            /*
-             * Clean old / corrupted data.
-             */
 
             return parsed
                 .filter(
@@ -157,6 +154,20 @@
 
         return window.VelocityProducts.getProductById(
             productId
+        );
+
+    }
+
+
+    /* =====================================================
+       CINEMATIC STATE
+    ===================================================== */
+
+    function isCinematicRunning() {
+
+        return Boolean(
+            window.VelocityCartUI &&
+            window.VelocityCartUI.animationRunning
         );
 
     }
@@ -290,39 +301,75 @@
         }
 
 
+        /*
+         * Save first.
+         */
         saveCart();
 
+
+        /*
+         * Update UI.
+         */
         render();
 
+
+        /*
+         * VERY IMPORTANT:
+         *
+         * emitChange() is synchronous.
+         *
+         * App / CartUI listens to:
+         *
+         * velocity:cart-changed
+         *
+         * and uses it to confirm the cinematic
+         * Add-To-Cart animation.
+         *
+         * Therefore this MUST happen before
+         * animationRunning is reset.
+         */
         emitChange();
 
 
         /*
          * IMPORTANT:
          *
-         * Do not open the cart drawer here.
+         * Do NOT open drawer here.
          *
-         * The cinematic Add-To-Cart experience
-         * is controlled by VelocityCartUI.
+         * Do NOT show normal toast while
+         * cinematic animation is running.
          *
-         * This prevents:
+         * Otherwise:
          *
-         * click
-         * → drawer immediately
-         * → animation hidden
+         * Add To Cart
+         * ↓
+         * Toast
+         * ↓
+         * Drawer
+         * ↓
+         * Animation
+         *
+         * becomes visually messy.
          *
          * Instead:
          *
-         * click
-         * → 720° animation
-         * → Added modal
-         * → View Cart
+         * Add To Cart
+         * ↓
+         * 720° animation
+         * ↓
+         * Premium modal
          */
 
 
-        showAddedMessage(
-            product
-        );
+        if (
+            !isCinematicRunning()
+        ) {
+
+            showAddedMessage(
+                product
+            );
+
+        }
 
 
         return true;
@@ -651,6 +698,8 @@
 
     /* =====================================================
        PRODUCT IMAGE
+       -----------------------------------------------------
+       Manifest/image system untouched.
     ===================================================== */
 
     function getProductImage(
@@ -665,7 +714,6 @@
         /*
          * Prefer products.js helper.
          */
-
         if (
             window.VelocityProducts &&
             typeof window.VelocityProducts.getProductImage ===
@@ -682,7 +730,6 @@
         /*
          * Direct URL.
          */
-
         if (
             product.image &&
             /^https?:\/\//i.test(
@@ -698,7 +745,6 @@
         /*
          * Local path.
          */
-
         if (
             product.image
         ) {
@@ -727,7 +773,6 @@
         /*
          * Web fallback.
          */
-
         return (
             product.imageUrl ||
             product.fallbackImage ||
@@ -1146,7 +1191,9 @@
 
             drawer.setAttribute(
                 'aria-hidden',
-                drawer.classList.contains('active')
+                drawer.classList.contains(
+                    'active'
+                )
                     ? 'false'
                     : 'true'
             );
@@ -1672,24 +1719,22 @@
         /*
          * IMPORTANT:
          *
-         * cart.js does NOT handle normal
-         * product-card Add To Cart clicks.
+         * cart.js does NOT register a global
+         * [data-cart-id] click listener.
          *
-         * app.js handles the click and starts:
+         * app.js is responsible for:
          *
-         * 720° animation
+         * Add To Cart click
          * ↓
-         * cart.add()
+         * VelocityCartUI.prepareExperience()
          * ↓
-         * Added modal
+         * VelocityCart.add()
+         * ↓
+         * velocity:cart-changed
          *
-         * This avoids duplicate click handlers.
+         * This prevents duplicate cart additions.
          */
 
-
-        /*
-         * Re-render when products become ready.
-         */
 
         document.addEventListener(
             'velocity:products-ready',
