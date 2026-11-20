@@ -2,13 +2,14 @@
 
 /* =========================================================
    VELOCITY STORE
-   PREMIUM BACKGROUND INTERACTION
+   BACKGROUND INTERACTION
    ---------------------------------------------------------
-   - Subtle grid
-   - Click waves
-   - Soft glow
-   - No effects over products/buttons
-   - No interference with UI
+   - Grid background
+   - Click effect ONLY on empty background
+   - NEVER on product cards
+   - NEVER on buttons / links / inputs
+   - NEVER on UI overlays
+   - No hover effects
 ========================================================= */
 
 (function () {
@@ -19,7 +20,8 @@
 
         initialized: false,
 
-        MAX_EFFECTS: 5,
+        MAX_EFFECTS: 3,
+
 
         /* =====================================================
            INIT
@@ -32,6 +34,7 @@
             }
 
             this.createLayer();
+
             this.bindEvents();
 
             this.initialized = true;
@@ -39,38 +42,137 @@
 
 
         /* =====================================================
-           CREATE BACKGROUND LAYER
+           CREATE LAYER
         ===================================================== */
 
         createLayer() {
 
-            if (
+            let layer =
                 document.querySelector(
                     '.velocity-background-layer'
-                )
-            ) {
-                this.layer =
-                    document.querySelector(
-                        '.velocity-background-layer'
-                    );
+                );
 
-                return;
+            if (!layer) {
+
+                layer =
+                    document.createElement('div');
+
+                layer.className =
+                    'velocity-background-layer';
+
+                layer.setAttribute(
+                    'aria-hidden',
+                    'true'
+                );
+
+                document.body.prepend(layer);
             }
 
-            const layer =
-                document.createElement('div');
-
-            layer.className =
-                'velocity-background-layer';
-
-            layer.setAttribute(
-                'aria-hidden',
-                'true'
-            );
-
-            document.body.prepend(layer);
-
             this.layer = layer;
+        },
+
+
+        /* =====================================================
+           CHECK IF CLICK IS ALLOWED
+        ===================================================== */
+
+        isBackgroundClick(event) {
+
+            const target = event.target;
+
+            if (
+                !(target instanceof Element)
+            ) {
+                return false;
+            }
+
+
+            /*
+             * IMPORTANT:
+             * Anything inside a product card = BLOCK
+             */
+
+            if (
+                target.closest(
+                    '.product-card'
+                )
+            ) {
+                return false;
+            }
+
+
+            /*
+             * BLOCK ALL INTERACTIVE ELEMENTS
+             */
+
+            if (
+                target.closest(
+                    [
+                        'button',
+                        'a',
+                        'input',
+                        'textarea',
+                        'select',
+                        'option',
+                        'label',
+                        '[role="button"]',
+                        '[role="link"]'
+                    ].join(',')
+                )
+            ) {
+                return false;
+            }
+
+
+            /*
+             * BLOCK MODALS / DRAWERS / OVERLAYS
+             */
+
+            if (
+                target.closest(
+                    [
+                        '.modal',
+                        '.overlay',
+                        '.drawer',
+                        '.cart-drawer',
+                        '.search-overlay',
+                        '.mobile-menu',
+                        '.wishlist',
+                        '.velocity-added-cart-modal',
+                        '.velocity-added-modal'
+                    ].join(',')
+                )
+            ) {
+                return false;
+            }
+
+
+            /*
+             * EXTRA SAFETY:
+             * Check the actual element at the click point.
+             *
+             * This catches cases where another transparent
+             * element is involved.
+             */
+
+            const elementAtPoint =
+                document.elementFromPoint(
+                    event.clientX,
+                    event.clientY
+                );
+
+            if (
+                elementAtPoint &&
+                elementAtPoint.closest &&
+                elementAtPoint.closest(
+                    '.product-card'
+                )
+            ) {
+                return false;
+            }
+
+
+            return true;
         },
 
 
@@ -86,7 +188,7 @@
 
                     /*
                      * Mouse:
-                     * only left click
+                     * only LEFT click
                      */
 
                     if (
@@ -98,54 +200,18 @@
 
 
                     /*
-                     * DO NOT CREATE BACKGROUND EFFECT
-                     * OVER INTERACTIVE ELEMENTS
+                     * TOUCH / PEN / MOUSE:
+                     * ONLY EMPTY BACKGROUND
                      */
 
-                    const target =
-                        event.target instanceof Element
-                            ? event.target
-                            : null;
-
-                    if (!target) {
+                    if (
+                        !this.isBackgroundClick(
+                            event
+                        )
+                    ) {
                         return;
                     }
 
-
-                    const blocked =
-                        target.closest(
-                            [
-                                '.product-card',
-                                'button',
-                                'a',
-                                'input',
-                                'textarea',
-                                'select',
-                                'option',
-                                'label',
-                                '[role="button"]',
-                                '[role="link"]',
-                                '.modal',
-                                '.overlay',
-                                '.drawer',
-                                '.cart',
-                                '.wishlist',
-                                '.search-overlay',
-                                '.mobile-menu',
-                                '.velocity-added-cart-modal',
-                                '.velocity-added-modal'
-                            ].join(',')
-                        );
-
-
-                    if (blocked) {
-                        return;
-                    }
-
-
-                    /*
-                     * BACKGROUND ONLY
-                     */
 
                     this.createEffect(
                         event.clientX,
@@ -154,7 +220,8 @@
 
                 },
                 {
-                    passive: true
+                    passive: true,
+                    capture: false
                 }
             );
         },
@@ -172,14 +239,11 @@
 
 
             /*
-             * LIMIT ACTIVE EFFECTS
+             * LIMIT EFFECTS
              */
 
-            const activeEffects =
-                this.layer.children;
-
-            if (
-                activeEffects.length >=
+            while (
+                this.layer.children.length >=
                 this.MAX_EFFECTS
             ) {
                 this.layer.firstElementChild?.remove();
@@ -204,7 +268,7 @@
 
 
             /*
-             * MAIN WAVE
+             * SMALL WAVE
              */
 
             const wave =
@@ -221,7 +285,7 @@
 
 
             /*
-             * SECONDARY RING
+             * SMALL RING
              */
 
             const ring =
@@ -238,102 +302,32 @@
 
 
             /*
-             * SMALL ENERGY LINE
-             */
-
-            const energy =
-                document.createElement('span');
-
-            energy.className =
-                'velocity-background-energy';
-
-            energy.style.left =
-                `${x}px`;
-
-            energy.style.top =
-                `${y}px`;
-
-
-            /*
-             * SECOND ENERGY LINE
-             */
-
-            const energyTwo =
-                document.createElement('span');
-
-            energyTwo.className =
-                'velocity-background-energy energy-two';
-
-            energyTwo.style.left =
-                `${x}px`;
-
-            energyTwo.style.top =
-                `${y}px`;
-
-
-            /*
-             * CLICK POINT
-             */
-
-            const point =
-                document.createElement('span');
-
-            point.className =
-                'velocity-click-point';
-
-            point.style.left =
-                `${x}px`;
-
-            point.style.top =
-                `${y}px`;
-
-
-            /*
-             * ADD TO LAYER
+             * ADD
              */
 
             this.layer.appendChild(glow);
+
             this.layer.appendChild(wave);
+
             this.layer.appendChild(ring);
-            this.layer.appendChild(energy);
-            this.layer.appendChild(energyTwo);
-            this.layer.appendChild(point);
 
 
             /*
-             * CLEANUP
+             * REMOVE
              */
 
-            window.setTimeout(() => {
+            window.setTimeout(
+                () => {
 
-                glow.remove();
-                wave.remove();
-                ring.remove();
-                energy.remove();
-                energyTwo.remove();
-                point.remove();
+                    glow.remove();
 
-            }, 1200);
+                    wave.remove();
 
-        },
+                    ring.remove();
 
-
-        /* =====================================================
-           CLEANUP
-        ===================================================== */
-
-        cleanupOverflow() {
-
-            if (!this.layer) {
-                return;
-            }
-
-            while (
-                this.layer.children.length >
-                this.MAX_EFFECTS
-            ) {
-                this.layer.firstElementChild?.remove();
-            }
+                },
+                1000
+            );
         }
 
     };
@@ -351,7 +345,8 @@
 
 
     if (
-        document.readyState === 'loading'
+        document.readyState ===
+        'loading'
     ) {
 
         document.addEventListener(
