@@ -2,14 +2,13 @@
 
 /* =========================================================
    VELOCITY STORE
-   CINEMATIC BACKGROUND DISTORTION
+   PREMIUM BACKGROUND EFFECT
    ---------------------------------------------------------
-   - Subtle grid
-   - Small water-like distortion
-   - No circles
-   - No rings
+   - Small grid
+   - Very small click waves
+   - No large circles
    - No hover effects
-   - No changes to website layout
+   - Background only
    - Product cards protected
 ========================================================= */
 
@@ -17,34 +16,21 @@
 
     const VelocityBackground = {
 
-        canvas: null,
-        ctx: null,
-
-        width: 0,
-        height: 0,
-        dpr: 1,
+        layer: null,
 
         initialized: false,
 
-        ripples: [],
-
         config: {
 
-            gridSize: 52,
+            waveDuration: 430,
 
-            gridOpacity: 0.028,
+            secondWaveDelay: 55,
 
-            lineWidth: 1,
+            glowDuration: 300,
 
-            rippleLife: 650,
+            clickPointDuration: 260,
 
-            rippleRadius: 115,
-
-            rippleWidth: 32,
-
-            rippleStrength: 5,
-
-            maxRipples: 3
+            maxEffects: 2
 
         },
 
@@ -59,126 +45,59 @@
                 return;
             }
 
-            this.createCanvas();
-
-            if (!this.canvas || !this.ctx) {
-                return;
-            }
-
-            this.resize();
+            this.createLayer();
 
             this.bindEvents();
 
-            window.addEventListener(
-                'resize',
-                () => this.resize(),
-                { passive: true }
-            );
-
             this.initialized = true;
 
-            requestAnimationFrame(
-                (time) => this.animate(time)
-            );
         },
 
 
         /* =====================================================
-           CREATE CANVAS
+           CREATE BACKGROUND LAYER
         ===================================================== */
 
-        createCanvas() {
+        createLayer() {
 
-            const existing =
-                document.getElementById(
-                    'velocityBackgroundCanvas'
+            const oldLayer =
+                document.querySelector(
+                    '.velocity-background-layer'
                 );
 
-            if (existing) {
-                existing.remove();
+            if (oldLayer) {
+
+                oldLayer.remove();
+
             }
 
-            const canvas =
-                document.createElement('canvas');
 
-            canvas.id =
-                'velocityBackgroundCanvas';
+            const layer =
+                document.createElement(
+                    'div'
+                );
 
-            canvas.setAttribute(
+            layer.className =
+                'velocity-background-layer';
+
+            layer.setAttribute(
                 'aria-hidden',
                 'true'
             );
 
-            /*
-             * Put canvas directly inside body.
-             * No other website element is modified.
-             */
 
-            document.body.prepend(canvas);
-
-            this.canvas = canvas;
-
-            this.ctx =
-                canvas.getContext(
-                    '2d',
-                    {
-                        alpha: true
-                    }
-                );
-        },
-
-
-        /* =====================================================
-           RESIZE
-        ===================================================== */
-
-        resize() {
-
-            if (!this.canvas || !this.ctx) {
-                return;
-            }
-
-            this.width =
-                window.innerWidth;
-
-            this.height =
-                window.innerHeight;
-
-            this.dpr =
-                Math.min(
-                    window.devicePixelRatio || 1,
-                    2
-                );
-
-            this.canvas.width =
-                Math.floor(
-                    this.width * this.dpr
-                );
-
-            this.canvas.height =
-                Math.floor(
-                    this.height * this.dpr
-                );
-
-            this.canvas.style.width =
-                `${this.width}px`;
-
-            this.canvas.style.height =
-                `${this.height}px`;
-
-            this.ctx.setTransform(
-                this.dpr,
-                0,
-                0,
-                this.dpr,
-                0,
-                0
+            document.body.appendChild(
+                layer
             );
+
+
+            this.layer = layer;
+
         },
 
 
         /* =====================================================
-           CHECK BACKGROUND
+           CHECK BACKGROUND CLICK
         ===================================================== */
 
         isBackgroundClick(event) {
@@ -186,29 +105,30 @@
             const target =
                 event.target;
 
+
             if (
                 !(target instanceof Element)
             ) {
+
                 return false;
+
             }
 
 
-            /*
-             * Product cards
-             */
+            /* PRODUCT CARDS */
 
             if (
                 target.closest(
                     '.product-card'
                 )
             ) {
+
                 return false;
+
             }
 
 
-            /*
-             * Interactive elements
-             */
+            /* BUTTONS / LINKS / FORM */
 
             if (
                 target.closest(
@@ -225,13 +145,13 @@
                     ].join(',')
                 )
             ) {
+
                 return false;
+
             }
 
 
-            /*
-             * UI overlays
-             */
+            /* MODALS / OVERLAYS */
 
             if (
                 target.closest(
@@ -248,32 +168,14 @@
                     ].join(',')
                 )
             ) {
+
                 return false;
-            }
 
-
-            /*
-             * Final physical-point check.
-             */
-
-            const element =
-                document.elementFromPoint(
-                    event.clientX,
-                    event.clientY
-                );
-
-            if (
-                element &&
-                element.closest &&
-                element.closest(
-                    '.product-card'
-                )
-            ) {
-                return false;
             }
 
 
             return true;
+
         },
 
 
@@ -291,410 +193,174 @@
                         event.pointerType === 'mouse' &&
                         event.button !== 0
                     ) {
+
                         return;
+
                     }
+
 
                     if (
                         !this.isBackgroundClick(
                             event
                         )
                     ) {
+
                         return;
+
                     }
 
-                    this.createRipple(
+
+                    this.createEffect(
                         event.clientX,
                         event.clientY
                     );
+
                 },
                 {
                     passive: true
                 }
             );
+
         },
 
 
         /* =====================================================
-           CREATE RIPPLE
+           CREATE SMALL EFFECT
         ===================================================== */
 
-        createRipple(x, y) {
+        createEffect(x, y) {
 
-            if (
-                this.ripples.length >=
-                this.config.maxRipples
-            ) {
-                this.ripples.shift();
-            }
+            if (!this.layer) {
 
-            this.ripples.push({
-
-                x,
-
-                y,
-
-                start:
-                    performance.now()
-
-            });
-        },
-
-
-        /* =====================================================
-           DRAW GRID
-        ===================================================== */
-
-        draw(time) {
-
-            const ctx =
-                this.ctx;
-
-            if (!ctx) {
                 return;
+
             }
 
-            ctx.clearRect(
-                0,
-                0,
-                this.width,
-                this.height
+
+            /* ---------------------------------------------
+               CLICK POINT
+            --------------------------------------------- */
+
+            const point =
+                document.createElement(
+                    'div'
+                );
+
+            point.className =
+                'velocity-click-point';
+
+            point.style.left =
+                `${x}px`;
+
+            point.style.top =
+                `${y}px`;
+
+
+            this.layer.appendChild(
+                point
             );
 
-            const size =
-                this.config.gridSize;
 
-            const step =
-                18;
+            /* ---------------------------------------------
+               VERY SMALL GLOW
+            --------------------------------------------- */
 
-            ctx.lineWidth =
-                this.config.lineWidth;
-
-
-            /*
-             * Vertical grid
-             */
-
-            for (
-                let x = 0;
-                x <= this.width + size;
-                x += size
-            ) {
-
-                this.drawLine(
-                    true,
-                    x,
-                    step,
-                    time
+            const glow =
+                document.createElement(
+                    'div'
                 );
-            }
 
+            glow.className =
+                'velocity-background-glow';
 
-            /*
-             * Horizontal grid
-             */
+            glow.style.left =
+                `${x}px`;
 
-            for (
-                let y = 0;
-                y <= this.height + size;
-                y += size
-            ) {
+            glow.style.top =
+                `${y}px`;
 
-                this.drawLine(
-                    false,
-                    y,
-                    step,
-                    time
-                );
-            }
-        },
 
-
-        /* =====================================================
-           DRAW ONE DISTORTED LINE
-        ===================================================== */
-
-        drawLine(
-            vertical,
-            position,
-            step,
-            time
-        ) {
-
-            const ctx =
-                this.ctx;
-
-            ctx.beginPath();
-
-            let first =
-                true;
-
-
-            if (vertical) {
-
-                for (
-                    let y = -step;
-                    y <= this.height + step;
-                    y += step
-                ) {
-
-                    const offset =
-                        this.getWaveOffset(
-                            position,
-                            y,
-                            time,
-                            true
-                        );
-
-                    const px =
-                        position + offset;
-
-                    if (first) {
-
-                        ctx.moveTo(
-                            px,
-                            y
-                        );
-
-                        first = false;
-
-                    } else {
-
-                        ctx.lineTo(
-                            px,
-                            y
-                        );
-                    }
-                }
-
-            } else {
-
-                for (
-                    let x = -step;
-                    x <= this.width + step;
-                    x += step
-                ) {
-
-                    const offset =
-                        this.getWaveOffset(
-                            x,
-                            position,
-                            time,
-                            false
-                        );
-
-                    const py =
-                        position + offset;
-
-                    if (first) {
-
-                        ctx.moveTo(
-                            x,
-                            py
-                        );
-
-                        first = false;
-
-                    } else {
-
-                        ctx.lineTo(
-                            x,
-                            py
-                        );
-                    }
-                }
-            }
-
-
-            ctx.strokeStyle =
-                `rgba(
-                    255,
-                    255,
-                    255,
-                    ${this.config.gridOpacity}
-                )`;
-
-            ctx.stroke();
-        },
-
-
-        /* =====================================================
-           WATER DISTORTION
-        ===================================================== */
-
-        getWaveOffset(
-            x,
-            y,
-            time,
-            vertical
-        ) {
-
-            let result = 0;
-
-
-            for (
-                let i = 0;
-                i < this.ripples.length;
-                i++
-            ) {
-
-                const ripple =
-                    this.ripples[i];
-
-                const elapsed =
-                    time -
-                    ripple.start;
-
-                const progress =
-                    elapsed /
-                    this.config.rippleLife;
-
-                if (
-                    progress < 0 ||
-                    progress > 1
-                ) {
-                    continue;
-                }
-
-
-                const dx =
-                    x -
-                    ripple.x;
-
-                const dy =
-                    y -
-                    ripple.y;
-
-                const distance =
-                    Math.sqrt(
-                        dx * dx +
-                        dy * dy
-                    );
-
-
-                const radius =
-                    progress *
-                    this.config.rippleRadius;
-
-
-                const difference =
-                    distance -
-                    radius;
-
-
-                const width =
-                    this.config.rippleWidth;
-
-
-                if (
-                    Math.abs(difference) >
-                    width
-                ) {
-                    continue;
-                }
-
-
-                /*
-                 * Small soft wave.
-                 */
-
-                const envelope =
-                    1 -
-                    Math.abs(difference) /
-                    width;
-
-
-                const fade =
-                    1 - progress;
-
-
-                const wave =
-                    Math.sin(
-                        difference *
-                        0.28
-                    );
-
-
-                let direction;
-
-
-                if (vertical) {
-
-                    direction =
-                        dx /
-                        Math.max(
-                            distance,
-                            1
-                        );
-
-                } else {
-
-                    direction =
-                        dy /
-                        Math.max(
-                            distance,
-                            1
-                        );
-                }
-
-
-                result +=
-
-                    direction *
-
-                    wave *
-
-                    envelope *
-
-                    fade *
-
-                    this.config.rippleStrength;
-            }
-
-
-            return result;
-        },
-
-
-        /* =====================================================
-           CLEAN OLD WAVES
-        ===================================================== */
-
-        cleanup(time) {
-
-            this.ripples =
-                this.ripples.filter(
-                    (ripple) => {
-
-                        return (
-                            time -
-                            ripple.start
-                        ) <
-                        this.config.rippleLife;
-
-                    }
-                );
-        },
-
-
-        /* =====================================================
-           ANIMATION
-        ===================================================== */
-
-        animate(time) {
-
-            this.cleanup(time);
-
-            this.draw(time);
-
-            requestAnimationFrame(
-                (nextTime) => {
-
-                    this.animate(
-                        nextTime
-                    );
-
-                }
+            this.layer.appendChild(
+                glow
             );
+
+
+            /* ---------------------------------------------
+               MAIN WAVE
+            --------------------------------------------- */
+
+            const wave =
+                document.createElement(
+                    'div'
+                );
+
+            wave.className =
+                'velocity-background-wave';
+
+            wave.style.left =
+                `${x}px`;
+
+            wave.style.top =
+                `${y}px`;
+
+
+            this.layer.appendChild(
+                wave
+            );
+
+
+            /* ---------------------------------------------
+               SECOND VERY SMALL WAVE
+            --------------------------------------------- */
+
+            const secondWave =
+                document.createElement(
+                    'div'
+                );
+
+            secondWave.className =
+                'velocity-background-ring';
+
+            secondWave.style.left =
+                `${x}px`;
+
+            secondWave.style.top =
+                `${y}px`;
+
+            secondWave.style.animationDelay =
+                `${this.config.secondWaveDelay}ms`;
+
+
+            this.layer.appendChild(
+                secondWave
+            );
+
+
+            /* ---------------------------------------------
+               CLEANUP
+            --------------------------------------------- */
+
+            const cleanupTime =
+                this.config.waveDuration +
+                this.config.secondWaveDelay +
+                100;
+
+
+            setTimeout(
+                () => {
+
+                    point.remove();
+
+                    glow.remove();
+
+                    wave.remove();
+
+                    secondWave.remove();
+
+                },
+                cleanupTime
+            );
+
         }
 
     };
