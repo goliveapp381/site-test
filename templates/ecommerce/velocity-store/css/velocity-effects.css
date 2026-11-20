@@ -1,4 +1,3 @@
-
 /* =========================================================
    VELOCITY STORE
    CINEMATIC EFFECTS / MODALS / VISUAL EFFECTS
@@ -118,7 +117,9 @@
 }
 
 
-/* Open state for both modal names */
+/* =========================================================
+   OPEN STATE
+========================================================= */
 
 .velocity-added-modal.open .velocity-added-shell,
 .velocity-added-cart-modal.open .velocity-added-shell {
@@ -1155,85 +1156,233 @@
 
 
 /* =========================================================
-   SMALL MOBILE
+   SMALL MOBILE — COMPACT MODAL
 ========================================================= */
 
 @media (max-width: 520px) {
     .velocity-added-modal,
     .velocity-added-cart-modal {
-        padding: 10px;
+        padding: 12px;
     }
 
     .velocity-added-shell {
-        width: 100%;
+        width: 84vw;
 
-        max-height: 92vh;
-        max-height: 92dvh;
+        max-width: 310px;
 
-        border-radius: 25px;
+        max-height: 78vh;
+        max-height: 78dvh;
+
+        border-radius: 20px;
     }
 
     .velocity-added-grid {
-        gap: 10px;
-        padding: 48px 18px 25px;
+        gap: 8px;
+
+        padding: 42px 14px 18px;
     }
 
     .velocity-added-visual {
-        min-height: 250px;
+        min-height: 190px;
     }
 
     .velocity-added-image-wrap {
-        width: min(280px, 88%);
-        border-radius: 22px;
+        width: min(210px, 78%);
+
+        border-radius: 18px;
     }
 
     .velocity-added-image-wrap::before {
-        inset: 10px;
-        border-radius: 17px;
+        inset: 8px;
+
+        border-radius: 14px;
+    }
+
+    .velocity-added-info {
+        padding: 0 3px 12px;
+    }
+
+    .velocity-added-kicker {
+        padding: 6px 9px;
+
+        font-size: 8px;
     }
 
     .velocity-added-info h2 {
-        font-size: clamp(32px, 11vw, 48px);
+        margin-top: 12px;
+
+        font-size: clamp(24px, 8vw, 34px);
+    }
+
+    .velocity-added-category {
+        font-size: 9px;
+    }
+
+    .velocity-added-rating {
+        margin-top: 10px;
+
+        font-size: 11px;
+    }
+
+    .velocity-added-price,
+    .velocity-added-price-box {
+        margin-top: 10px;
+
+        gap: 8px;
     }
 
     .velocity-added-price strong,
     .velocity-added-price-box strong {
-        font-size: 26px;
+        font-size: 22px;
+    }
+
+    .velocity-added-price del,
+    .velocity-added-price-box del {
+        font-size: 11px;
     }
 
     .velocity-added-message,
     .velocity-added-description {
-        font-size: 12px;
+        margin-top: 12px;
+
+        font-size: 11px;
+
+        line-height: 1.55;
+    }
+
+    .velocity-added-divider {
+        margin: 14px 0;
+    }
+
+    .velocity-added-meta,
+    .velocity-added-extra {
+        gap: 7px 12px;
+
+        margin-top: 10px;
+
+        font-size: 9px;
     }
 
     .velocity-added-actions {
         flex-direction: column;
+
+        gap: 7px;
+
+        margin-top: 16px;
     }
 
     .velocity-added-actions button,
     .velocity-added-btn {
         width: 100%;
+
+        min-height: 42px;
+
+        padding: 0 14px;
+
+        border-radius: 11px;
+
+        font-size: 10px;
     }
 
     .velocity-added-close {
-        top: 12px;
-        right: 12px;
+        top: 9px;
+        right: 9px;
 
-        width: 40px;
-        height: 40px;
+        width: 34px;
+        height: 34px;
+
+        font-size: 19px;
     }
 
     .velocity-added-success-badge {
-        left: 10px;
-        bottom: 10px;
+        left: 8px;
+        bottom: 8px;
 
-        padding: 8px 10px;
-        font-size: 9px;
+        padding: 6px 8px;
+
+        font-size: 8px;
     }
 
     .velocity-added-footer-line {
-        right: 18px;
-        left: 18px;
+        right: 14px;
+        left: 14px;
+    }
+
+    .velocity-added-shell::before {
+        width: 180px;
+        height: 180px;
+    }
+
+    .velocity-added-shell::after {
+        width: 150px;
+        height: 150px;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+========================================================= */
+
+@media (max-width: 360px) {
+    .velocity-added-modal,
+    .velocity-added-cart-modal {
+        padding: 8px;
+    }
+
+    .velocity-added-shell {
+        width: 82vw;
+
+        max-width: 285px;
+
+        max-height: 76vh;
+        max-height: 76dvh;
+
+        border-radius: 18px;
+    }
+
+    .velocity-added-grid {
+        padding: 38px 11px 15px;
+    }
+
+    .velocity-added-visual {
+        min-height: 165px;
+    }
+
+    .velocity-added-image-wrap {
+        width: 185px;
+    }
+
+    .velocity-added-info h2 {
+        font-size: 23px;
+    }
+
+    .velocity-added-price strong,
+    .velocity-added-price-box strong {
+        font-size: 20px;
+    }
+
+    .velocity-added-message,
+    .velocity-added-description {
+        font-size: 10px;
+    }
+
+    .velocity-added-actions {
+        margin-top: 12px;
+    }
+
+    .velocity-added-actions button,
+    .velocity-added-btn {
+        min-height: 39px;
+
+        font-size: 9px;
+    }
+
+    .velocity-added-close {
+        width: 31px;
+        height: 31px;
+
+        font-size: 17px;
     }
 }
 
@@ -1261,4 +1410,4 @@
         animation: none !important;
         transition-duration: 0.01ms !important;
     }
-}
+   }
