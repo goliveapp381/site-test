@@ -1,26 +1,25 @@
 'use strict';
 
 /* =========================================================
-   VELOCITY BACKGROUND
-   PREMIUM CLICK INTERACTION
-
-   - Click-origin waves
+   VELOCITY STORE
+   PREMIUM BACKGROUND INTERACTION
+   ---------------------------------------------------------
+   - Subtle grid
+   - Click waves
    - Soft glow
-   - Minimal grid interaction
-   - No blocking
-   - No dependency
+   - No effects over products/buttons
+   - No interference with UI
 ========================================================= */
 
 (function () {
 
-    const BackgroundFX = {
+    const VelocityBackground = {
 
         layer: null,
 
         initialized: false,
 
-        MAX_EFFECTS: 8,
-
+        MAX_EFFECTS: 5,
 
         /* =====================================================
            INIT
@@ -32,17 +31,15 @@
                 return;
             }
 
-            this.initialized = true;
-
             this.createLayer();
-
             this.bindEvents();
 
+            this.initialized = true;
         },
 
 
         /* =====================================================
-           CREATE LAYER
+           CREATE BACKGROUND LAYER
         ===================================================== */
 
         createLayer() {
@@ -52,7 +49,6 @@
                     '.velocity-background-layer'
                 )
             ) {
-
                 this.layer =
                     document.querySelector(
                         '.velocity-background-layer'
@@ -61,22 +57,20 @@
                 return;
             }
 
-
-            this.layer =
+            const layer =
                 document.createElement('div');
 
-            this.layer.className =
+            layer.className =
                 'velocity-background-layer';
 
-            this.layer.setAttribute(
+            layer.setAttribute(
                 'aria-hidden',
                 'true'
             );
 
-            document.body.appendChild(
-                this.layer
-            );
+            document.body.prepend(layer);
 
+            this.layer = layer;
         },
 
 
@@ -90,12 +84,68 @@
                 'pointerdown',
                 (event) => {
 
+                    /*
+                     * Mouse:
+                     * only left click
+                     */
+
                     if (
                         event.pointerType === 'mouse' &&
                         event.button !== 0
                     ) {
                         return;
                     }
+
+
+                    /*
+                     * DO NOT CREATE BACKGROUND EFFECT
+                     * OVER INTERACTIVE ELEMENTS
+                     */
+
+                    const target =
+                        event.target instanceof Element
+                            ? event.target
+                            : null;
+
+                    if (!target) {
+                        return;
+                    }
+
+
+                    const blocked =
+                        target.closest(
+                            [
+                                '.product-card',
+                                'button',
+                                'a',
+                                'input',
+                                'textarea',
+                                'select',
+                                'option',
+                                'label',
+                                '[role="button"]',
+                                '[role="link"]',
+                                '.modal',
+                                '.overlay',
+                                '.drawer',
+                                '.cart',
+                                '.wishlist',
+                                '.search-overlay',
+                                '.mobile-menu',
+                                '.velocity-added-cart-modal',
+                                '.velocity-added-modal'
+                            ].join(',')
+                        );
+
+
+                    if (blocked) {
+                        return;
+                    }
+
+
+                    /*
+                     * BACKGROUND ONLY
+                     */
 
                     this.createEffect(
                         event.clientX,
@@ -107,7 +157,6 @@
                     passive: true
                 }
             );
-
         },
 
 
@@ -122,16 +171,24 @@
             }
 
 
-            this.cleanupOverflow();
+            /*
+             * LIMIT ACTIVE EFFECTS
+             */
+
+            const activeEffects =
+                this.layer.children;
+
+            if (
+                activeEffects.length >=
+                this.MAX_EFFECTS
+            ) {
+                this.layer.firstElementChild?.remove();
+            }
 
 
-            const fragment =
-                document.createDocumentFragment();
-
-
-            /* ---------------------------------------------
-               GLOW
-            --------------------------------------------- */
+            /*
+             * GLOW
+             */
 
             const glow =
                 document.createElement('span');
@@ -146,9 +203,9 @@
                 `${y}px`;
 
 
-            /* ---------------------------------------------
-               MAIN WAVE
-            --------------------------------------------- */
+            /*
+             * MAIN WAVE
+             */
 
             const wave =
                 document.createElement('span');
@@ -163,9 +220,9 @@
                 `${y}px`;
 
 
-            /* ---------------------------------------------
-               RING
-            --------------------------------------------- */
+            /*
+             * SECONDARY RING
+             */
 
             const ring =
                 document.createElement('span');
@@ -180,26 +237,26 @@
                 `${y}px`;
 
 
-            /* ---------------------------------------------
-               ENERGY LINE 1
-            --------------------------------------------- */
+            /*
+             * SMALL ENERGY LINE
+             */
 
-            const energyOne =
+            const energy =
                 document.createElement('span');
 
-            energyOne.className =
+            energy.className =
                 'velocity-background-energy';
 
-            energyOne.style.left =
+            energy.style.left =
                 `${x}px`;
 
-            energyOne.style.top =
+            energy.style.top =
                 `${y}px`;
 
 
-            /* ---------------------------------------------
-               ENERGY LINE 2
-            --------------------------------------------- */
+            /*
+             * SECOND ENERGY LINE
+             */
 
             const energyTwo =
                 document.createElement('span');
@@ -214,9 +271,9 @@
                 `${y}px`;
 
 
-            /* ---------------------------------------------
-               CLICK POINT
-            --------------------------------------------- */
+            /*
+             * CLICK POINT
+             */
 
             const point =
                 document.createElement('span');
@@ -231,52 +288,38 @@
                 `${y}px`;
 
 
-            fragment.appendChild(glow);
-            fragment.appendChild(wave);
-            fragment.appendChild(ring);
-            fragment.appendChild(energyOne);
-            fragment.appendChild(energyTwo);
-            fragment.appendChild(point);
+            /*
+             * ADD TO LAYER
+             */
+
+            this.layer.appendChild(glow);
+            this.layer.appendChild(wave);
+            this.layer.appendChild(ring);
+            this.layer.appendChild(energy);
+            this.layer.appendChild(energyTwo);
+            this.layer.appendChild(point);
 
 
-            this.layer.appendChild(
-                fragment
-            );
-
-
-            /* ---------------------------------------------
-               AUTO CLEANUP
-            --------------------------------------------- */
+            /*
+             * CLEANUP
+             */
 
             window.setTimeout(() => {
 
-                [
-                    glow,
-                    wave,
-                    ring,
-                    energyOne,
-                    energyTwo,
-                    point
-                ].forEach((element) => {
+                glow.remove();
+                wave.remove();
+                ring.remove();
+                energy.remove();
+                energyTwo.remove();
+                point.remove();
 
-                    if (
-                        element &&
-                        element.parentNode
-                    ) {
-
-                        element.remove();
-
-                    }
-
-                });
-
-            }, 1500);
+            }, 1200);
 
         },
 
 
         /* =====================================================
-           LIMIT DOM EFFECTS
+           CLEANUP
         ===================================================== */
 
         cleanupOverflow() {
@@ -285,42 +328,27 @@
                 return;
             }
 
-            const effects =
-                this.layer.children;
-
-            if (
-                effects.length <=
+            while (
+                this.layer.children.length >
                 this.MAX_EFFECTS
             ) {
-                return;
+                this.layer.firstElementChild?.remove();
             }
-
-
-            const removeCount =
-                effects.length -
-                this.MAX_EFFECTS;
-
-
-            for (
-                let i = 0;
-                i < removeCount;
-                i++
-            ) {
-
-                if (effects[0]) {
-                    effects[0].remove();
-                }
-
-            }
-
         }
 
     };
 
 
     /* =========================================================
-       START AFTER DOM
+       START
     ========================================================= */
+
+    function start() {
+
+        VelocityBackground.init();
+
+    }
+
 
     if (
         document.readyState === 'loading'
@@ -328,7 +356,7 @@
 
         document.addEventListener(
             'DOMContentLoaded',
-            () => BackgroundFX.init(),
+            start,
             {
                 once: true
             }
@@ -336,16 +364,12 @@
 
     } else {
 
-        BackgroundFX.init();
+        start();
 
     }
 
 
-    /* =========================================================
-       GLOBAL API
-    ========================================================= */
-
     window.VelocityBackground =
-        BackgroundFX;
+        VelocityBackground;
 
 })();
