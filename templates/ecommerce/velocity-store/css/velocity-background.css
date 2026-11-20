@@ -1,11 +1,26 @@
 /* =========================================================
    VELOCITY STORE
-   SUBTLE BACKGROUND RIPPLE
+   PREMIUM BACKGROUND SYSTEM
+   ---------------------------------------------------------
+   - Subtle background grid
+   - Very small click ripple
+   - No large circles
+   - No big rings
+   - No hover effects
+   - No interference with product cards
+========================================================= */
+
+
+/* =========================================================
+   VARIABLES
 ========================================================= */
 
 :root {
+
     --velocity-bg-grid-size: 48px;
+
     --velocity-bg-grid-opacity: 0.025;
+
 }
 
 
@@ -14,9 +29,11 @@
 ========================================================= */
 
 body::before {
+
     content: "";
 
     position: fixed;
+
     inset: 0;
 
     z-index: 0;
@@ -24,15 +41,25 @@ body::before {
     pointer-events: none;
 
     background-image:
+
         linear-gradient(
-            rgba(255,255,255,var(--velocity-bg-grid-opacity))
-            1px,
+            rgba(
+                255,
+                255,
+                255,
+                var(--velocity-bg-grid-opacity)
+            ) 1px,
             transparent 1px
         ),
+
         linear-gradient(
             90deg,
-            rgba(255,255,255,var(--velocity-bg-grid-opacity))
-            1px,
+            rgba(
+                255,
+                255,
+                255,
+                var(--velocity-bg-grid-opacity)
+            ) 1px,
             transparent 1px
         );
 
@@ -55,17 +82,20 @@ body::before {
             rgba(0,0,0,.55) 45%,
             transparent 100%
         );
+
 }
 
 
 /* =========================================================
-   ATMOSPHERE
+   SOFT BACKGROUND ATMOSPHERE
 ========================================================= */
 
 body::after {
+
     content: "";
 
     position: fixed;
+
     inset: 0;
 
     z-index: 0;
@@ -73,20 +103,29 @@ body::after {
     pointer-events: none;
 
     background:
+
         radial-gradient(
             circle at 50% 20%,
-            rgba(255,255,255,.015),
+            rgba(
+                255,
+                255,
+                255,
+                .015
+            ),
             transparent 42%
         );
+
 }
 
 
 /* =========================================================
-   EFFECT LAYER
+   BACKGROUND EFFECT LAYER
 ========================================================= */
 
 .velocity-background-layer {
+
     position: fixed;
+
     inset: 0;
 
     z-index: 1;
@@ -94,153 +133,188 @@ body::after {
     pointer-events: none;
 
     overflow: hidden;
+
 }
 
 
 /* =========================================================
-   SMALL CLICK POINT
+   TINY CLICK POINT
 ========================================================= */
 
 .velocity-click-point {
+
     position: fixed;
 
     width: 2px;
+
     height: 2px;
 
     margin-left: -1px;
+
     margin-top: -1px;
 
     border-radius: 50%;
 
     background:
-        rgba(255,255,255,.22);
+        rgba(
+            255,
+            255,
+            255,
+            .20
+        );
 
     box-shadow:
-        0 0 7px rgba(255,255,255,.10);
+        0 0 6px
+        rgba(
+            255,
+            255,
+            255,
+            .08
+        );
 
     pointer-events: none;
 
     animation:
         velocityClickPoint
-        320ms
+        300ms
         ease-out
         forwards;
+
 }
 
 
 /* =========================================================
-   SOFT RIPPLE LIGHT
+   TINY CENTER GLOW
 ========================================================= */
 
 .velocity-background-glow {
+
     position: fixed;
 
-    width: 34px;
-    height: 34px;
+    width: 18px;
 
-    margin-left: -17px;
-    margin-top: -17px;
+    height: 18px;
+
+    margin-left: -9px;
+
+    margin-top: -9px;
 
     border-radius: 50%;
 
     background:
+
         radial-gradient(
             circle,
-            rgba(255,255,255,.035) 0%,
-            rgba(255,255,255,.012) 35%,
-            transparent 72%
+            rgba(
+                255,
+                255,
+                255,
+                .07
+            ) 0%,
+
+            rgba(
+                255,
+                255,
+                255,
+                .025
+            ) 35%,
+
+            transparent 70%
         );
 
-    filter: blur(4px);
+    filter: blur(3px);
 
     opacity: 0;
 
-    transform: scale(.3);
+    transform:
+        scale(.35);
 
     pointer-events: none;
 
     animation:
-        velocityGlow
-        500ms
+        velocityTinyGlow
+        350ms
         ease-out
         forwards;
+
 }
 
 
 /* =========================================================
-   RIPPLE
+   MAIN WAVE
    ---------------------------------------------------------
-   ماشي دائرة قوية
-   غير موجة خفيفة كتخرج من نقطة الضغط
+   IMPORTANT:
+   This is NOT a circle.
+   It is a very thin horizontal light wave.
 ========================================================= */
 
 .velocity-background-wave {
+
     position: fixed;
 
-    width: 90px;
-    height: 90px;
+    width: 120px;
 
-    margin-left: -45px;
-    margin-top: -45px;
+    height: 2px;
 
-    border-radius: 50%;
+    margin-left: -60px;
 
-    border:
-        1px solid
-        rgba(255,255,255,.045);
+    margin-top: -1px;
 
-    background: transparent;
+    border: 0;
+
+    border-radius: 999px;
+
+    background:
+
+        linear-gradient(
+            90deg,
+
+            transparent 0%,
+
+            rgba(
+                255,
+                255,
+                255,
+                .015
+            ) 15%,
+
+            rgba(
+                255,
+                255,
+                255,
+                .12
+            ) 50%,
+
+            rgba(
+                255,
+                255,
+                255,
+                .015
+            ) 85%,
+
+            transparent 100%
+        );
+
+    box-shadow:
+
+        0 0 8px
+        rgba(
+            255,
+            255,
+            255,
+            .035
+        );
 
     opacity: 0;
 
     transform:
-        scale(.08);
+        scaleX(.05);
 
     pointer-events: none;
 
     animation:
-        velocityBackgroundWave
-        620ms
-        cubic-bezier(
-            .22,
-            .61,
-            .36,
-            1
-        )
-        forwards;
-}
 
-
-/* =========================================================
-   SECOND VERY SOFT RIPPLE
-========================================================= */
-
-.velocity-background-ring {
-    position: fixed;
-
-    width: 58px;
-    height: 58px;
-
-    margin-left: -29px;
-    margin-top: -29px;
-
-    border-radius: 50%;
-
-    border:
-        1px solid
-        rgba(255,255,255,.025);
-
-    background: transparent;
-
-    opacity: 0;
-
-    transform:
-        scale(.1);
-
-    pointer-events: none;
-
-    animation:
-        velocityRing
+        velocityHorizontalWave
         520ms
         cubic-bezier(
             .22,
@@ -249,110 +323,201 @@ body::after {
             1
         )
         forwards;
+
 }
 
 
 /* =========================================================
-   RIPPLE ANIMATION
+   SECONDARY WAVE
 ========================================================= */
 
-@keyframes velocityBackgroundWave {
+.velocity-background-ring {
+
+    position: fixed;
+
+    width: 70px;
+
+    height: 1px;
+
+    margin-left: -35px;
+
+    margin-top: -0.5px;
+
+    border: 0;
+
+    border-radius: 999px;
+
+    background:
+
+        linear-gradient(
+            90deg,
+
+            transparent 0%,
+
+            rgba(
+                255,
+                255,
+                255,
+                .055
+            ) 50%,
+
+            transparent 100%
+        );
+
+    box-shadow: none;
+
+    opacity: 0;
+
+    transform:
+        scaleX(.05);
+
+    pointer-events: none;
+
+    animation:
+
+        velocitySecondWave
+        420ms
+        ease-out
+        forwards;
+
+}
+
+
+/* =========================================================
+   MAIN WAVE ANIMATION
+========================================================= */
+
+@keyframes velocityHorizontalWave {
 
     0% {
+
         opacity: 0;
 
         transform:
-            scale(.08);
+            scaleX(.05);
+
     }
 
     12% {
+
         opacity: .35;
+
+    }
+
+    45% {
+
+        opacity: .20;
+
     }
 
     100% {
+
         opacity: 0;
 
         transform:
-            scale(1);
+            scaleX(1);
+
     }
+
 }
 
 
 /* =========================================================
-   INNER RIPPLE
+   SECOND WAVE ANIMATION
 ========================================================= */
 
-@keyframes velocityRing {
+@keyframes velocitySecondWave {
 
     0% {
+
         opacity: 0;
 
         transform:
-            scale(.1);
+            scaleX(.05);
+
     }
 
-    15% {
+    18% {
+
         opacity: .22;
+
     }
 
     100% {
+
         opacity: 0;
 
         transform:
-            scale(1);
+            scaleX(1);
+
     }
+
 }
 
 
 /* =========================================================
-   SOFT LIGHT
+   TINY GLOW ANIMATION
 ========================================================= */
 
-@keyframes velocityGlow {
+@keyframes velocityTinyGlow {
 
     0% {
+
         opacity: 0;
 
         transform:
-            scale(.3);
+            scale(.35);
+
     }
 
     20% {
+
         opacity: .35;
+
     }
 
     100% {
+
         opacity: 0;
 
         transform:
             scale(1);
+
     }
+
 }
 
 
 /* =========================================================
-   CLICK POINT
+   CLICK POINT ANIMATION
 ========================================================= */
 
 @keyframes velocityClickPoint {
 
     0% {
+
         opacity: 0;
 
         transform:
-            scale(.5);
+            scale(.4);
+
     }
 
     20% {
-        opacity: .35;
+
+        opacity: .30;
+
     }
 
     100% {
+
         opacity: 0;
 
         transform:
-            scale(1.4);
+            scale(1.3);
+
     }
+
 }
 
 
@@ -372,5 +537,7 @@ body::after {
         animation: none !important;
 
         display: none !important;
+
     }
+
 }
