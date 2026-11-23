@@ -4,21 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta
-        name="description"
-        content="Shop T-Shirt - Large monitor interactive t-shirt rack."
-        data-editable="meta_description"
-        data-editable-type="text"
-    >
-    <meta
-        name="theme-color"
-        content="#0b0b0f"
-        data-editable="theme_color"
-        data-editable-type="color"
-    >
-    <title data-editable="page_title" data-editable-type="text">
-        Shop T-Shirt
-    </title>
+    <meta name="description" content="Shop T-Shirt" data-editable="meta_description" data-editable-type="text">
+    <meta name="theme-color" content="#0b0b0f" data-editable="theme_color" data-editable-type="color">
+    <title data-editable="page_title" data-editable-type="text">Shop T-Shirt</title>
 
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/products.css">
@@ -30,136 +18,14 @@
 
 <body data-template="shop-tshirt" data-template-version="1.0.0">
 
-    <header class="main-header" id="mainHeader" data-navbar>
-        <div class="container header-inner">
-            <a href="#top" class="brand" data-editable="brand_link" data-editable-type="url">
-                <span class="brand-mark">S</span>
-                <span class="brand-text" data-editable="brand_name" data-editable-type="text">
-                    SHOP T-SHIRT
-                </span>
-            </a>
-
-            <div class="header-actions">
-                <button type="button" class="icon-button" aria-label="Wishlist" data-wishlist-open>
-                    <span>♡</span>
-                    <span class="action-count" data-wishlist-count>0</span>
-                </button>
-                <button type="button" class="icon-button" aria-label="Cart" data-cart-open>
-                    <span>🛒</span>
-                    <span class="action-count" data-cart-count>0</span>
-                </button>
+    <main class="monitor-stage-wrap">
+        <div class="monitor-device">
+            <div class="monitor-bezel">
+                <div class="monitor-screen-empty" id="monitorScreenSlot"></div>
             </div>
+            <div class="monitor-stand" aria-hidden="true"></div>
+            <div class="monitor-base" aria-hidden="true"></div>
         </div>
-    </header>
-
-    <main id="top">
-        <!-- شاشة حاسوب كبيرة في رأس الموقع -->
-        <section class="monitor-hero" id="monitorShowcase" data-editable="monitor_section" data-editable-type="section">
-            <div class="container">
-                <div class="monitor-frame">
-                    <!-- شاشة العرض -->
-                    <div class="monitor-screen">
-                        <div class="monitor-top-bar">
-                            <span class="monitor-brand" data-editable="monitor_title" data-editable-type="text">
-                                SHOP T-SHIRT — INTERACTIVE RACK
-                            </span>
-                            <span class="monitor-index-pill" id="rackPositionLabel">01 / 40</span>
-                        </div>
-
-                        <div class="monitor-body">
-                            <!-- سكة التيشيرتات المعلقة (تتحرك مع السكرول) -->
-                            <div class="monitor-rack-area">
-                                <div class="monitor-rail" aria-hidden="true"></div>
-                                <div class="hanging-rack-track" id="hangingRackTrack"></div>
-                            </div>
-
-                            <!-- تفاصيل القميص المعين عليه -->
-                            <aside class="monitor-details-pane" id="teeDetailPanel" aria-live="polite">
-                                <span class="detail-tag" id="detailIndexLabel">INDEX #01</span>
-                                <h1 class="detail-title" id="detailTitle">Studio Heavy Tee #01</h1>
-                                <div class="detail-price" id="detailPrice">$39</div>
-                                <p class="detail-desc" id="detailDescription">
-                                    320 GSM combed cotton t-shirt with clean drape.
-                                </p>
-
-                                <div class="detail-meta-list">
-                                    <div>
-                                        <span>Quality</span>
-                                        <strong id="detailQuality">320 GSM Combed Cotton</strong>
-                                    </div>
-                                    <div>
-                                        <span>Colors</span>
-                                        <strong id="detailColors">Black, Bone, Slate</strong>
-                                    </div>
-                                    <div>
-                                        <span>Sizes</span>
-                                        <strong id="detailSizes">S, M, L, XL</strong>
-                                    </div>
-                                </div>
-
-                                <div class="detail-actions">
-                                    <button type="button" class="primary-button" id="detailAddCartBtn">
-                                        Add to Cart
-                                    </button>
-                                    <button type="button" class="secondary-button" id="detailAddWishlistBtn">
-                                        ♡ Wishlist
-                                    </button>
-                                </div>
-                            </aside>
-                        </div>
-
-                        <div class="monitor-footer-bar">
-                            <button type="button" class="filter-button" id="rackPrevBtn">← Prev</button>
-                            <span class="monitor-hint">Scroll down to move tees along the rack</span>
-                            <button type="button" class="filter-button" id="rackNextBtn">Next →</button>
-                        </div>
-                    </div>
-
-                    <!-- حامل وقاعدة الشاشة -->
-                    <div class="monitor-stand-neck" aria-hidden="true"></div>
-                    <div class="monitor-stand-base" aria-hidden="true"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- شبكة التيشيرتات المفهرسة حتى 40 -->
-        <section class="products-section section" id="products" data-editable="products_section" data-editable-type="section">
-            <div class="container">
-                <div class="section-heading">
-                    <div>
-                        <p class="section-kicker">INDEXED TEES (01 - 40)</p>
-                        <h2>All T-Shirts</h2>
-                        <p class="products-result-text">
-                            <span data-products-count>0</span> tees
-                        </p>
-                    </div>
-
-                    <div class="product-controls">
-                        <input
-                            type="search"
-                            class="search-inline"
-                            placeholder="Search #01, name, or quality..."
-                            aria-label="Search tees"
-                            data-product-search
-                        >
-                        <button type="button" class="filter-reset" data-filter-reset>Reset</button>
-                    </div>
-                </div>
-
-                <div
-                    id="products-grid"
-                    class="products-grid"
-                    data-editable="products"
-                    data-editable-type="products"
-                    data-product-collection="true"
-                ></div>
-
-                <div id="productsEmpty" class="products-empty" hidden>
-                    <h3>No t-shirts found</h3>
-                    <button type="button" class="secondary-button" data-filter-reset>Reset</button>
-                </div>
-            </div>
-        </section>
     </main>
 
     <script src="js/products.js" defer></script>
