@@ -1,0 +1,1999 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="Shop T-Shirt - Interactive clothing & apparel showcase."
+        data-editable="meta_description"
+        data-editable-type="text"
+    >
+
+    <meta
+        name="theme-color"
+        content="#0b0b0f"
+        data-editable="theme_color"
+        data-editable-type="color"
+    >
+
+    <title
+        data-editable="page_title"
+        data-editable-type="text"
+    >
+        Shop T-Shirt
+    </title>
+
+
+    <!-- ==================================================
+         MAIN STYLES
+    =================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="css/products.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="css/velocity-effects.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="css/animations.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="css/responsive.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="css/velocity-background.css"
+    >
+
+</head>
+
+
+<body
+    data-template="shop-tshirt"
+    data-template-version="1.0.0"
+>
+
+
+<!-- ==================================================
+     PAGE LOADER
+=================================================== -->
+
+<div
+    id="pageLoader"
+    class="page-loader"
+    aria-hidden="true"
+>
+
+    <div
+        class="loader-logo"
+        data-editable="loader_logo"
+        data-editable-type="text"
+    >
+        SHOP T-SHIRT
+    </div>
+
+    <div class="loader-line">
+        <span></span>
+    </div>
+
+</div>
+
+
+<!-- ==================================================
+     ANNOUNCEMENT BAR
+=================================================== -->
+
+<div class="announcement-bar">
+
+    <div class="container announcement-inner">
+
+        <span
+            data-editable="announcement_text"
+            data-editable-type="text"
+        >
+            Heavyweight cotton drops &amp; interactive garment view
+        </span>
+
+        <a
+            href="#products"
+            data-scroll-to="#products"
+            data-editable="announcement_button"
+            data-editable-type="text"
+        >
+            Explore Tees
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- ==================================================
+     HEADER
+=================================================== -->
+
+<header
+    id="mainHeader"
+    class="main-header"
+    data-navbar
+>
+
+    <div class="container header-inner">
+
+
+        <!-- LOGO -->
+
+        <a
+            href="#home"
+            class="brand"
+            aria-label="Shop T-Shirt home"
+            data-scroll-to="#home"
+            data-editable="brand_link"
+            data-editable-type="url"
+        >
+
+            <span class="brand-mark">
+                S
+            </span>
+
+            <span
+                class="brand-text"
+                data-editable="brand_name"
+                data-editable-type="text"
+            >
+                SHOP T-SHIRT
+            </span>
+
+        </a>
+
+
+        <!-- DESKTOP NAVIGATION -->
+
+        <nav
+            class="desktop-nav"
+            aria-label="Main navigation"
+        >
+
+            <a
+                href="#home"
+                class="nav-link active"
+                data-scroll-to="#home"
+                data-editable="nav_home"
+                data-editable-type="text"
+            >
+                Home
+            </a>
+
+            <a
+                href="#categories"
+                class="nav-link"
+                data-scroll-to="#categories"
+                data-editable="nav_categories"
+                data-editable-type="text"
+            >
+                Categories
+            </a>
+
+            <a
+                href="#products"
+                class="nav-link"
+                data-scroll-to="#products"
+                data-editable="nav_shop"
+                data-editable-type="text"
+            >
+                Shop
+            </a>
+
+            <a
+                href="#trending"
+                class="nav-link"
+                data-scroll-to="#trending"
+                data-editable="nav_trending"
+                data-editable-type="text"
+            >
+                Trending
+            </a>
+
+            <a
+                href="#sale"
+                class="nav-link"
+                data-scroll-to="#sale"
+                data-editable="nav_sale"
+                data-editable-type="text"
+            >
+                Sale
+            </a>
+
+        </nav>
+
+
+        <!-- HEADER ACTIONS -->
+
+        <div class="header-actions">
+
+
+            <!-- SEARCH -->
+
+            <button
+                id="searchButton"
+                class="icon-button"
+                type="button"
+                aria-label="Search"
+                data-search-open
+            >
+
+                <span>
+                    ⌕
+                </span>
+
+            </button>
+
+
+            <!-- WISHLIST -->
+
+            <button
+                id="wishlistButton"
+                class="icon-button"
+                type="button"
+                aria-label="Wishlist"
+                aria-haspopup="dialog"
+                data-wishlist-open
+            >
+
+                <span>
+                    ♡
+                </span>
+
+                <span
+                    id="wishlistCount"
+                    class="action-count"
+                    data-wishlist-count
+                >
+                    0
+                </span>
+
+            </button>
+
+
+            <!-- CART -->
+
+            <button
+                id="cartButton"
+                class="icon-button cart-button"
+                type="button"
+                aria-label="Shopping cart"
+                data-cart-open
+            >
+
+                <span>
+                    🛒
+                </span>
+
+                <span
+                    id="cartCount"
+                    class="action-count"
+                    data-cart-count
+                >
+                    0
+                </span>
+
+            </button>
+
+
+            <!-- MOBILE MENU -->
+
+            <button
+                id="mobileMenuButton"
+                class="mobile-menu-button"
+                type="button"
+                aria-label="Open menu"
+                aria-expanded="false"
+                aria-controls="mobileMenu"
+                data-mobile-menu
+            >
+                ☰
+            </button>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<!-- ==================================================
+     MOBILE MENU
+=================================================== -->
+
+<div
+    id="mobileMenu"
+    class="mobile-menu"
+    aria-hidden="true"
+>
+
+    <div class="mobile-menu-inner">
+
+        <button
+            id="mobileMenuClose"
+            class="mobile-menu-close"
+            type="button"
+            aria-label="Close menu"
+            data-mobile-menu-close
+        >
+            ×
+        </button>
+
+        <nav
+            class="mobile-nav"
+            aria-label="Mobile navigation"
+        >
+
+            <a
+                href="#home"
+                data-scroll-to="#home"
+                data-editable="mobile_nav_home"
+                data-editable-type="text"
+            >
+                Home
+            </a>
+
+            <a
+                href="#categories"
+                data-scroll-to="#categories"
+                data-editable="mobile_nav_categories"
+                data-editable-type="text"
+            >
+                Categories
+            </a>
+
+            <a
+                href="#products"
+                data-scroll-to="#products"
+                data-editable="mobile_nav_shop"
+                data-editable-type="text"
+            >
+                Shop
+            </a>
+
+            <a
+                href="#trending"
+                data-scroll-to="#trending"
+                data-editable="mobile_nav_trending"
+                data-editable-type="text"
+            >
+                Trending
+            </a>
+
+            <a
+                href="#sale"
+                data-scroll-to="#sale"
+                data-editable="mobile_nav_sale"
+                data-editable-type="text"
+            >
+                Sale
+            </a>
+
+        </nav>
+
+    </div>
+
+</div>
+
+
+<!-- ==================================================
+     SEARCH OVERLAY
+=================================================== -->
+
+<div
+    id="searchOverlay"
+    class="search-overlay"
+    aria-hidden="true"
+>
+
+    <div class="search-overlay-inner">
+
+        <button
+            id="closeSearch"
+            class="search-close"
+            type="button"
+            aria-label="Close search"
+            data-search-close
+        >
+            ×
+        </button>
+
+        <p
+            class="search-eyebrow"
+            data-editable="search_eyebrow"
+            data-editable-type="text"
+        >
+            SEARCH SHOP T-SHIRT
+        </p>
+
+        <h2
+            data-editable="search_title"
+            data-editable-type="text"
+        >
+            Find your fit and fabric.
+        </h2>
+
+        <div class="search-box">
+
+            <span
+                class="search-box-icon"
+                aria-hidden="true"
+            >
+                ⌕
+            </span>
+
+            <input
+                id="searchInput"
+                type="search"
+                placeholder="Search tees, hoodies, coats..."
+                autocomplete="off"
+                aria-label="Search products"
+                data-product-search
+                data-editable="search_placeholder"
+                data-editable-type="text"
+            >
+
+            <button
+                id="searchSubmit"
+                type="button"
+                data-editable="search_button"
+                data-editable-type="text"
+            >
+                Search
+            </button>
+
+        </div>
+
+        <div
+            id="searchResults"
+            class="search-results"
+            aria-live="polite"
+        ></div>
+
+    </div>
+
+</div>
+
+
+<!-- ==================================================
+     MAIN
+=================================================== -->
+
+<main id="home">
+
+
+    <!-- =================================================
+         HERO
+    ================================================== -->
+
+    <section
+        class="hero-section"
+        data-editable="hero_section"
+        data-editable-type="section"
+    >
+
+        <div
+            class="hero-background-shape shape-one"
+            data-parallax="0.12"
+        ></div>
+
+        <div
+            class="hero-background-shape shape-two"
+            data-parallax="0.08"
+        ></div>
+
+
+        <div class="container hero-grid">
+
+
+            <!-- HERO CONTENT -->
+
+            <div
+                class="hero-content"
+                data-reveal="up"
+            >
+
+                <p
+                    class="hero-kicker"
+                    data-editable="hero_kicker"
+                    data-editable-type="text"
+                >
+                    INTERACTIVE SHOWCASE / 2026
+                </p>
+
+                <h1
+                    class="hero-title"
+                    data-editable="hero_title"
+                    data-editable-type="text"
+                >
+
+                    <span
+                        data-editable="hero_title_main"
+                        data-editable-type="text"
+                    >
+                        SHOP
+                    </span>
+
+                    <span
+                        class="hero-title-outline"
+                        data-editable="hero_title_outline"
+                        data-editable-type="text"
+                    >
+                        T-SHIRT.
+                    </span>
+
+                </h1>
+
+                <p
+                    class="hero-description"
+                    data-editable="hero_description"
+                    data-editable-type="textarea"
+                >
+                    Select any garment on the rack or grid to inspect its fabric weight, color options, sizing, and full details.
+                </p>
+
+
+                <div class="hero-buttons">
+
+                    <a
+                        href="#products"
+                        class="primary-button"
+                        data-scroll-to="#products"
+                        data-magnetic
+                        data-editable="hero_primary_button"
+                        data-editable-type="text"
+                    >
+                        Inspect Collection
+                        <span>→</span>
+                    </a>
+
+                    <a
+                        href="#trending"
+                        class="secondary-button"
+                        data-scroll-to="#trending"
+                        data-editable="hero_secondary_button"
+                        data-editable-type="text"
+                    >
+                        Trending Pieces
+                    </a>
+
+                </div>
+
+
+                <div class="hero-stats">
+
+                    <div class="hero-stat">
+
+                        <strong
+                            data-editable="hero_stat_fabric"
+                            data-editable-type="text"
+                        >
+                            320 GSM
+                        </strong>
+
+                        <span
+                            data-editable="hero_stat_fabric_label"
+                            data-editable-type="text"
+                        >
+                            Combed Cotton
+                        </span>
+
+                    </div>
+
+                    <div class="hero-stat">
+
+                        <strong
+                            data-editable="hero_stat_fit"
+                            data-editable-type="text"
+                        >
+                            Boxy Fit
+                        </strong>
+
+                        <span
+                            data-editable="hero_stat_fit_label"
+                            data-editable-type="text"
+                        >
+                            Structured Cut
+                        </span>
+
+                    </div>
+
+                    <div class="hero-stat">
+
+                        <strong
+                            data-editable="hero_stat_drops"
+                            data-editable-type="text"
+                        >
+                            24/7
+                        </strong>
+
+                        <span
+                            data-editable="hero_stat_drops_label"
+                            data-editable-type="text"
+                        >
+                            Live Details
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- HERO VISUAL (INTERACTIVE RACK + SELECTED PIECE INSPECTOR) -->
+
+            <div
+                class="hero-visual"
+                data-reveal="scale"
+            >
+
+                <div
+                    class="hero-orbit orbit-one"
+                    data-parallax="0.18"
+                ></div>
+
+                <div
+                    class="hero-orbit orbit-two"
+                    data-parallax="0.10"
+                ></div>
+
+
+                <div
+                    class="hero-product-card"
+                    data-tilt
+                >
+
+                    <div class="hero-product-glow"></div>
+
+                    <div
+                        class="hero-product-image"
+                        data-editable="hero_product_image"
+                        data-editable-type="image"
+                    >
+
+                        <div class="product-placeholder">
+                            SHOP T-SHIRT
+                        </div>
+
+                    </div>
+
+                    <div class="hero-product-info">
+
+                        <span
+                            data-editable="hero_product_badge"
+                            data-editable-type="text"
+                        >
+                            SELECTED GARMENT
+                        </span>
+
+                        <strong
+                            id="heroSelectedTitle"
+                            data-editable="hero_product_name"
+                            data-editable-type="text"
+                        >
+                            Heavyweight Studio Tee
+                        </strong>
+
+                        <div
+                            id="heroSelectedPrice"
+                            class="hero-product-price"
+                            data-editable="hero_product_price"
+                            data-editable-type="text"
+                        >
+                            $49
+                        </div>
+
+                        <p
+                            id="heroSelectedMeta"
+                            class="text-xs text-slate-400 mt-1"
+                        >
+                            Material: 100% Organic Cotton • Colors: Obsidian, Bone, Slate • Sizes: S - XL
+                        </p>
+
+                        <div class="mt-3 flex flex-wrap gap-2" id="garmentSelectorBar">
+                            <button
+                                type="button"
+                                class="secondary-button text-xs px-3 py-1.5"
+                                data-inspect-garment="heavyweight-tee"
+                            >
+                                Heavyweight Tee
+                            </button>
+                            <button
+                                type="button"
+                                class="secondary-button text-xs px-3 py-1.5"
+                                data-inspect-garment="oversized-hoodie"
+                            >
+                                Boxy Hoodie
+                            </button>
+                            <button
+                                type="button"
+                                class="secondary-button text-xs px-3 py-1.5"
+                                data-inspect-garment="long-coat"
+                            >
+                                Long Wool Coat
+                            </button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="floating-card floating-card-one">
+
+                    <span>
+                        ★
+                    </span>
+
+                    <div>
+
+                        <strong
+                            data-editable="hero_floating_rating"
+                            data-editable-type="text"
+                        >
+                            Click to Inspect
+                        </strong>
+
+                        <small
+                            data-editable="hero_floating_rating_label"
+                            data-editable-type="text"
+                        >
+                            Full garment specs
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <div class="floating-card floating-card-two">
+
+                    <span>
+                        ⚡
+                    </span>
+
+                    <div>
+
+                        <strong
+                            data-editable="hero_floating_delivery"
+                            data-editable-type="text"
+                        >
+                            Instant Details
+                        </strong>
+
+                        <small
+                            data-editable="hero_floating_delivery_label"
+                            data-editable-type="text"
+                        >
+                            Fabric, colors &amp; size
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         CATEGORIES
+    ================================================== -->
+
+    <section
+        id="categories"
+        class="categories-section section"
+        data-editable="categories_section"
+        data-editable-type="section"
+    >
+
+        <div class="container">
+
+            <div
+                class="section-heading"
+                data-reveal="up"
+            >
+
+                <div>
+
+                    <p
+                        class="section-kicker"
+                        data-editable="categories_kicker"
+                        data-editable-type="text"
+                    >
+                        EXPLORE
+                    </p>
+
+                    <h2
+                        data-editable="categories_title"
+                        data-editable-type="text"
+                    >
+                        Shop by apparel line
+                    </h2>
+
+                </div>
+
+                <a
+                    href="#products"
+                    class="text-link"
+                    data-scroll-to="#products"
+                    data-editable="categories_view_all"
+                    data-editable-type="text"
+                >
+                    View all →
+                </a>
+
+            </div>
+
+
+            <div class="category-grid">
+
+
+                <button
+                    class="category-card"
+                    type="button"
+                    data-category="tshirts"
+                    data-category-filter="tshirts"
+                    data-reveal="up"
+                    data-editable="category_tshirts"
+                    data-editable-type="category"
+                >
+
+                    <span class="category-number">
+                        01
+                    </span>
+
+                    <span class="category-icon">
+                        ✦
+                    </span>
+
+                    <strong
+                        data-editable="category_tshirts_name"
+                        data-editable-type="text"
+                    >
+                        T-Shirts
+                    </strong>
+
+                    <small
+                        data-editable="category_tshirts_count"
+                        data-editable-type="text"
+                    >
+                        48 garments
+                    </small>
+
+                    <span class="category-arrow">
+                        →
+                    </span>
+
+                </button>
+
+
+                <button
+                    class="category-card"
+                    type="button"
+                    data-category="outerwear"
+                    data-category-filter="outerwear"
+                    data-reveal="up"
+                    data-editable="category_outerwear"
+                    data-editable-type="category"
+                >
+
+                    <span class="category-number">
+                        02
+                    </span>
+
+                    <span class="category-icon">
+                        ◇
+                    </span>
+
+                    <strong
+                        data-editable="category_outerwear_name"
+                        data-editable-type="text"
+                    >
+                        Coats &amp; Jackets
+                    </strong>
+
+                    <small
+                        data-editable="category_outerwear_count"
+                        data-editable-type="text"
+                    >
+                        32 garments
+                    </small>
+
+                    <span class="category-arrow">
+                        →
+                    </span>
+
+                </button>
+
+
+                <button
+                    class="category-card"
+                    type="button"
+                    data-category="hoodies"
+                    data-category-filter="hoodies"
+                    data-reveal="up"
+                    data-editable="category_hoodies"
+                    data-editable-type="category"
+                >
+
+                    <span class="category-number">
+                        03
+                    </span>
+
+                    <span class="category-icon">
+                        ◉
+                    </span>
+
+                    <strong
+                        data-editable="category_hoodies_name"
+                        data-editable-type="text"
+                    >
+                        Hoodies &amp; Sweatshirts
+                    </strong>
+
+                    <small
+                        data-editable="category_hoodies_count"
+                        data-editable-type="text"
+                    >
+                        29 garments
+                    </small>
+
+                    <span class="category-arrow">
+                        →
+                    </span>
+
+                </button>
+
+
+                <button
+                    class="category-card"
+                    type="button"
+                    data-category="accessories"
+                    data-category-filter="accessories"
+                    data-reveal="up"
+                    data-editable="category_accessories"
+                    data-editable-type="category"
+                >
+
+                    <span class="category-number">
+                        04
+                    </span>
+
+                    <span class="category-icon">
+                        ⬡
+                    </span>
+
+                    <strong
+                        data-editable="category_accessories_name"
+                        data-editable-type="text"
+                    >
+                        Accessories
+                    </strong>
+
+                    <small
+                        data-editable="category_accessories_count"
+                        data-editable-type="text"
+                    >
+                        24 garments
+                    </small>
+
+                    <span class="category-arrow">
+                        →
+                    </span>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         PRODUCTS
+    ================================================== -->
+
+    <section
+        id="products"
+        class="products-section section"
+        data-editable="products_section"
+        data-editable-type="section"
+    >
+
+        <div class="container">
+
+            <div
+                class="section-heading"
+                data-reveal="up"
+            >
+
+                <div>
+
+                    <p
+                        class="section-kicker"
+                        data-editable="products_kicker"
+                        data-editable-type="text"
+                    >
+                        INTERACTIVE GARMENT GRID
+                    </p>
+
+                    <h2
+                        data-editable="products_title"
+                        data-editable-type="text"
+                    >
+                        Select any piece to view details
+                    </h2>
+
+                    <p class="products-result-text">
+
+                        <span data-products-count>
+                            0
+                        </span>
+
+                        <span
+                            data-editable="products_count_label"
+                            data-editable-type="text"
+                        >
+                            garments
+                        </span>
+
+                    </p>
+
+                </div>
+
+
+                <!-- PRODUCT CONTROLS -->
+
+                <div class="product-controls">
+
+                    <button
+                        class="filter-button active"
+                        type="button"
+                        data-category-filter="all"
+                        data-editable="filter_all"
+                        data-editable-type="text"
+                    >
+                        All
+                    </button>
+
+                    <button
+                        class="filter-button"
+                        type="button"
+                        data-category-filter="tshirts"
+                        data-editable="filter_tshirts"
+                        data-editable-type="text"
+                    >
+                        T-Shirts
+                    </button>
+
+                    <button
+                        class="filter-button"
+                        type="button"
+                        data-category-filter="outerwear"
+                        data-editable="filter_outerwear"
+                        data-editable-type="text"
+                    >
+                        Coats
+                    </button>
+
+                    <button
+                        class="filter-button"
+                        type="button"
+                        data-category-filter="hoodies"
+                        data-editable="filter_hoodies"
+                        data-editable-type="text"
+                    >
+                        Hoodies
+                    </button>
+
+                    <button
+                        class="filter-button"
+                        type="button"
+                        data-category-filter="accessories"
+                        data-editable="filter_accessories"
+                        data-editable-type="text"
+                    >
+                        Accessories
+                    </button>
+
+
+                    <!-- SORT -->
+
+                    <select
+                        class="product-sort"
+                        aria-label="Sort products"
+                        data-product-sort
+                    >
+
+                        <option
+                            value="featured"
+                            data-editable="sort_featured"
+                            data-editable-type="text"
+                        >
+                            Featured
+                        </option>
+
+                        <option
+                            value="price-low"
+                            data-editable="sort_price_low"
+                            data-editable-type="text"
+                        >
+                            Price: Low to High
+                        </option>
+
+                        <option
+                            value="price-high"
+                            data-editable="sort_price_high"
+                            data-editable-type="text"
+                        >
+                            Price: High to Low
+                        </option>
+
+                        <option
+                            value="rating"
+                            data-editable="sort_rating"
+                            data-editable-type="text"
+                        >
+                            Highest Rated
+                        </option>
+
+                        <option
+                            value="newest"
+                            data-editable="sort_newest"
+                            data-editable-type="text"
+                        >
+                            Newest
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <!-- SEARCH / FILTER ROW -->
+
+            <div
+                class="products-toolbar"
+                data-reveal="up"
+            >
+
+                <div class="products-search">
+
+                    <span aria-hidden="true">
+                        ⌕
+                    </span>
+
+                    <input
+                        type="search"
+                        placeholder="Search garments..."
+                        autocomplete="off"
+                        aria-label="Search products"
+                        data-product-search
+                        data-editable="products_search_placeholder"
+                        data-editable-type="text"
+                    >
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="filter-reset"
+                    data-filter-reset
+                    data-editable="filter_reset"
+                    data-editable-type="text"
+                >
+                    Reset filters
+                </button>
+
+            </div>
+
+
+            <!-- =================================================
+                 PRODUCTS GRID
+            ================================================== -->
+
+            <div
+                id="products-grid"
+                class="products-grid"
+                data-reveal="up"
+                aria-live="polite"
+                data-editable="products"
+                data-editable-type="products"
+                data-product-collection="true"
+            ></div>
+
+
+            <!-- =================================================
+                 SELECTED GARMENT DETAIL PANEL
+            ================================================== -->
+
+            <div
+                id="garmentDetailPanel"
+                class="mt-8 p-6 rounded-2xl bg-slate-900 border border-slate-800"
+                aria-live="polite"
+            >
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-800 pb-4 mb-4">
+                    <div>
+                        <span class="text-xs uppercase tracking-wider text-blue-400 font-bold">
+                            Garment Specification
+                        </span>
+                        <h3 id="detailTitle" class="text-xl font-extrabold mt-1">
+                            Heavyweight Studio Tee
+                        </h3>
+                    </div>
+                    <div id="detailPrice" class="text-2xl font-extrabold text-green-400">
+                        $49
+                    </div>
+                </div>
+
+                <p id="detailDescription" class="text-sm text-slate-300 leading-7 mb-4">
+                    Crafted from 320 GSM combed organic cotton with reinforced collar rib and relaxed boxy silhouette.
+                </p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm mb-5">
+                    <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                        <div class="text-xs text-slate-500 mb-1">Material / Fabric</div>
+                        <div id="detailMaterial" class="font-bold text-slate-200">320 GSM Organic Cotton</div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                        <div class="text-xs text-slate-500 mb-1">Available Colors</div>
+                        <div id="detailColors" class="font-bold text-slate-200">Obsidian, Bone, Slate</div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                        <div class="text-xs text-slate-500 mb-1">Sizes</div>
+                        <div id="detailSizes" class="font-bold text-slate-200">S, M, L, XL</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+                    <button
+                        type="button"
+                        id="detailAddToCart"
+                        class="primary-button px-5 py-2.5 text-sm font-bold"
+                    >
+                        Add Selected Garment to Bag
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- EMPTY STATE -->
+
+            <div
+                id="productsEmpty"
+                class="products-empty"
+                hidden
+            >
+
+                <div class="empty-icon">
+                    ×
+                </div>
+
+                <h3
+                    data-editable="products_empty_title"
+                    data-editable-type="text"
+                >
+                    No garments found
+                </h3>
+
+                <p
+                    data-editable="products_empty_description"
+                    data-editable-type="textarea"
+                >
+                    Try another category or search.
+                </p>
+
+                <button
+                    type="button"
+                    class="secondary-button"
+                    data-filter-reset
+                    data-editable="products_empty_button"
+                    data-editable-type="text"
+                >
+                    Reset filters
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         SALE
+    ================================================== -->
+
+    <section
+        id="sale"
+        class="promo-section section"
+        data-editable="sale_section"
+        data-editable-type="section"
+    >
+
+        <div class="container">
+
+            <div
+                class="promo-card"
+                data-reveal="scale"
+            >
+
+                <div class="promo-content">
+
+                    <p
+                        class="section-kicker"
+                        data-editable="sale_kicker"
+                        data-editable-type="text"
+                    >
+                        SEASONAL DROP
+                    </p>
+
+                    <h2
+                        data-editable="sale_title"
+                        data-editable-type="text"
+                    >
+                        Bundle 2+ tees and save up to 25%.
+                    </h2>
+
+                    <p
+                        data-editable="sale_description"
+                        data-editable-type="textarea"
+                    >
+                        Mix colors and cuts with instant detail preview before adding to your bag.
+                    </p>
+
+                    <a
+                        href="#products"
+                        class="primary-button"
+                        data-scroll-to="#products"
+                        data-magnetic
+                        data-editable="sale_button"
+                        data-editable-type="text"
+                    >
+                        Shop bundles
+                        <span>→</span>
+                    </a>
+
+                </div>
+
+
+                <div
+                    class="promo-visual"
+                    data-parallax="0.10"
+                >
+
+                    <div class="promo-circle circle-one"></div>
+
+                    <div class="promo-circle circle-two"></div>
+
+                    <div
+                        class="promo-product"
+                        data-editable="sale_visual"
+                        data-editable-type="text"
+                    >
+                        TEES
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         TRENDING
+    ================================================== -->
+
+    <section
+        id="trending"
+        class="trending-section section"
+        data-editable="trending_section"
+        data-editable-type="section"
+    >
+
+        <div class="container">
+
+            <div
+                class="section-heading"
+                data-reveal="up"
+            >
+
+                <div>
+
+                    <p
+                        class="section-kicker"
+                        data-editable="trending_kicker"
+                        data-editable-type="text"
+                    >
+                        WHAT'S TRENDING
+                    </p>
+
+                    <h2
+                        data-editable="trending_title"
+                        data-editable-type="text"
+                    >
+                        Most inspected silhouettes
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="trending-grid">
+
+
+                <article
+                    class="trend-card trend-large"
+                    data-reveal="up"
+                    data-tilt
+                >
+
+                    <div class="trend-content">
+
+                        <span
+                            data-editable="trending_1_label"
+                            data-editable-type="text"
+                        >
+                            TRENDING #01
+                        </span>
+
+                        <h3
+                            data-editable="trending_1_title"
+                            data-editable-type="text"
+                        >
+                            Heavyweight Studio Tee — 320 GSM.
+                        </h3>
+
+                        <a
+                            href="#garmentDetailPanel"
+                            data-inspect-garment="heavyweight-tee"
+                            data-editable="trending_1_button"
+                            data-editable-type="text"
+                        >
+                            View details →
+                        </a>
+
+                    </div>
+
+                    <div
+                        class="trend-art"
+                        data-editable="trending_1_art"
+                        data-editable-type="text"
+                    >
+                        SHOP TEE
+                    </div>
+
+                </article>
+
+
+                <article
+                    class="trend-card"
+                    data-reveal="up"
+                    data-tilt
+                >
+
+                    <div class="trend-content">
+
+                        <span
+                            data-editable="trending_2_label"
+                            data-editable-type="text"
+                        >
+                            TRENDING #02
+                        </span>
+
+                        <h3
+                            data-editable="trending_2_title"
+                            data-editable-type="text"
+                        >
+                            Structured Boxy Hoodie.
+                        </h3>
+
+                        <a
+                            href="#garmentDetailPanel"
+                            data-inspect-garment="oversized-hoodie"
+                            data-editable="trending_2_button"
+                            data-editable-type="text"
+                        >
+                            View details →
+                        </a>
+
+                    </div>
+
+                    <div
+                        class="trend-art"
+                        data-editable="trending_2_art"
+                        data-editable-type="text"
+                    >
+                        HOODIE
+                    </div>
+
+                </article>
+
+
+                <article
+                    class="trend-card"
+                    data-reveal="up"
+                    data-tilt
+                >
+
+                    <div class="trend-content">
+
+                        <span
+                            data-editable="trending_3_label"
+                            data-editable-type="text"
+                        >
+                            TRENDING #03
+                        </span>
+
+                        <h3
+                            data-editable="trending_3_title"
+                            data-editable-type="text"
+                        >
+                            Long Wool Coat — Editorial Cut.
+                        </h3>
+
+                        <a
+                            href="#garmentDetailPanel"
+                            data-inspect-garment="long-coat"
+                            data-editable="trending_3_button"
+                            data-editable-type="text"
+                        >
+                            View details →
+                        </a>
+
+                    </div>
+
+                    <div
+                        class="trend-art"
+                        data-editable="trending_3_art"
+                        data-editable-type="text"
+                    >
+                        COAT
+                    </div>
+
+                </article>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         NEWSLETTER
+    ================================================== -->
+
+    <section
+        class="newsletter-section section"
+        data-editable="newsletter_section"
+        data-editable-type="section"
+    >
+
+        <div class="container">
+
+            <div
+                class="newsletter-card"
+                data-reveal="up"
+            >
+
+                <div>
+
+                    <p
+                        class="section-kicker"
+                        data-editable="newsletter_kicker"
+                        data-editable-type="text"
+                    >
+                        EARLY ACCESS
+                    </p>
+
+                    <h2
+                        data-editable="newsletter_title"
+                        data-editable-type="text"
+                    >
+                        Get notified on new drops.
+                    </h2>
+
+                    <p
+                        data-editable="newsletter_description"
+                        data-editable-type="textarea"
+                    >
+                        Fresh T-shirt editions, restocks, and lookbook releases.
+                    </p>
+
+                </div>
+
+
+                <form
+                    id="newsletterForm"
+                    class="newsletter-form"
+                >
+
+                    <input
+                        type="email"
+                        id="newsletterEmail"
+                        placeholder="Your email address"
+                        autocomplete="email"
+                        required
+                        data-editable="newsletter_placeholder"
+                        data-editable-type="text"
+                    >
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                        data-magnetic
+                        data-editable="newsletter_button"
+                        data-editable-type="text"
+                    >
+                        Subscribe
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- ==================================================
+     FOOTER
+=================================================== -->
+
+<footer class="footer">
+
+    <div class="container">
+
+        <div class="footer-grid">
+
+
+            <!-- BRAND -->
+
+            <div class="footer-brand">
+
+                <a
+                    href="#home"
+                    class="brand"
+                    data-scroll-to="#home"
+                    data-editable="footer_brand_link"
+                    data-editable-type="url"
+                >
+
+                    <span class="brand-mark">
+                        S
+                    </span>
+
+                    <span
+                        class="brand-text"
+                        data-editable="footer_brand_name"
+                        data-editable-type="text"
+                    >
+                        SHOP T-SHIRT
+                    </span>
+
+                </a>
+
+                <p
+                    data-editable="footer_description"
+                    data-editable-type="textarea"
+                >
+                    Interactive apparel showcase.
+                    Clean silhouettes.
+                    Built for everyday wear.
+                </p>
+
+            </div>
+
+
+            <!-- SHOP -->
+
+            <div class="footer-column">
+
+                <h4
+                    data-editable="footer_shop_title"
+                    data-editable-type="text"
+                >
+                    Shop
+                </h4>
+
+                <a
+                    href="#products"
+                    data-scroll-to="#products"
+                    data-editable="footer_all_products"
+                    data-editable-type="text"
+                >
+                    All Garments
+                </a>
+
+                <a
+                    href="#categories"
+                    data-scroll-to="#categories"
+                    data-editable="footer_categories"
+                    data-editable-type="text"
+                >
+                    Categories
+                </a>
+
+                <a
+                    href="#sale"
+                    data-scroll-to="#sale"
+                    data-editable="footer_sale"
+                    data-editable-type="text"
+                >
+                    Bundles
+                </a>
+
+                <a
+                    href="#trending"
+                    data-scroll-to="#trending"
+                    data-editable="footer_trending"
+                    data-editable-type="text"
+                >
+                    Trending
+                </a>
+
+            </div>
+
+
+            <!-- HELP -->
+
+            <div class="footer-column">
+
+                <h4
+                    data-editable="footer_help_title"
+                    data-editable-type="text"
+                >
+                    Help
+                </h4>
+
+                <a
+                    href="#"
+                    data-editable="footer_contact"
+                    data-editable-type="text"
+                >
+                    Contact
+                </a>
+
+                <a
+                    href="#"
+                    data-editable="footer_shipping"
+                    data-editable-type="text"
+                >
+                    Shipping
+                </a>
+
+                <a
+                    href="#"
+                    data-editable="footer_returns"
+                    data-editable-type="text"
+                >
+                    Returns
+                </a>
+
+                <a
+                    href="#"
+                    data-editable="footer_faq"
+                    data-editable-type="text"
+                >
+                    FAQ
+                </a>
+
+            </div>
+
+
+            <!-- SOCIAL -->
+
+            <div class="footer-column">
+
+                <h4
+                    data-editable="footer_follow_title"
+                    data-editable-type="text"
+                >
+                    Follow
+                </h4>
+
+                <a
+                    href="#"
+                    data-editable="social_instagram"
+                    data-editable-type="text"
+                >
+                    Instagram
+                </a>
+
+                <a
+                    href="#"
+                    data-editable="social_tiktok"
+                    data-editable-type="text"
+                >
+                    TikTok
+                </a>
+
+                <a
+                    href="#"
+                    data-editable="social_facebook"
+                    data-editable-type="text"
+                >
+                    Facebook
+                </a>
+
+                <a
+                    href="#"
+                    data-editable="social_pinterest"
+                    data-editable-type="text"
+                >
+                    Pinterest
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- FOOTER BOTTOM -->
+
+        <div class="footer-bottom">
+
+            <span>
+
+                ©
+
+                <span data-current-year>
+                    2026
+                </span>
+
+                <span
+                    data-editable="footer_copyright"
+                    data-editable-type="text"
+                >
+                    Shop T-Shirt.
+                    All rights reserved.
+                </span>
+
+            </span>
+
+            <span
+                data-editable="footer_platform"
+                data-editable-type="text"
+            >
+                Built for TemplateCraft Pro
+            </span>
+
+        </div>
+
+    </div>
+
+</footer>
+
+
+<!-- ==================================================
+     GLOBAL CURSOR GLOW
+=================================================== -->
+
+<div
+    class="cursor-glow"
+    data-cursor-glow
+    aria-hidden="true"
+></div>
+
+
+<!-- ==================================================
+     SCRIPTS
+=================================================== -->
+
+<script
+    src="js/products.js"
+    defer
+></script>
+
+<script
+    src="js/cart.js"
+    defer
+></script>
+
+<script
+    src="js/wishlist.js"
+    defer
+></script>
+
+<script
+    src="js/filters.js"
+    defer
+></script>
+
+<script
+    src="js/animations.js"
+    defer
+></script>
+
+
+<!-- ==================================================
+     VELOCITY MODULES
+=================================================== -->
+
+<script
+    src="js/velocity-core.js"
+    defer
+></script>
+
+<script
+    src="js/velocity-cart-ui.js"
+    defer
+></script>
+
+<script
+    src="js/velocity-ui.js"
+    defer
+></script>
+
+<script
+    src="js/app.js"
+    defer
+></script>
+
+
+<!-- ==================================================
+     PREMIUM BACKGROUND
+=================================================== -->
+
+<script
+    src="js/velocity-background.js"
+    defer
+></script>
+
+
+<!-- ==================================================
+     TEMPLATECRAFT PRO
+     UNIVERSAL EDITOR BRIDGE
+=================================================== -->
+
+<script
+    src="js/template-bridge.js"
+    defer
+></script>
+
+
+</body>
+
+</html>
