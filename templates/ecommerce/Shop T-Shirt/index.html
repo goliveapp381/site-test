@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Shop T-Shirt" data-editable="meta_description" data-editable-type="text">
-    <meta name="theme-color" content="#145332" data-editable="theme_color" data-editable-type="color">
+    <meta name="theme-color" content="#123d25" data-editable="theme_color" data-editable-type="color">
     <title data-editable="page_title" data-editable-type="text">Shop T-Shirt</title>
 
     <link rel="stylesheet" href="css/style.css">
@@ -18,16 +18,18 @@
 
 <body data-template="shop-tshirt" data-template-version="1.0.0">
 
-    <!-- أسلاك كثيرة في خلفية الموقع -->
-    <div class="site-wires-bg" aria-hidden="true">
-        <span class="wire-strand wire-1"></span>
-        <span class="wire-strand wire-2"></span>
-        <span class="wire-strand wire-3"></span>
-        <span class="wire-strand wire-4"></span>
-        <span class="wire-strand wire-5"></span>
-        <span class="wire-strand wire-6"></span>
-        <span class="wire-strand wire-7"></span>
-        <span class="wire-strand wire-8"></span>
+    <!-- أسلاك متموجة في الخلفية -->
+    <div class="site-wires-bg" id="siteWiresBg" aria-hidden="true">
+        <span class="wire-wave w-1"></span>
+        <span class="wire-wave w-2"></span>
+        <span class="wire-wave w-3"></span>
+        <span class="wire-wave w-4"></span>
+        <span class="wire-wave w-5"></span>
+        <span class="wire-wave w-6"></span>
+        <span class="wire-wave w-7"></span>
+        <span class="wire-wave w-8"></span>
+        <span class="wire-wave w-9"></span>
+        <span class="wire-wave w-10"></span>
     </div>
 
     <main class="site-stage">
@@ -36,7 +38,7 @@
         </h1>
 
         <div class="monitor-layout">
-            <!-- أصناف الملابس على اليسار: كتابة واضحة فقط بلا خلفية -->
+            <!-- الأصناف على اليسار كتابة فقط -->
             <aside class="side-categories-column" aria-label="Clothing categories" data-editable="side_categories" data-editable-type="section">
                 <button type="button" class="side-cat-btn active" data-category-filter="all" data-editable="cat_all" data-editable-type="text">
                     All Items
@@ -55,11 +57,12 @@
                 </button>
             </aside>
 
-            <!-- شاشة التلفاز / الحاسوب الكبيرة -->
+            <!-- شاشة مستطيلة عريضة مع العمود المائل والقوس الأيمن -->
             <div class="monitor-device">
                 <div class="monitor-bezel">
                     <div class="monitor-screen-empty" id="monitorScreenSlot">
                         <div class="angled-rack-rail" id="angledRackRail" aria-hidden="true"></div>
+                        <div class="screen-right-arc" aria-hidden="true"></div>
                     </div>
                 </div>
                 <div class="monitor-stand" aria-hidden="true"></div>
