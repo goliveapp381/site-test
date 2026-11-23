@@ -1,360 +1,464 @@
-.rack-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
+'use strict';
 
-.rack-pos-label {
-    font-size: 0.85rem;
-    font-weight: 800;
-    color: var(--accent);
-}
+(() => {
+    const MAX_TEES = 40;
+    const IMAGE_MANIFEST_URL = 'assets/images/image-manifest.json';
 
-.hanging-rack-stage {
-    position: relative;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 22px;
-    padding: 24px 20px 28px;
-    margin-bottom: 24px;
-    overflow: hidden;
-}
+    const DEFAULT_PRESETS = [
+        { title: 'Studio Heavy Tee', category: 'heavyweight', quality: '320 GSM Combed Cotton', price: 39, oldPrice: 49 },
+        { title: 'Boxy Rack Tee', category: 'boxy', quality: '300 GSM Boxy Jersey', price: 42, oldPrice: 54 },
+        { title: 'Archive Rail Tee', category: 'graphic', quality: '290 GSM Ring-Spun Cotton', price: 45, oldPrice: 59 },
+        { title: 'Minimalist Knit Tee', category: 'heavyweight', quality: '340 GSM Organic Cotton', price: 44, oldPrice: 55 },
+        { title: 'Dropped Shoulder Tee', category: 'boxy', quality: '310 GSM Heavy Jersey', price: 41, oldPrice: 50 }
+    ];
 
-.rack-top-bar {
-    height: 5px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #475569, #e2e8f0, #38bdf8, #475569);
-    transform: rotate(-4deg);
-    transform-origin: left center;
-    margin-bottom: 22px;
-}
+    function padIndex(num) {
+        return String(num).padStart(2, '0');
+    }
 
-/* سكة مائلة ومتراكبة: القطعة المختارة واضحة في الواجهة والباقي متراكب خلفها ويبان غير جزء منه */
-.hanging-rack-track {
-    position: relative;
-    display: flex;
-    align-items: flex-start;
-    gap: 0;
-    overflow-x: auto;
-    padding: 12px 16px 18px 8px;
-    scrollbar-width: thin;
-}
+    function createInitialTees(count = MAX_TEES) {
+        const list = [];
+        const safeCount = Math.min(Math.max(1, Number(count) || MAX_TEES), MAX_TEES);
 
-.hanger-item {
-    position: relative;
-    flex: 0 0 155px;
-    margin-right: -68px;
-    text-align: left;
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 10px;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    transform: translateY(var(--rack-drop, 0px)) rotate(-5deg);
-    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
-    opacity: 0.72;
-}
+        for (let i = 1; i <= safeCount; i++) {
+            const preset = DEFAULT_PRESETS[(i - 1) % DEFAULT_PRESETS.length];
+            const idxLabel = padIndex(i);
+            list.push({
+                id: `tee-${idxLabel}`,
+                index: i,
+                indexLabel: idxLabel,
+                name: `${preset.title} #${idxLabel}`,
+                category: preset.category,
+                categoryName: preset.category.toUpperCase(),
+                price: preset.price + ((i - 1) % 5) * 2,
+                oldPrice: preset.oldPrice + ((i - 1) % 5) * 2,
+                currency: '$',
+                quality: preset.quality,
+                description: `${preset.quality} • Indexed slot #${idxLabel} in Shop T-Shirt collection.`,
+                rating: 4.8,
+                reviews: 20 + i * 3,
+                badge: `#${idxLabel}`,
+                imageId: `tee-image-${idxLabel}`,
+                image: '',
+                localImage: '',
+                webImage: '',
+                remoteImage: '',
+                resolvedImage: '',
+                colors: ['Black', 'Bone', 'Slate'],
+                sizes: ['S', 'M', 'L', 'XL'],
+                stock: 25,
+                featured: i <= 8,
+                newest: i <= 6
+            });
+        }
+        return list;
+    }
 
-.hanger-item:hover {
-    opacity: 0.95;
-    transform: translateY(calc(var(--rack-drop, 0px) - 6px)) rotate(-3deg);
-    z-index: 20 !important;
-}
+    let tees = createInitialTees(MAX_TEES);
+    let selectedTeeId = tees[0].id;
+    let imageManifest = { version: 1, products: {} };
 
-.hanger-item.active-tee {
-    opacity: 1;
-    margin-right: -36px;
-    transform: translateY(calc(var(--rack-drop, 0px) - 8px)) rotate(0deg) scale(1.04);
-    border-color: var(--accent);
-    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.55);
-    z-index: 30 !important;
-}
+    function makeTeeSvg(indexLabel, title) {
+        const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="400" height="480" viewBox="0 0 400 480">
+                <rect width="400" height="480" rx="20" fill="#141824"/>
+                <path d="M120 120 L168 86 L232 86 L280 120 L334 162 L302 214 L268 190 L268 380 L132 380 L132 190 L98 214 L66 162 Z"
+                      fill="#1e293b" stroke="#38bdf8" stroke-width="5"/>
+                <text x="200" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="800" fill="#f8fafc">#${indexLabel}</text>
+                <text x="200" y="425" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#38bdf8">${title}</text>
+            </svg>
+        `.trim();
+        return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+    }
 
-.hanger-hook {
-    width: 14px;
-    height: 14px;
-    border: 2px solid #cbd5e1;
-    border-bottom: none;
-    border-radius: 999px 999px 0 0;
-    margin: -16px auto 2px;
-}
+    function escapeHtml(val) {
+        return String(val ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
 
-.hanger-index {
-    font-size: 0.7rem;
-    font-weight: 900;
-    color: var(--accent);
-}
+    function normalizeText(val) {
+        return String(val ?? '').trim().toLowerCase();
+    }
 
-.hanger-img-box {
-    height: 125px;
-    border-radius: 10px;
-    overflow: hidden;
-    background: #0e0e14;
-}
+    function buildImageUrl(raw) {
+        if (typeof raw !== 'string') return '';
+        const s = raw.trim();
+        if (!s) return '';
+        if (/^https?:\/\//i.test(s) || s.startsWith('data:image/') || s.startsWith('/')) return s;
+        if (s.startsWith('assets/')) return s;
+        return `assets/images/${s}`;
+    }
 
-.hanger-img-box img,
-.spotlight-tee-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
+    function getTeeImage(tee) {
+        if (!tee) return makeTeeSvg('01', 'SHOP T-SHIRT');
+        const manifestImg = tee.imageId ? imageManifest?.products?.[tee.imageId] : '';
+        const candidates = [
+            tee.resolvedImage,
+            tee.localImage,
+            manifestImg,
+            tee.image,
+            tee.webImage,
+            tee.remoteImage
+        ];
+        for (const c of candidates) {
+            const url = buildImageUrl(c);
+            if (url) return url;
+        }
+        return makeTeeSvg(tee.indexLabel, 'SHOP T-SHIRT');
+    }
 
-.spotlight-tee-img {
-    max-height: 220px;
-    border-radius: 16px;
-    margin-bottom: 14px;
-}
+    function formatTeePrice(price, currency = '$') {
+        const n = Number(price);
+        const safe = Number.isFinite(n) ? n : 0;
+        return `${escapeHtml(currency)}${safe}`;
+    }
 
-.hanger-title {
-    font-size: 0.84rem;
-    font-weight: 800;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+    function getTeeById(id) {
+        const key = String(id ?? '').trim();
+        return tees.find(t => t.id === key || `tee-${padIndex(key)}` === t.id) || null;
+    }
 
-.hanger-meta,
-.spotlight-tee-quality {
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+    function getTeeByIndex(idx) {
+        const num = Number(idx);
+        return tees.find(t => t.index === num) || null;
+    }
 
-.hanger-price {
-    font-size: 0.88rem;
-    font-weight: 900;
-    color: #4ade80;
-}
+    function updateDetailAndSpotlight(tee) {
+        if (!tee) return;
+        selectedTeeId = tee.id;
 
-/* صندوق تفاصيل القطعة المختارة */
-.tee-detail-panel {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 22px;
-    padding: 22px;
-}
+        const imgUrl = getTeeImage(tee);
+        const idxStr = `INDEX #${tee.indexLabel}`;
 
-.tee-detail-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 14px;
-    margin-bottom: 14px;
-}
+        const activeImg = document.getElementById('activeTeeImage');
+        const activeBadge = document.getElementById('activeTeeIndexBadge');
+        const activeTitle = document.getElementById('activeTeeTitle');
+        const activePrice = document.getElementById('activeTeePrice');
+        const activeQuality = document.getElementById('activeTeeQuality');
 
-.tee-detail-index {
-    font-size: 0.75rem;
-    font-weight: 900;
-    color: var(--accent);
-}
+        if (activeImg) {
+            activeImg.src = imgUrl;
+            activeImg.alt = tee.name;
+        }
+        if (activeBadge) activeBadge.textContent = idxStr;
+        if (activeTitle) activeTitle.textContent = tee.name;
+        if (activePrice) activePrice.textContent = formatTeePrice(tee.price, tee.currency);
+        if (activeQuality) activeQuality.textContent = tee.quality;
 
-.tee-detail-price {
-    font-size: 1.5rem;
-    font-weight: 900;
-    color: #4ade80;
-}
+        const detailIdx = document.getElementById('detailIndexLabel');
+        const detailTitle = document.getElementById('detailTitle');
+        const detailPrice = document.getElementById('detailPrice');
+        const detailDesc = document.getElementById('detailDescription');
+        const detailQuality = document.getElementById('detailQuality');
+        const detailColors = document.getElementById('detailColors');
+        const detailSizes = document.getElementById('detailSizes');
+        const rackPos = document.getElementById('rackPositionLabel');
 
-.tee-detail-desc {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    margin-bottom: 16px;
-}
+        if (detailIdx) detailIdx.textContent = idxStr;
+        if (detailTitle) detailTitle.textContent = tee.name;
+        if (detailPrice) detailPrice.textContent = formatTeePrice(tee.price, tee.currency);
+        if (detailDesc) detailDesc.textContent = tee.description;
+        if (detailQuality) detailQuality.textContent = tee.quality;
+        if (detailColors) detailColors.textContent = (tee.colors || []).join(', ');
+        if (detailSizes) detailSizes.textContent = (tee.sizes || []).join(', ');
+        if (rackPos) rackPos.textContent = `${tee.indexLabel} / ${padIndex(tees.length)}`;
 
-.tee-detail-specs {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-    margin-bottom: 18px;
-}
+        document.querySelectorAll('.hanger-item, .product-card').forEach(el => {
+            el.classList.toggle('active-tee', el.dataset.productId === tee.id);
+        });
 
-.spec-box {
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 12px;
-}
+        window.__selectedShopTshirt = tee;
+    }
 
-.spec-box span {
-    display: block;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-}
+    function renderHangingRack() {
+        const track = document.getElementById('hangingRackTrack');
+        if (!track) return;
 
-.spec-box strong {
-    font-size: 0.9rem;
-}
+        track.innerHTML = tees.map((tee, idx) => {
+            const dropPx = Math.min(28, idx * 2);
+            const zIndex = tees.length - idx;
+            const isActive = tee.id === selectedTeeId;
 
-.tee-detail-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
+            return `
+                <button
+                    type="button"
+                    class="hanger-item ${isActive ? 'active-tee' : ''}"
+                    style="--rack-drop: ${dropPx}px; z-index: ${isActive ? 30 : zIndex};"
+                    data-product-id="${escapeHtml(tee.id)}"
+                    data-select-tee="${escapeHtml(tee.id)}"
+                >
+                    <span class="hanger-hook" aria-hidden="true"></span>
+                    <span class="hanger-index">#${escapeHtml(tee.indexLabel)}</span>
+                    <div class="hanger-img-box">
+                        <img src="${escapeHtml(getTeeImage(tee))}" alt="${escapeHtml(tee.name)}" loading="lazy">
+                    </div>
+                    <strong class="hanger-title">${escapeHtml(tee.name)}</strong>
+                    <span class="hanger-meta">${escapeHtml(tee.quality)}</span>
+                    <span class="hanger-price">${formatTeePrice(tee.price, tee.currency)}</span>
+                </button>
+            `;
+        }).join('');
+    }
 
-/* شبكة باقي القمصان المفهرسة */
-.product-controls,
-.products-toolbar,
-.products-grid {
-    display: grid;
-    gap: 16px;
-}
+    function createProductCard(tee) {
+        if (!tee) return '';
+        const pid = escapeHtml(tee.id);
+        const imgUrl = escapeHtml(getTeeImage(tee));
 
-.product-controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-}
+        return `
+            <article
+                class="product-card ${tee.id === selectedTeeId ? 'active-tee' : ''}"
+                data-product-id="${pid}"
+                data-cart-animation-id="${pid}"
+                data-tee-index="${tee.index}"
+                data-category="${escapeHtml(tee.category)}"
+                data-editable="product_${pid}"
+                data-editable-type="product"
+            >
+                <div class="product-image-wrapper">
+                    <span class="product-badge" data-product-id="${pid}" data-product-field="badge">
+                        #${escapeHtml(tee.indexLabel)}
+                    </span>
+                    <img
+                        class="product-image"
+                        src="${imgUrl}"
+                        alt="${escapeHtml(tee.name)}"
+                        loading="lazy"
+                        data-product-id="${pid}"
+                        data-product-field="image"
+                        data-editable="product_${pid}_image"
+                        data-editable-type="image"
+                    >
+                    <div class="product-overlay">
+                        <button type="button" class="quick-view-button" data-select-tee="${pid}">
+                            Details
+                        </button>
+                        <button type="button" class="add-cart-button" data-cart-id="${pid}" data-product-id="${pid}">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
 
-.filter-button,
-.filter-reset,
-.product-sort {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 8px 14px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-}
+                <div class="product-info">
+                    <div class="product-category" data-product-id="${pid}" data-product-field="quality">
+                        ${escapeHtml(tee.quality)}
+                    </div>
+                    <h3 class="product-name" data-product-id="${pid}" data-product-field="name">
+                        ${escapeHtml(tee.name)}
+                    </h3>
+                    <div class="product-bottom">
+                        <span class="product-price" data-product-id="${pid}" data-product-field="price">
+                            ${formatTeePrice(tee.price, tee.currency)}
+                        </span>
+                    </div>
+                </div>
+            </article>
+        `;
+    }
 
-.filter-button.active {
-    background: var(--accent);
-    color: #061018;
-    border-color: var(--accent);
-}
+    function renderProducts(container, list = tees) {
+        const el = typeof container === 'string' ? document.querySelector(container) : container;
+        const emptyEl = document.getElementById('productsEmpty');
+        const countEl = document.querySelector('[data-products-count]');
 
-.products-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-}
+        if (countEl) countEl.textContent = String(list.length);
+        if (!el) return;
 
-.products-search {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1 1 280px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 10px 14px;
-}
+        if (!list.length) {
+            el.innerHTML = '';
+            if (emptyEl) emptyEl.hidden = false;
+            return;
+        }
 
-.products-search input {
-    width: 100%;
-    background: transparent;
-    border: none;
-    outline: none;
-}
+        if (emptyEl) emptyEl.hidden = true;
+        el.innerHTML = list.map(createProductCard).join('');
+    }
 
-.products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-}
+    function updateTee(id, changes = {}) {
+        const tee = getTeeById(id);
+        if (!tee || !changes || typeof changes !== 'object') return null;
 
-.product-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    cursor: pointer;
-}
+        Object.assign(tee, changes);
+        renderHangingRack();
+        if (window.ShopTshirtFilters && typeof window.ShopTshirtFilters.refresh === 'function') {
+            window.ShopTshirtFilters.refresh();
+        } else {
+            renderProducts('#products-grid', tees);
+        }
+        if (selectedTeeId === tee.id) {
+            updateDetailAndSpotlight(tee);
+        }
+        return tee;
+    }
 
-.product-card.active-tee {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 1px var(--accent);
-}
+    function updateTeeField(id, field, value) {
+        const tee = getTeeById(id);
+        if (!tee || !field) return null;
 
-.product-image-wrapper {
-    position: relative;
-    background: var(--bg-soft);
-    height: 180px;
-}
+        if (field === 'price' || field === 'oldPrice' || field === 'index') {
+            const num = Number(value);
+            if (Number.isFinite(num)) value = num;
+        }
+        if ((field === 'colors' || field === 'sizes') && typeof value === 'string') {
+            value = value.split(',').map(s => s.trim()).filter(Boolean);
+        }
+        if (field === 'image') {
+            tee.resolvedImage = value;
+            tee.image = value;
+        } else {
+            tee[field] = value;
+        }
 
-.product-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
+        renderHangingRack();
+        if (window.ShopTshirtFilters && typeof window.ShopTshirtFilters.refresh === 'function') {
+            window.ShopTshirtFilters.refresh();
+        } else {
+            renderProducts('#products-grid', tees);
+        }
+        if (selectedTeeId === tee.id) {
+            updateDetailAndSpotlight(tee);
+        }
+        return tee;
+    }
 
-.product-badge {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: rgba(11, 11, 15, 0.85);
-    color: var(--accent);
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 0.72rem;
-    font-weight: 800;
-}
+    let scrollBound = false;
+    function bindScrollRackMotion() {
+        if (scrollBound) return;
+        const track = document.getElementById('hangingRackTrack');
+        if (!track) return;
+        scrollBound = true;
 
-.product-overlay {
-    display: flex;
-    gap: 8px;
-    padding: 10px;
-    background: var(--bg-soft);
-}
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(() => {
+                const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+                const progress = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+                const maxShift = Math.max(0, track.scrollWidth - track.clientWidth);
+                track.scrollLeft = progress * maxShift;
 
-.quick-view-button,
-.add-cart-button {
-    flex: 1;
-    padding: 8px 10px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--bg-card);
-    font-size: 0.78rem;
-    font-weight: 700;
-    cursor: pointer;
-}
+                const activeIdx = Math.min(
+                    tees.length,
+                    Math.max(1, Math.round(progress * (tees.length - 1)) + 1)
+                );
+                const teeByScroll = getTeeByIndex(activeIdx);
+                if (teeByScroll && !window.__manualTeeLock) {
+                    updateDetailAndSpotlight(teeByScroll);
+                }
+                ticking = false;
+            });
+        }, { passive: true });
+    }
 
-.add-cart-button {
-    background: var(--accent);
-    color: #061018;
-    border-color: var(--accent);
-}
+    let eventsBound = false;
+    function bindEvents() {
+        if (eventsBound) return;
+        eventsBound = true;
 
-.product-info {
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
+        window.addEventListener('message', event => {
+            const msg = event.data;
+            if (!msg || typeof msg !== 'object') return;
 
-.product-category {
-    font-size: 0.76rem;
-    color: var(--text-muted);
-}
+            if (msg.type === 'SET_PRODUCT') {
+                updateTee(msg.productId || msg.id, msg.product || msg.data || msg.changes || {});
+            } else if (msg.type === 'SET_PRODUCT_FIELD') {
+                updateTeeField(msg.productId || msg.id, msg.field, msg.value);
+            } else if (msg.type === 'SELECT_TEE_INDEX') {
+                const target = getTeeByIndex(msg.index);
+                if (target) updateDetailAndSpotlight(target);
+            }
+        });
 
-.product-name {
-    font-size: 0.96rem;
-    font-weight: 800;
-}
+        document.addEventListener('click', event => {
+            const trigger = event.target.closest('[data-select-tee], .product-card');
+            if (trigger && !event.target.closest('.add-cart-button')) {
+                const id = trigger.dataset.selectTee || trigger.dataset.productId;
+                const found = getTeeById(id);
+                if (found) {
+                    window.__manualTeeLock = true;
+                    updateDetailAndSpotlight(found);
+                }
+            }
 
-.product-price {
-    font-size: 1.04rem;
-    font-weight: 900;
-    color: #4ade80;
-}
+            const idxTrigger = event.target.closest('[data-select-index]');
+            if (idxTrigger) {
+                const found = getTeeByIndex(idxTrigger.dataset.selectIndex);
+                if (found) {
+                    window.__manualTeeLock = true;
+                    updateDetailAndSpotlight(found);
+                }
+            }
 
-.products-empty {
-    text-align: center;
-    padding: 40px 20px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    margin-top: 16px;
-}
+            if (event.target.closest('#rackPrevBtn')) {
+                const current = getTeeById(selectedTeeId) || tees[0];
+                const prevIdx = current.index > 1 ? current.index - 1 : tees.length;
+                window.__manualTeeLock = true;
+                updateDetailAndSpotlight(getTeeByIndex(prevIdx));
+            }
+
+            if (event.target.closest('#rackNextBtn')) {
+                const current = getTeeById(selectedTeeId) || tees[0];
+                const nextIdx = current.index < tees.length ? current.index + 1 : 1;
+                window.__manualTeeLock = true;
+                updateDetailAndSpotlight(getTeeByIndex(nextIdx));
+            }
+        });
+    }
+
+    function bootTees() {
+        bindEvents();
+        renderHangingRack();
+        if (window.ShopTshirtFilters && typeof window.ShopTshirtFilters.refresh === 'function') {
+            window.ShopTshirtFilters.refresh();
+        } else {
+            renderProducts('#products-grid', tees);
+        }
+        updateDetailAndSpotlight(getTeeById(selectedTeeId) || tees[0]);
+        bindScrollRackMotion();
+    }
+
+    window.VelocityProducts = {
+        MAX_TEES,
+        getProducts: () => tees.map(t => ({ ...t })),
+        getProductById: getTeeById,
+        getProductByIndex: getTeeByIndex,
+        renderProducts,
+        renderHangingRack,
+        selectTee: updateDetailAndSpotlight,
+        updateProduct: updateTee,
+        updateProductField: updateTeeField,
+        searchProducts: q => {
+            const s = normalizeText(q);
+            if (!s) return [...tees];
+            return tees.filter(t =>
+                normalizeText(t.name).includes(s) ||
+                normalizeText(t.quality).includes(s) ||
+                normalizeText(`#${t.indexLabel}`).includes(s) ||
+                String(t.index) === s
+            );
+        }
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bootTees, { once: true });
+    } else {
+        bootTees();
+    }
+
+    fetch(IMAGE_MANIFEST_URL, { cache: 'no-cache' })
+        .then(r => (r.ok ? r.json() : null))
+        .then(data => {
+            if (data && data.products) {
+                imageManifest = data;
+                renderHangingRack();
+                renderProducts('#products-grid', tees);
+                updateDetailAndSpotlight(getTeeById(selectedTeeId) || tees[0]);
+            }
+        })
+        .catch(() => {});
+})();
