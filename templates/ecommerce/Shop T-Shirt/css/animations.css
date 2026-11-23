@@ -1,1 +1,7 @@
+/* css/animations.css */
+[data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: opacity 0.45s ease, transform 0.45s ease;
+}
 
