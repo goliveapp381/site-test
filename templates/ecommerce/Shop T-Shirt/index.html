@@ -2,900 +2,177 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta
         name="description"
-        content="Shop T-Shirt - Interactive hanging rack showcase up to 40 t-shirts."
+        content="Shop T-Shirt - Large monitor interactive t-shirt rack."
         data-editable="meta_description"
         data-editable-type="text"
     >
-
     <meta
         name="theme-color"
         content="#0b0b0f"
         data-editable="theme_color"
         data-editable-type="color"
     >
-
-    <title
-        data-editable="page_title"
-        data-editable-type="text"
-    >
+    <title data-editable="page_title" data-editable-type="text">
         Shop T-Shirt
     </title>
 
-
-    <!-- ==================================================
-         MAIN STYLES
-    =================================================== -->
-
-    <link
-        rel="stylesheet"
-        href="css/style.css"
-    >
-
-    <link
-        rel="stylesheet"
-        href="css/products.css"
-    >
-
-    <link
-        rel="stylesheet"
-        href="css/velocity-effects.css"
-    >
-
-    <link
-        rel="stylesheet"
-        href="css/animations.css"
-    >
-
-    <link
-        rel="stylesheet"
-        href="css/responsive.css"
-    >
-
-    <link
-        rel="stylesheet"
-        href="css/velocity-background.css"
-    >
-
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/products.css">
+    <link rel="stylesheet" href="css/velocity-effects.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/velocity-background.css">
 </head>
 
+<body data-template="shop-tshirt" data-template-version="1.0.0">
 
-<body
-    data-template="shop-tshirt"
-    data-template-version="1.0.0"
->
-
-
-<!-- ==================================================
-     PAGE LOADER
-=================================================== -->
-
-<div
-    id="pageLoader"
-    class="page-loader"
-    aria-hidden="true"
->
-
-    <div
-        class="loader-logo"
-        data-editable="loader_logo"
-        data-editable-type="text"
-    >
-        SHOP T-SHIRT
-    </div>
-
-    <div class="loader-line">
-        <span></span>
-    </div>
-
-</div>
-
-
-<!-- ==================================================
-     ANNOUNCEMENT BAR
-=================================================== -->
-
-<div class="announcement-bar">
-
-    <div class="container announcement-inner">
-
-        <span
-            data-editable="announcement_text"
-            data-editable-type="text"
-        >
-            Scroll to move tees along the rack • Up to 40 indexed pieces
-        </span>
-
-        <a
-            href="#rack-showcase"
-            data-scroll-to="#rack-showcase"
-            data-editable="announcement_button"
-            data-editable-type="text"
-        >
-            Open Rack
-        </a>
-
-    </div>
-
-</div>
-
-
-<!-- ==================================================
-     HEADER
-=================================================== -->
-
-<header
-    id="mainHeader"
-    class="main-header"
-    data-navbar
->
-
-    <div class="container header-inner">
-
-        <a
-            href="#home"
-            class="brand"
-            aria-label="Shop T-Shirt home"
-            data-scroll-to="#home"
-            data-editable="brand_link"
-            data-editable-type="url"
-        >
-
-            <span class="brand-mark">
-                S
-            </span>
-
-            <span
-                class="brand-text"
-                data-editable="brand_name"
-                data-editable-type="text"
-            >
-                SHOP T-SHIRT
-            </span>
-
-        </a>
-
-
-        <nav
-            class="desktop-nav"
-            aria-label="Main navigation"
-        >
-
-            <a
-                href="#home"
-                class="nav-link active"
-                data-scroll-to="#home"
-                data-editable="nav_home"
-                data-editable-type="text"
-            >
-                Home
-            </a>
-
-            <a
-                href="#rack-showcase"
-                class="nav-link"
-                data-scroll-to="#rack-showcase"
-                data-editable="nav_rack"
-                data-editable-type="text"
-            >
-                Rack
-            </a>
-
-            <a
-                href="#products"
-                class="nav-link"
-                data-scroll-to="#products"
-                data-editable="nav_shop"
-                data-editable-type="text"
-            >
-                All Tees
-            </a>
-
-            <a
-                href="#trending"
-                class="nav-link"
-                data-scroll-to="#trending"
-                data-editable="nav_trending"
-                data-editable-type="text"
-            >
-                Trending
-            </a>
-
-            <a
-                href="#sale"
-                class="nav-link"
-                data-scroll-to="#sale"
-                data-editable="nav_sale"
-                data-editable-type="text"
-            >
-                Drops
-            </a>
-
-        </nav>
-
-
-        <div class="header-actions">
-
-            <button
-                id="searchButton"
-                class="icon-button"
-                type="button"
-                aria-label="Search"
-                data-search-open
-            >
-                <span>⌕</span>
-            </button>
-
-            <button
-                id="wishlistButton"
-                class="icon-button"
-                type="button"
-                aria-label="Wishlist"
-                aria-haspopup="dialog"
-                data-wishlist-open
-            >
-                <span>♡</span>
-                <span
-                    id="wishlistCount"
-                    class="action-count"
-                    data-wishlist-count
-                >
-                    0
+    <header class="main-header" id="mainHeader" data-navbar>
+        <div class="container header-inner">
+            <a href="#top" class="brand" data-editable="brand_link" data-editable-type="url">
+                <span class="brand-mark">S</span>
+                <span class="brand-text" data-editable="brand_name" data-editable-type="text">
+                    SHOP T-SHIRT
                 </span>
-            </button>
+            </a>
 
-            <button
-                id="cartButton"
-                class="icon-button cart-button"
-                type="button"
-                aria-label="Shopping cart"
-                data-cart-open
-            >
-                <span>🛒</span>
-                <span
-                    id="cartCount"
-                    class="action-count"
-                    data-cart-count
-                >
-                    0
-                </span>
-            </button>
-
-            <button
-                id="mobileMenuButton"
-                class="mobile-menu-button"
-                type="button"
-                aria-label="Open menu"
-                aria-expanded="false"
-                aria-controls="mobileMenu"
-                data-mobile-menu
-            >
-                ☰
-            </button>
-
-        </div>
-
-    </div>
-
-</header>
-
-
-<!-- ==================================================
-     MOBILE MENU
-=================================================== -->
-
-<div
-    id="mobileMenu"
-    class="mobile-menu"
-    aria-hidden="true"
->
-    <div class="mobile-menu-inner">
-        <button
-            id="mobileMenuClose"
-            class="mobile-menu-close"
-            type="button"
-            aria-label="Close menu"
-            data-mobile-menu-close
-        >
-            ×
-        </button>
-
-        <nav class="mobile-nav" aria-label="Mobile navigation">
-            <a href="#home" data-scroll-to="#home" data-editable="mobile_nav_home" data-editable-type="text">Home</a>
-            <a href="#rack-showcase" data-scroll-to="#rack-showcase" data-editable="mobile_nav_rack" data-editable-type="text">Rack</a>
-            <a href="#products" data-scroll-to="#products" data-editable="mobile_nav_shop" data-editable-type="text">All Tees</a>
-            <a href="#trending" data-scroll-to="#trending" data-editable="mobile_nav_trending" data-editable-type="text">Trending</a>
-            <a href="#sale" data-scroll-to="#sale" data-editable="mobile_nav_sale" data-editable-type="text">Drops</a>
-        </nav>
-    </div>
-</div>
-
-
-<!-- ==================================================
-     SEARCH OVERLAY
-=================================================== -->
-
-<div
-    id="searchOverlay"
-    class="search-overlay"
-    aria-hidden="true"
->
-    <div class="search-overlay-inner">
-        <button
-            id="closeSearch"
-            class="search-close"
-            type="button"
-            aria-label="Close search"
-            data-search-close
-        >
-            ×
-        </button>
-
-        <p class="search-eyebrow" data-editable="search_eyebrow" data-editable-type="text">
-            SEARCH SHOP T-SHIRT
-        </p>
-
-        <h2 data-editable="search_title" data-editable-type="text">
-            Find your tee by index, title, or quality.
-        </h2>
-
-        <div class="search-box">
-            <span class="search-box-icon" aria-hidden="true">⌕</span>
-            <input
-                id="searchInput"
-                type="search"
-                placeholder="Search tees..."
-                autocomplete="off"
-                aria-label="Search products"
-                data-product-search
-                data-editable="search_placeholder"
-                data-editable-type="text"
-            >
-            <button
-                id="searchSubmit"
-                type="button"
-                data-editable="search_button"
-                data-editable-type="text"
-            >
-                Search
-            </button>
-        </div>
-
-        <div id="searchResults" class="search-results" aria-live="polite"></div>
-    </div>
-</div>
-
-
-<!-- ==================================================
-     MAIN
-=================================================== -->
-
-<main id="home">
-
-
-    <!-- =================================================
-         HERO
-    ================================================== -->
-
-    <section
-        class="hero-section"
-        data-editable="hero_section"
-        data-editable-type="section"
-    >
-        <div class="hero-background-shape shape-one" data-parallax="0.12"></div>
-        <div class="hero-background-shape shape-two" data-parallax="0.08"></div>
-
-        <div class="container hero-grid">
-
-            <div class="hero-content" data-reveal="up">
-
-                <p class="hero-kicker" data-editable="hero_kicker" data-editable-type="text">
-                    INTERACTIVE RACK / UP TO 40 TEES
-                </p>
-
-                <h1 class="hero-title" data-editable="hero_title" data-editable-type="text">
-                    <span data-editable="hero_title_main" data-editable-type="text">
-                        SHOP
-                    </span>
-                    <span class="hero-title-outline" data-editable="hero_title_outline" data-editable-type="text">
-                        T-SHIRT.
-                    </span>
-                </h1>
-
-                <p class="hero-description" data-editable="hero_description" data-editable-type="textarea">
-                    Every scroll moves garments along the hanging rail. Select any t-shirt by index to inspect its title, price, quality, and image.
-                </p>
-
-                <div class="hero-buttons">
-                    <a
-                        href="#rack-showcase"
-                        class="primary-button"
-                        data-scroll-to="#rack-showcase"
-                        data-magnetic
-                        data-editable="hero_primary_button"
-                        data-editable-type="text"
-                    >
-                        View Hanging Rack
-                        <span>→</span>
-                    </a>
-
-                    <a
-                        href="#products"
-                        class="secondary-button"
-                        data-scroll-to="#products"
-                        data-editable="hero_secondary_button"
-                        data-editable-type="text"
-                    >
-                        All 40 Slots
-                    </a>
-                </div>
-
-                <div class="hero-stats">
-                    <div class="hero-stat">
-                        <strong data-editable="hero_stat_max" data-editable-type="text">40</strong>
-                        <span data-editable="hero_stat_max_label" data-editable-type="text">Indexed Tee Slots</span>
-                    </div>
-                    <div class="hero-stat">
-                        <strong data-editable="hero_stat_quality" data-editable-type="text">GSM / Fit</strong>
-                        <span data-editable="hero_stat_quality_label" data-editable-type="text">Editable Quality</span>
-                    </div>
-                    <div class="hero-stat">
-                        <strong data-editable="hero_stat_live" data-editable-type="text">Live</strong>
-                        <span data-editable="hero_stat_live_label" data-editable-type="text">Scroll Rack Motion</span>
-                    </div>
-                </div>
-
+            <div class="header-actions">
+                <button type="button" class="icon-button" aria-label="Wishlist" data-wishlist-open>
+                    <span>♡</span>
+                    <span class="action-count" data-wishlist-count>0</span>
+                </button>
+                <button type="button" class="icon-button" aria-label="Cart" data-cart-open>
+                    <span>🛒</span>
+                    <span class="action-count" data-cart-count>0</span>
+                </button>
             </div>
+        </div>
+    </header>
 
-
-            <!-- ACTIVE TEE SPOTLIGHT -->
-
-            <div class="hero-visual" data-reveal="scale">
-                <div class="hero-orbit orbit-one" data-parallax="0.18"></div>
-                <div class="hero-orbit orbit-two" data-parallax="0.10"></div>
-
-                <div class="hero-product-card" data-tilt>
-                    <div class="hero-product-glow"></div>
-
-                    <div
-                        class="hero-product-image"
-                        data-editable="hero_product_image"
-                        data-editable-type="image"
-                    >
-                        <img
-                            id="activeTeeImage"
-                            src=""
-                            alt="Selected T-Shirt"
-                            class="spotlight-tee-img"
-                        >
-                    </div>
-
-                    <div class="hero-product-info">
-                        <span id="activeTeeIndexBadge" data-editable="hero_product_badge" data-editable-type="text">
-                            INDEX #01
-                        </span>
-
-                        <strong id="activeTeeTitle" data-editable="hero_product_name" data-editable-type="text">
-                            Studio Heavy Tee #01
-                        </strong>
-
-                        <div id="activeTeePrice" class="hero-product-price" data-editable="hero_product_price" data-editable-type="text">
-                            $39
+    <main id="top">
+        <!-- شاشة حاسوب كبيرة في رأس الموقع -->
+        <section class="monitor-hero" id="monitorShowcase" data-editable="monitor_section" data-editable-type="section">
+            <div class="container">
+                <div class="monitor-frame">
+                    <!-- شاشة العرض -->
+                    <div class="monitor-screen">
+                        <div class="monitor-top-bar">
+                            <span class="monitor-brand" data-editable="monitor_title" data-editable-type="text">
+                                SHOP T-SHIRT — INTERACTIVE RACK
+                            </span>
+                            <span class="monitor-index-pill" id="rackPositionLabel">01 / 40</span>
                         </div>
 
-                        <p id="activeTeeQuality" class="spotlight-tee-quality">
-                            320 GSM Combed Cotton • Boxy Fit
+                        <div class="monitor-body">
+                            <!-- سكة التيشيرتات المعلقة (تتحرك مع السكرول) -->
+                            <div class="monitor-rack-area">
+                                <div class="monitor-rail" aria-hidden="true"></div>
+                                <div class="hanging-rack-track" id="hangingRackTrack"></div>
+                            </div>
+
+                            <!-- تفاصيل القميص المعين عليه -->
+                            <aside class="monitor-details-pane" id="teeDetailPanel" aria-live="polite">
+                                <span class="detail-tag" id="detailIndexLabel">INDEX #01</span>
+                                <h1 class="detail-title" id="detailTitle">Studio Heavy Tee #01</h1>
+                                <div class="detail-price" id="detailPrice">$39</div>
+                                <p class="detail-desc" id="detailDescription">
+                                    320 GSM combed cotton t-shirt with clean drape.
+                                </p>
+
+                                <div class="detail-meta-list">
+                                    <div>
+                                        <span>Quality</span>
+                                        <strong id="detailQuality">320 GSM Combed Cotton</strong>
+                                    </div>
+                                    <div>
+                                        <span>Colors</span>
+                                        <strong id="detailColors">Black, Bone, Slate</strong>
+                                    </div>
+                                    <div>
+                                        <span>Sizes</span>
+                                        <strong id="detailSizes">S, M, L, XL</strong>
+                                    </div>
+                                </div>
+
+                                <div class="detail-actions">
+                                    <button type="button" class="primary-button" id="detailAddCartBtn">
+                                        Add to Cart
+                                    </button>
+                                    <button type="button" class="secondary-button" id="detailAddWishlistBtn">
+                                        ♡ Wishlist
+                                    </button>
+                                </div>
+                            </aside>
+                        </div>
+
+                        <div class="monitor-footer-bar">
+                            <button type="button" class="filter-button" id="rackPrevBtn">← Prev</button>
+                            <span class="monitor-hint">Scroll down to move tees along the rack</span>
+                            <button type="button" class="filter-button" id="rackNextBtn">Next →</button>
+                        </div>
+                    </div>
+
+                    <!-- حامل وقاعدة الشاشة -->
+                    <div class="monitor-stand-neck" aria-hidden="true"></div>
+                    <div class="monitor-stand-base" aria-hidden="true"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- شبكة التيشيرتات المفهرسة حتى 40 -->
+        <section class="products-section section" id="products" data-editable="products_section" data-editable-type="section">
+            <div class="container">
+                <div class="section-heading">
+                    <div>
+                        <p class="section-kicker">INDEXED TEES (01 - 40)</p>
+                        <h2>All T-Shirts</h2>
+                        <p class="products-result-text">
+                            <span data-products-count>0</span> tees
                         </p>
                     </div>
-                </div>
-            </div>
 
-        </div>
-    </section>
-
-
-    <!-- =================================================
-         HANGING RACK SHOWCASE (SCROLL-DRIVEN RAIL)
-    ================================================== -->
-
-    <section
-        id="rack-showcase"
-        class="rack-section section"
-        data-editable="rack_section"
-        data-editable-type="section"
-    >
-        <div class="container">
-
-            <div class="section-heading" data-reveal="up">
-                <div>
-                    <p class="section-kicker" data-editable="rack_kicker" data-editable-type="text">
-                        SCROLL TO MOVE ON RAIL
-                    </p>
-                    <h2 data-editable="rack_title" data-editable-type="text">
-                        Hanging T-Shirt Rack
-                    </h2>
-                </div>
-
-                <div class="rack-controls">
-                    <button type="button" class="filter-button" id="rackPrevBtn">← Prev</button>
-                    <span id="rackPositionLabel" class="rack-pos-label">01 / 40</span>
-                    <button type="button" class="filter-button" id="rackNextBtn">Next →</button>
-                </div>
-            </div>
-
-            <!-- HANGING RAIL -->
-            <div class="hanging-rack-stage" id="hangingRackStage">
-                <div class="rack-top-bar" aria-hidden="true"></div>
-                <div class="hanging-rack-track" id="hangingRackTrack"></div>
-            </div>
-
-            <!-- SELECTED GARMENT DETAIL BOX -->
-            <div class="tee-detail-panel" id="teeDetailPanel" aria-live="polite">
-                <div class="tee-detail-head">
-                    <div>
-                        <span class="tee-detail-index" id="detailIndexLabel">INDEX #01</span>
-                        <h3 id="detailTitle">Studio Heavy Tee #01</h3>
-                    </div>
-                    <div class="tee-detail-price" id="detailPrice">$39</div>
-                </div>
-
-                <p class="tee-detail-desc" id="detailDescription">
-                    High-density combed cotton t-shirt with reinforced neckline and structured drape.
-                </p>
-
-                <div class="tee-detail-specs">
-                    <div class="spec-box">
-                        <span>Quality / Fabric</span>
-                        <strong id="detailQuality">320 GSM Combed Cotton</strong>
-                    </div>
-                    <div class="spec-box">
-                        <span>Colors</span>
-                        <strong id="detailColors">Obsidian, Bone, Slate</strong>
-                    </div>
-                    <div class="spec-box">
-                        <span>Sizes</span>
-                        <strong id="detailSizes">S, M, L, XL</strong>
+                    <div class="product-controls">
+                        <input
+                            type="search"
+                            class="search-inline"
+                            placeholder="Search #01, name, or quality..."
+                            aria-label="Search tees"
+                            data-product-search
+                        >
+                        <button type="button" class="filter-reset" data-filter-reset>Reset</button>
                     </div>
                 </div>
 
-                <div class="tee-detail-actions">
-                    <button type="button" class="primary-button" id="detailAddCartBtn">
-                        Add Tee to Cart
-                    </button>
-                    <button type="button" class="secondary-button" id="detailAddWishlistBtn">
-                        ♡ Save to Wishlist
-                    </button>
+                <div
+                    id="products-grid"
+                    class="products-grid"
+                    data-editable="products"
+                    data-editable-type="products"
+                    data-product-collection="true"
+                ></div>
+
+                <div id="productsEmpty" class="products-empty" hidden>
+                    <h3>No t-shirts found</h3>
+                    <button type="button" class="secondary-button" data-filter-reset>Reset</button>
                 </div>
             </div>
+        </section>
+    </main>
 
-        </div>
-    </section>
-
-
-    <!-- =================================================
-         PRODUCTS GRID (ALL INDEXED TEES UP TO 40)
-    ================================================== -->
-
-    <section
-        id="products"
-        class="products-section section"
-        data-editable="products_section"
-        data-editable-type="section"
-    >
-        <div class="container">
-
-            <div class="section-heading" data-reveal="up">
-                <div>
-                    <p class="section-kicker" data-editable="products_kicker" data-editable-type="text">
-                        INDEXED CATALOG (01 - 40)
-                    </p>
-                    <h2 data-editable="products_title" data-editable-type="text">
-                        All T-Shirts
-                    </h2>
-                    <p class="products-result-text">
-                        <span data-products-count>0</span>
-                        <span data-editable="products_count_label" data-editable-type="text">t-shirts</span>
-                    </p>
-                </div>
-
-                <div class="product-controls">
-                    <button class="filter-button active" type="button" data-category-filter="all">All</button>
-                    <button class="filter-button" type="button" data-category-filter="heavyweight">Heavyweight</button>
-                    <button class="filter-button" type="button" data-category-filter="boxy">Boxy Fit</button>
-                    <button class="filter-button" type="button" data-category-filter="graphic">Graphic</button>
-
-                    <select class="product-sort" aria-label="Sort tees" data-product-sort>
-                        <option value="index-asc">Index: 01 → 40</option>
-                        <option value="index-desc">Index: 40 → 01</option>
-                        <option value="price-low">Price: Low to High</option>
-                        <option value="price-high">Price: High to Low</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="products-toolbar" data-reveal="up">
-                <div class="products-search">
-                    <span aria-hidden="true">⌕</span>
-                    <input
-                        type="search"
-                        placeholder="Search by index (#01), title, or quality..."
-                        autocomplete="off"
-                        aria-label="Search tees"
-                        data-product-search
-                    >
-                </div>
-                <button type="button" class="filter-reset" data-filter-reset>
-                    Reset filters
-                </button>
-            </div>
-
-            <div
-                id="products-grid"
-                class="products-grid"
-                data-reveal="up"
-                aria-live="polite"
-                data-editable="products"
-                data-editable-type="products"
-                data-product-collection="true"
-            ></div>
-
-            <div id="productsEmpty" class="products-empty" hidden>
-                <div class="empty-icon">×</div>
-                <h3>No t-shirts found</h3>
-                <p>Try another index, search term, or filter.</p>
-                <button type="button" class="secondary-button" data-filter-reset>
-                    Reset filters
-                </button>
-            </div>
-
-        </div>
-    </section>
-
-
-    <!-- =================================================
-         SALE / DROPS
-    ================================================== -->
-
-    <section
-        id="sale"
-        class="promo-section section"
-        data-editable="sale_section"
-        data-editable-type="section"
-    >
-        <div class="container">
-            <div class="promo-card" data-reveal="scale">
-                <div class="promo-content">
-                    <p class="section-kicker" data-editable="sale_kicker" data-editable-type="text">
-                        40-SLOT COLLECTION
-                    </p>
-                    <h2 data-editable="sale_title" data-editable-type="text">
-                        Up to 40 indexed t-shirts ready to customize.
-                    </h2>
-                    <p data-editable="sale_description" data-editable-type="textarea">
-                        Manage titles, prices, images, and fabric quality from the Edit page linked to config.json.
-                    </p>
-                    <a
-                        href="#rack-showcase"
-                        class="primary-button"
-                        data-scroll-to="#rack-showcase"
-                        data-magnetic
-                        data-editable="sale_button"
-                        data-editable-type="text"
-                    >
-                        Inspect Rack
-                        <span>→</span>
-                    </a>
-                </div>
-
-                <div class="promo-visual" data-parallax="0.10">
-                    <div class="promo-circle circle-one"></div>
-                    <div class="promo-circle circle-two"></div>
-                    <div class="promo-product" data-editable="sale_visual" data-editable-type="text">
-                        40 TEES
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-
-    <!-- =================================================
-         TRENDING
-    ================================================== -->
-
-    <section
-        id="trending"
-        class="trending-section section"
-        data-editable="trending_section"
-        data-editable-type="section"
-    >
-        <div class="container">
-            <div class="section-heading" data-reveal="up">
-                <div>
-                    <p class="section-kicker" data-editable="trending_kicker" data-editable-type="text">
-                        HIGHLIGHTED SLOTS
-                    </p>
-                    <h2 data-editable="trending_title" data-editable-type="text">
-                        Featured Rack Picks
-                    </h2>
-                </div>
-            </div>
-
-            <div class="trending-grid">
-                <article class="trend-card trend-large" data-reveal="up" data-tilt>
-                    <div class="trend-content">
-                        <span data-editable="trending_1_label" data-editable-type="text">SLOT #01</span>
-                        <h3 data-editable="trending_1_title" data-editable-type="text">Studio Heavy Tee</h3>
-                        <a href="#teeDetailPanel" data-select-index="1" data-editable="trending_1_button" data-editable-type="text">
-                            Inspect #01 →
-                        </a>
-                    </div>
-                    <div class="trend-art" data-editable="trending_1_art" data-editable-type="text">#01</div>
-                </article>
-
-                <article class="trend-card" data-reveal="up" data-tilt>
-                    <div class="trend-content">
-                        <span data-editable="trending_2_label" data-editable-type="text">SLOT #02</span>
-                        <h3 data-editable="trending_2_title" data-editable-type="text">Boxy Rack Tee</h3>
-                        <a href="#teeDetailPanel" data-select-index="2" data-editable="trending_2_button" data-editable-type="text">
-                            Inspect #02 →
-                        </a>
-                    </div>
-                    <div class="trend-art" data-editable="trending_2_art" data-editable-type="text">#02</div>
-                </article>
-
-                <article class="trend-card" data-reveal="up" data-tilt>
-                    <div class="trend-content">
-                        <span data-editable="trending_3_label" data-editable-type="text">SLOT #03</span>
-                        <h3 data-editable="trending_3_title" data-editable-type="text">Archive Rail Tee</h3>
-                        <a href="#teeDetailPanel" data-select-index="3" data-editable="trending_3_button" data-editable-type="text">
-                            Inspect #03 →
-                        </a>
-                    </div>
-                    <div class="trend-art" data-editable="trending_3_art" data-editable-type="text">#03</div>
-                </article>
-            </div>
-        </div>
-    </section>
-
-
-    <!-- =================================================
-         NEWSLETTER
-    ================================================== -->
-
-    <section
-        class="newsletter-section section"
-        data-editable="newsletter_section"
-        data-editable-type="section"
-    >
-        <div class="container">
-            <div class="newsletter-card" data-reveal="up">
-                <div>
-                    <p class="section-kicker" data-editable="newsletter_kicker" data-editable-type="text">
-                        DROP ALERTS
-                    </p>
-                    <h2 data-editable="newsletter_title" data-editable-type="text">
-                        New t-shirt releases.
-                    </h2>
-                    <p data-editable="newsletter_description" data-editable-type="textarea">
-                        Get notified when new indexed t-shirts drop on the rack.
-                    </p>
-                </div>
-
-                <form id="newsletterForm" class="newsletter-form">
-                    <input
-                        type="email"
-                        id="newsletterEmail"
-                        placeholder="Your email address"
-                        autocomplete="email"
-                        required
-                        data-editable="newsletter_placeholder"
-                        data-editable-type="text"
-                    >
-                    <button
-                        type="submit"
-                        class="primary-button"
-                        data-magnetic
-                        data-editable="newsletter_button"
-                        data-editable-type="text"
-                    >
-                        Subscribe
-                    </button>
-                </form>
-            </div>
-        </div>
-    </section>
-
-</main>
-
-
-<!-- ==================================================
-     FOOTER
-=================================================== -->
-
-<footer class="footer">
-    <div class="container">
-        <div class="footer-grid">
-
-            <div class="footer-brand">
-                <a href="#home" class="brand" data-scroll-to="#home" data-editable="footer_brand_link" data-editable-type="url">
-                    <span class="brand-mark">S</span>
-                    <span class="brand-text" data-editable="footer_brand_name" data-editable-type="text">SHOP T-SHIRT</span>
-                </a>
-                <p data-editable="footer_description" data-editable-type="textarea">
-                    Interactive hanging t-shirt showcase supporting up to 40 indexed garments.
-                </p>
-            </div>
-
-            <div class="footer-column">
-                <h4 data-editable="footer_shop_title" data-editable-type="text">Shop</h4>
-                <a href="#rack-showcase" data-scroll-to="#rack-showcase" data-editable="footer_rack_link" data-editable-type="text">Hanging Rack</a>
-                <a href="#products" data-scroll-to="#products" data-editable="footer_all_products" data-editable-type="text">All 40 Tees</a>
-                <a href="#trending" data-scroll-to="#trending" data-editable="footer_trending" data-editable-type="text">Trending</a>
-                <a href="#sale" data-scroll-to="#sale" data-editable="footer_sale" data-editable-type="text">Drops</a>
-            </div>
-
-            <div class="footer-column">
-                <h4 data-editable="footer_help_title" data-editable-type="text">Info</h4>
-                <a href="#" data-editable="footer_contact" data-editable-type="text">Contact</a>
-                <a href="#" data-editable="footer_shipping" data-editable-type="text">Shipping</a>
-                <a href="#" data-editable="footer_returns" data-editable-type="text">Returns</a>
-                <a href="#" data-editable="footer_faq" data-editable-type="text">FAQ</a>
-            </div>
-
-            <div class="footer-column">
-                <h4 data-editable="footer_follow_title" data-editable-type="text">Follow</h4>
-                <a href="#" data-editable="social_instagram" data-editable-type="text">Instagram</a>
-                <a href="#" data-editable="social_tiktok" data-editable-type="text">TikTok</a>
-                <a href="#" data-editable="social_facebook" data-editable-type="text">Facebook</a>
-                <a href="#" data-editable="social_pinterest" data-editable-type="text">Pinterest</a>
-            </div>
-
-        </div>
-
-        <div class="footer-bottom">
-            <span>
-                © <span data-current-year>2026</span>
-                <span data-editable="footer_copyright" data-editable-type="text">Shop T-Shirt. All rights reserved.</span>
-            </span>
-            <span data-editable="footer_platform" data-editable-type="text">Built for TemplateCraft Pro</span>
-        </div>
-    </div>
-</footer>
-
-
-<!-- ==================================================
-     GLOBAL CURSOR GLOW
-=================================================== -->
-
-<div class="cursor-glow" data-cursor-glow aria-hidden="true"></div>
-
-
-<!-- ==================================================
-     SCRIPTS
-=================================================== -->
-
-<script src="js/products.js" defer></script>
-<script src="js/cart.js" defer></script>
-<script src="js/wishlist.js" defer></script>
-<script src="js/filters.js" defer></script>
-<script src="js/animations.js" defer></script>
-
-<script src="js/velocity-core.js" defer></script>
-<script src="js/velocity-cart-ui.js" defer></script>
-<script src="js/velocity-ui.js" defer></script>
-<script src="js/app.js" defer></script>
-<script src="js/velocity-background.js" defer></script>
-<script src="js/template-bridge.js" defer></script>
-
+    <script src="js/products.js" defer></script>
+    <script src="js/cart.js" defer></script>
+    <script src="js/wishlist.js" defer></script>
+    <script src="js/filters.js" defer></script>
+    <script src="js/animations.js" defer></script>
+    <script src="js/velocity-core.js" defer></script>
+    <script src="js/velocity-cart-ui.js" defer></script>
+    <script src="js/velocity-ui.js" defer></script>
+    <script src="js/app.js" defer></script>
+    <script src="js/velocity-background.js" defer></script>
+    <script src="js/template-bridge.js" defer></script>
 </body>
+
 </html>
