@@ -1,0 +1,13 @@
+{
+  "slug": "shop-tshirt",
+  "name": "Shop T-Shirt",
+  "category": "ecommerce",
+  "version": "1.0.0",
+  "entry": "index.html",
+  "defaultEditable": {
+    "brand_name": "SHOP T-SHIRT",
+    "page_title": "Shop T-Shirt",
+    "hero_title_main": "SHOP",
+    "hero_title_outline": "T-SHIRT."
+  }
+}
