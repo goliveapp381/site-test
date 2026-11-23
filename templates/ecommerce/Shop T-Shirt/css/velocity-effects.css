@@ -1,1 +1,12 @@
+/* css/velocity-effects.css */
+.cursor-glow {
+    pointer-events: none;
+    position: fixed;
+    width: 240px;
+    height: 240px;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.12), transparent 70%);
+    transform: translate(-50%, -50%);
+    z-index: 5;
+}
 
