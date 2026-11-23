@@ -23,7 +23,7 @@
                 linear-gradient(135deg, #4ade80 0%, #166534 45%, #062814 100%);
             color: #f8fafc;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            padding: 20px 18px 80px;
+            padding: 20px 18px 40px;
             overflow-x: hidden;
         }
 
@@ -135,8 +135,8 @@
 
         .monitor-bezel {
             width: 100%;
-            aspect-ratio: 21 / 9.5;
-            min-height: 490px;
+            aspect-ratio: 21 / 9.8;
+            min-height: 510px;
             background: #14171f;
             border: 12px solid #1f2430;
             border-radius: 14px;
@@ -155,7 +155,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 16px 20px;
+            padding: 14px 18px;
         }
 
         /* العمود المائل واصل حتى للسقف العلوي للشاشة */
@@ -175,7 +175,7 @@
         /* شريط التحكم العلوي داخل الشاشة */
         .screen-top-bar {
             position: relative;
-            z-index: 5;
+            z-index: 10;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -193,13 +193,15 @@
             font-size: 0.75rem;
         }
 
-        /* مسار السكة المتراكبة داخل الشاشة */
+        /* مسار السكة: التيشيرتات متراكبة وتتبع ميلان الخط الأحمر من اليسار لليمين */
         .rack-track-wrap {
             position: relative;
-            z-index: 4;
+            z-index: 5;
             width: 100%;
+            flex: 1;
             overflow-x: auto;
-            padding: 28px 12px 12px;
+            overflow-y: hidden;
+            padding: 34px 18px 20px;
             display: flex;
             align-items: flex-start;
             scrollbar-width: thin;
@@ -207,50 +209,52 @@
 
         .rack-hanger-card {
             position: relative;
-            flex: 0 0 132px;
-            margin-right: -46px;
+            flex: 0 0 124px;
+            margin-right: -52px;
             background: #ffffff;
             border: 1px solid #cbd5e1;
             border-radius: 12px;
-            padding: 8px;
+            padding: 7px;
             text-align: left;
             cursor: pointer;
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            transform: translateY(var(--drop, 0px)) rotate(-5deg);
+            gap: 3px;
+            /* يتبع زاوية ميلان الخط وينزل تدريجياً معه */
+            transform: translateY(var(--rail-y, 0px)) rotate(24deg);
+            transform-origin: top left;
             transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
             box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
         }
 
         .rack-hanger-card:hover {
-            transform: translateY(calc(var(--drop, 0px) - 5px)) rotate(-2deg);
-            z-index: 45 !important;
+            transform: translateY(calc(var(--rail-y, 0px) - 5px)) rotate(20deg);
+            z-index: 60 !important;
         }
 
         .rack-hanger-card.active {
             border-color: #16a34a;
-            box-shadow: 0 12px 24px rgba(22, 163, 74, 0.35);
-            transform: translateY(calc(var(--drop, 0px) - 7px)) rotate(0deg) scale(1.05);
-            z-index: 50 !important;
+            box-shadow: 0 14px 26px rgba(22, 163, 74, 0.35);
+            transform: translateY(calc(var(--rail-y, 0px) - 7px)) rotate(14deg) scale(1.05);
+            z-index: 70 !important;
         }
 
         .rack-idx {
-            font-size: 0.68rem;
+            font-size: 0.66rem;
             font-weight: 900;
             color: #15803d;
         }
 
         .rack-thumb {
             width: 100%;
-            height: 78px;
+            height: 70px;
             object-fit: contain;
             background: #f8fafc;
             border-radius: 8px;
         }
 
         .rack-name {
-            font-size: 0.76rem;
+            font-size: 0.72rem;
             font-weight: 800;
             color: #0f172a;
             white-space: nowrap;
@@ -259,7 +263,7 @@
         }
 
         .rack-price {
-            font-size: 0.78rem;
+            font-size: 0.74rem;
             font-weight: 900;
             color: #15803d;
         }
@@ -267,8 +271,8 @@
         /* تفاصيل القطعة المختارة أسفل الشاشة */
         .screen-bottom-details {
             position: relative;
-            z-index: 5;
-            background: rgba(255, 255, 255, 0.92);
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.94);
             border: 1px solid #cbd5e1;
             border-radius: 12px;
             padding: 10px 14px;
@@ -328,56 +332,6 @@
             height: 14px;
             border-radius: 999px;
             background: linear-gradient(180deg, #2b3140, #191d26);
-        }
-
-        /* شبكة باقي الـ 40 تيشيرت تحت الشاشة */
-        .below-catalog {
-            width: 100%;
-            margin-top: 28px;
-            background: rgba(10, 20, 14, 0.72);
-            border: 1px solid rgba(134, 239, 172, 0.25);
-            border-radius: 18px;
-            padding: 18px;
-        }
-
-        .catalog-head {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .catalog-search {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            border-radius: 10px;
-            padding: 8px 12px;
-            font-size: 0.85rem;
-            outline: none;
-        }
-
-        .catalog-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 12px;
-        }
-
-        .catalog-card {
-            background: rgba(15, 26, 20, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 14px;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            cursor: pointer;
-        }
-
-        .catalog-card.active {
-            border-color: #86efac;
         }
 
         @media (max-width: 900px) {
@@ -468,17 +422,6 @@
                 <div class="monitor-base" aria-hidden="true"></div>
             </div>
         </div>
-
-        <!-- شبكة الـ 40 قطعة المفهرسة -->
-        <section class="below-catalog">
-            <div class="catalog-head">
-                <div>
-                    <strong>Indexed Items (<span id="shownCount">40</span> / 40)</strong>
-                </div>
-                <input type="search" class="catalog-search" id="searchTeeInput" placeholder="Search #01, name, or quality...">
-            </div>
-            <div class="catalog-grid" id="catalogGrid"></div>
-        </section>
     </main>
 
     <script>
@@ -532,7 +475,6 @@
             });
 
             let activeCat = 'all';
-            let searchQuery = '';
             let selectedId = items[0].id;
             let cartCount = 0;
 
@@ -541,17 +483,7 @@
             }
 
             function getFilteredItems() {
-                const q = searchQuery.trim().toLowerCase();
-                return items.filter(it => {
-                    const matchCat = activeCat === 'all' || it.category === activeCat;
-                    const matchSearch = !q ||
-                        it.name.toLowerCase().includes(q) ||
-                        it.quality.toLowerCase().includes(q) ||
-                        it.category.toLowerCase().includes(q) ||
-                        `#${it.indexLabel}`.includes(q) ||
-                        String(it.index) === q;
-                    return matchCat && matchSearch;
-                });
+                return activeCat === 'all' ? items : items.filter(it => it.category === activeCat);
             }
 
             function renderDetails(item) {
@@ -563,30 +495,29 @@
                 document.getElementById('detailPrice').textContent = `${item.currency}${item.price}`;
                 document.getElementById('rackCounter').textContent = `${item.indexLabel} / ${pad2(items.length)}`;
 
-                document.querySelectorAll('.rack-hanger-card, .catalog-card').forEach(el => {
+                document.querySelectorAll('.rack-hanger-card').forEach(el => {
                     el.classList.toggle('active', el.dataset.id === item.id);
                 });
             }
 
-            function renderAll() {
+            function renderRack() {
                 const list = getFilteredItems();
                 const track = document.getElementById('rackTrack');
-                const grid = document.getElementById('catalogGrid');
-                document.getElementById('shownCount').textContent = String(list.length);
 
                 if (!list.some(x => x.id === selectedId) && list.length) {
                     selectedId = list[0].id;
                 }
 
                 track.innerHTML = list.map((it, idx) => {
-                    const drop = Math.min(34, idx * 2.5);
+                    // يتبع نزول الخط المائل من اليسار لليمين
+                    const railY = Math.min(96, idx * 6.5);
                     const z = list.length - idx;
                     const isAct = it.id === selectedId;
                     return `
                         <button
                             type="button"
                             class="rack-hanger-card ${isAct ? 'active' : ''}"
-                            style="--drop:${drop}px; z-index:${isAct ? 50 : z};"
+                            style="--rail-y:${railY}px; z-index:${isAct ? 70 : z};"
                             data-id="${it.id}"
                         >
                             <span class="rack-idx">#${it.indexLabel}</span>
@@ -596,16 +527,6 @@
                         </button>
                     `;
                 }).join('');
-
-                grid.innerHTML = list.map(it => `
-                    <article class="catalog-card ${it.id === selectedId ? 'active' : ''}" data-id="${it.id}">
-                        <span class="rack-idx">#${it.indexLabel} • ${it.category.toUpperCase()}</span>
-                        <img class="rack-thumb" src="${getThumb(it)}" alt="${it.name}">
-                        <strong style="font-size:0.86rem;">${it.name}</strong>
-                        <span style="font-size:0.74rem;color:#cbd5e1;">${it.quality}</span>
-                        <strong style="color:#86efac;font-size:0.9rem;">${it.currency}${it.price}</strong>
-                    </article>
-                `).join('');
 
                 const current = items.find(x => x.id === selectedId) || list[0];
                 if (current) renderDetails(current);
@@ -636,11 +557,11 @@
                 if (catBtn) {
                     activeCat = catBtn.dataset.cat || 'all';
                     document.querySelectorAll('.side-cat-btn').forEach(b => b.classList.toggle('active', b === catBtn));
-                    renderAll();
+                    renderRack();
                     return;
                 }
 
-                const card = e.target.closest('.rack-hanger-card, .catalog-card');
+                const card = e.target.closest('.rack-hanger-card');
                 if (card) {
                     const found = items.find(x => x.id === card.dataset.id);
                     if (found) renderDetails(found);
@@ -665,11 +586,6 @@
                 }
             });
 
-            document.getElementById('searchTeeInput').addEventListener('input', e => {
-                searchQuery = e.target.value || '';
-                renderAll();
-            });
-
             // ربط صفحة edit عبر postMessage
             window.addEventListener('message', event => {
                 const msg = event.data;
@@ -679,10 +595,10 @@
 
                 if (msg.type === 'SET_PRODUCT_FIELD' && msg.field) {
                     target[msg.field] = msg.value;
-                    renderAll();
+                    renderRack();
                 } else if (msg.type === 'SET_PRODUCT' && msg.changes) {
                     Object.assign(target, msg.changes);
-                    renderAll();
+                    renderRack();
                 }
             });
 
@@ -692,12 +608,12 @@
                     const found = items.find(x => x.id === id);
                     if (!found) return null;
                     Object.assign(found, changes);
-                    renderAll();
+                    renderRack();
                     return found;
                 }
             };
 
-            renderAll();
+            renderRack();
         })();
     </script>
 </body>
