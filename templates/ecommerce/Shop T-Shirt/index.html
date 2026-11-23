@@ -163,8 +163,8 @@
             position: absolute;
             top: 0;
             left: 16%;
-            width: 62%;
-            height: 5px;
+            width: 58%;
+            height: 4px;
             border-radius: 999px;
             background: #1e293b;
             transform: rotate(27deg);
@@ -193,15 +193,16 @@
             font-size: 0.75rem;
         }
 
-        /* مسار السكة: التيشيرتات متراكبة وتتبع ميلان الخط الأحمر من اليسار لليمين */
+        /* مسار السكة: التيشيرتات متبعة للخط الأحمر مباشرة ومنحصرة داخل حدود السكة */
         .rack-track-wrap {
             position: relative;
             z-index: 5;
             width: 100%;
+            max-width: 82%;
             flex: 1;
             overflow-x: auto;
             overflow-y: hidden;
-            padding: 34px 18px 20px;
+            padding: 24px 14px 12px 10%;
             display: flex;
             align-items: flex-start;
             scrollbar-width: thin;
@@ -209,52 +210,52 @@
 
         .rack-hanger-card {
             position: relative;
-            flex: 0 0 124px;
-            margin-right: -52px;
+            flex: 0 0 108px;
+            margin-right: -54px;
             background: #ffffff;
             border: 1px solid #cbd5e1;
-            border-radius: 12px;
-            padding: 7px;
+            border-radius: 10px;
+            padding: 6px;
             text-align: left;
             cursor: pointer;
             display: flex;
             flex-direction: column;
-            gap: 3px;
-            /* يتبع زاوية ميلان الخط وينزل تدريجياً معه */
-            transform: translateY(var(--rail-y, 0px)) rotate(24deg);
+            gap: 2px;
+            /* تتبع زاوية الخط المائل من اليسار لليمين بدقة */
+            transform: translateY(var(--rail-y, 0px)) rotate(27deg);
             transform-origin: top left;
             transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
         }
 
         .rack-hanger-card:hover {
-            transform: translateY(calc(var(--rail-y, 0px) - 5px)) rotate(20deg);
+            transform: translateY(calc(var(--rail-y, 0px) - 4px)) rotate(24deg);
             z-index: 60 !important;
         }
 
         .rack-hanger-card.active {
             border-color: #16a34a;
-            box-shadow: 0 14px 26px rgba(22, 163, 74, 0.35);
-            transform: translateY(calc(var(--rail-y, 0px) - 7px)) rotate(14deg) scale(1.05);
+            box-shadow: 0 12px 22px rgba(22, 163, 74, 0.35);
+            transform: translateY(calc(var(--rail-y, 0px) - 6px)) rotate(20deg) scale(1.06);
             z-index: 70 !important;
         }
 
         .rack-idx {
-            font-size: 0.66rem;
+            font-size: 0.64rem;
             font-weight: 900;
             color: #15803d;
         }
 
         .rack-thumb {
             width: 100%;
-            height: 70px;
+            height: 58px;
             object-fit: contain;
             background: #f8fafc;
-            border-radius: 8px;
+            border-radius: 6px;
         }
 
         .rack-name {
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             font-weight: 800;
             color: #0f172a;
             white-space: nowrap;
@@ -263,7 +264,7 @@
         }
 
         .rack-price {
-            font-size: 0.74rem;
+            font-size: 0.7rem;
             font-weight: 900;
             color: #15803d;
         }
@@ -343,6 +344,11 @@
                 flex-direction: row;
                 flex-wrap: wrap;
                 gap: 16px;
+            }
+
+            .rack-track-wrap {
+                max-width: 100%;
+                padding-left: 14px;
             }
 
             .monitor-bezel {
@@ -509,8 +515,8 @@
                 }
 
                 track.innerHTML = list.map((it, idx) => {
-                    // يتبع نزول الخط المائل من اليسار لليمين
-                    const railY = Math.min(96, idx * 6.5);
+                    // يتبع زاوية ميلان العمود (tan(27deg) ≈ 0.51) مع مسافة أفقية صافية لكل قطعة
+                    const railY = Math.min(110, idx * 27);
                     const z = list.length - idx;
                     const isAct = it.id === selectedId;
                     return `
