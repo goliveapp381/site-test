@@ -6,20 +6,29 @@
 
 body {
     min-height: 100vh;
-    background: #0b0b0f;
+    background: linear-gradient(160deg, #0d3b2e 0%, #14533c 55%, #0a2920 100%);
     color: #f8fafc;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     display: grid;
     place-items: center;
-    padding: 16px;
+    padding: 20px;
 }
 
-.monitor-stage-wrap {
+.site-stage {
     width: 100%;
-    max-width: 1320px;
+    max-width: 1280px;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
+    gap: 16px;
+}
+
+.site-top-title {
+    font-size: clamp(1.6rem, 3vw, 2.5rem);
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    color: #ecfdf5;
+    text-align: center;
 }
 
 .monitor-device {
@@ -31,12 +40,12 @@ body {
 
 .monitor-bezel {
     width: 100%;
-    aspect-ratio: 16 / 9.5;
-    min-height: 520px;
+    aspect-ratio: 16 / 9.2;
+    min-height: 500px;
     background: #14171f;
     border: 12px solid #1f2430;
     border-radius: 16px;
-    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.72);
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.55);
     overflow: hidden;
     position: relative;
 }
@@ -45,36 +54,36 @@ body {
     position: relative;
     width: 100%;
     height: 100%;
-    background: #eceae4;
+    background: #eae7e1;
     overflow: hidden;
 }
 
-/* العمود المائل وسط الشاشة */
+/* العمود المائل من اليسار فوق وهابط مائل حتى قرب الوسط/اليمين */
 .angled-rack-rail {
     position: absolute;
-    top: 34%;
-    left: 6%;
-    width: 78%;
+    top: 4%;
+    left: 2%;
+    width: 68%;
     height: 5px;
     border-radius: 999px;
-    background: linear-gradient(90deg, #1e293b, #475569, #0f172a);
-    transform: rotate(15deg);
-    transform-origin: left center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+    background: linear-gradient(90deg, #334155, #0f172a, #475569);
+    transform: rotate(22deg);
+    transform-origin: left top;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
 }
 
 .monitor-stand {
     width: 120px;
-    height: 72px;
+    height: 70px;
     background: linear-gradient(180deg, #252a37, #171a22);
     border-left: 1px solid rgba(255, 255, 255, 0.08);
     border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .monitor-base {
-    width: 270px;
-    height: 15px;
+    width: 265px;
+    height: 14px;
     border-radius: 999px;
     background: linear-gradient(180deg, #2b3140, #191d26);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
 }
