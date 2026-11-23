@@ -1,10 +1,30 @@
 /* css/velocity-background.css */
-body::before {
-    content: "";
+.site-wires-bg {
     position: fixed;
     inset: 0;
     pointer-events: none;
-    background: radial-gradient(circle at 20% 15%, rgba(56, 189, 248, 0.08), transparent 45%);
-    z-index: -1;
+    z-index: 1;
+    overflow: hidden;
 }
 
+.wire-wave {
+    position: absolute;
+    width: 680px;
+    height: 220px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: #4ade80;
+    filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.35));
+    will-change: transform;
+}
+
+.w-1  { top: 4%;  left: 28%; transform: rotate(-38deg); }
+.w-2  { top: 8%;  left: 33%; transform: rotate(-34deg); border-top-color: #22c55e; }
+.w-3  { top: 13%; left: 37%; transform: rotate(-30deg); border-top-color: #86efac; }
+.w-4  { top: 18%; left: 41%; transform: rotate(-26deg); }
+.w-5  { top: 23%; left: 45%; transform: rotate(-22deg); border-top-color: #22c55e; }
+.w-6  { top: 58%; left: 32%; transform: rotate(26deg);  border-top-color: #4ade80; }
+.w-7  { top: 64%; left: 36%; transform: rotate(30deg);  border-top-color: #86efac; }
+.w-8  { top: 70%; left: 40%; transform: rotate(34deg);  border-top-color: #22c55e; }
+.w-9  { top: 75%; left: 44%; transform: rotate(38deg);  border-top-color: #4ade80; }
+.w-10 { top: 80%; left: 48%; transform: rotate(42deg);  border-top-color: #16a34a; }
