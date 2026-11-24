@@ -28,7 +28,7 @@
         button { font: inherit; color: inherit; }
         :focus-visible { outline: 3px solid #bbf7d0; outline-offset: 3px; }
 
-        /* ---------- Background wires (unchanged) ---------- */
+        /* ---------- Background wires ---------- */
         .site-wires-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
         .wire-wave {
             position: absolute; width: 820px; height: 280px; border-radius: 50%;
@@ -60,7 +60,6 @@
             display: flex; flex-direction: column; align-items: center; gap: 18px;
         }
 
-        /* TOP SPACE: intentionally empty area above the brand block (room for title animation) */
         .top-space { width: 100%; height: clamp(56px, 12vh, 130px); flex: none; }
 
         .brand { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-bottom: 10px; max-width: 100%; }
@@ -85,7 +84,7 @@
             background: linear-gradient(90deg, transparent, #86efac, transparent); transform-origin: center;
         }
 
-        /* Main hero grid (no monitor, open page) */
+        /* Main hero grid */
         .hero-grid {
             --info-w: 320px;
             width: 100%; display: grid; gap: 22px; align-items: center;
@@ -149,7 +148,7 @@
             filter: drop-shadow(0 0 3px #bbf7d0) drop-shadow(0 0 14px rgba(134, 239, 172, 0.7)) drop-shadow(0 30px 28px rgba(0, 0, 0, 0.6));
         }
 
-        /* Info card (right side) */
+        /* Info card */
         .info-card {
             grid-area: info; width: 100%; padding: 18px 20px;
             background: rgba(4, 24, 13, 0.55); border: 1px solid rgba(255, 255, 255, 0.16);
@@ -187,7 +186,7 @@
         body.edit-mode .edit-only { display: flex; }
         .edit-only .screen-btn { flex: 1; font-size: 0.7rem; }
 
-        /* ---------- Catalog: category bar + 2 horizontal shelves ---------- */
+        /* ---------- Catalog ---------- */
         .catalog { width: 100%; margin-top: 18px; display: flex; flex-direction: column; gap: 14px; }
         .cat-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
         .cat-bar { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px; scrollbar-width: none; }
@@ -253,7 +252,7 @@
     </style>
 </head>
 
-<body data-template="shop-tshirt" data-template-version="1.1.0">
+<body data-template="shop-tshirt" data-template-version="1.2.0" data-manifest="assets/images/image-manifest.json">
 
     <div class="site-wires-bg" aria-hidden="true">
         <span class="wire-wave w-1"></span><span class="wire-wave w-2"></span><span class="wire-wave w-3"></span><span class="wire-wave w-4"></span>
@@ -263,7 +262,6 @@
     </div>
 
     <main class="site-stage">
-        <!-- TOP SPACE: reserved empty area for title animation work -->
         <div class="top-space" aria-hidden="true"></div>
 
         <header class="brand">
@@ -288,7 +286,7 @@
                 <button type="button" class="side-cat-btn" data-cat="jacket">Jacket</button>
             </aside>
 
-            <!-- 27deg display rail, open on the page -->
+            <!-- 27deg display rail -->
             <div class="rack-stage" id="rackTrack" role="listbox" aria-label="Hanging rack, use arrow keys">
                 <div class="rack-plane" id="rackPlane">
                     <div class="angled-rack-rail" id="rackRail" aria-hidden="true"></div>
@@ -321,7 +319,7 @@
             </aside>
         </section>
 
-        <!-- Catalog: category bar + two horizontal shelves -->
+        <!-- Catalog -->
         <section class="catalog" id="catalog" aria-label="Catalog">
             <div class="cat-head">
                 <nav class="cat-bar" id="catBar" aria-label="Category navigation">
@@ -362,7 +360,7 @@
             const COS = Math.cos(RAIL_ANGLE * Math.PI / 180);
             const SIN = Math.sin(RAIL_ANGLE * Math.PI / 180);
             const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            const PROTECTED = ['id', 'index', 'indexLabel'];
+            const PROTECTED = ['id', 'index', 'indexLabel', 'manifestKey'];
 
             const $ = s => document.querySelector(s);
             const pad2 = n => String(n).padStart(2, '0');
@@ -370,7 +368,7 @@
             const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
             const smooth = () => (RM ? 'auto' : 'smooth');
 
-            /* ---------- Garment silhouettes (SVG sprite) ---------- */
+            /* ---------- Garment silhouettes (SVG fallback sprite) ---------- */
             const SHAPES = {
                 tshirt: { d: ['M33 8 7 23l10 19 9-5v66h48V37l9 5 10-19L67 8Q50 25 33 8Z'], x: ['M33 8Q50 25 67 8'] },
                 hoodie: { d: ['M32 16 8 30 4 88l15 3 5-36v52h52V55l5 36 15-3-4-58L68 16Q50 30 32 16Z', 'M33 15Q50-3 67 15Q50 38 33 15Z'], x: ['M32 84h36l-4 14H36Z', 'M46 30v14M54 30v14'] },
@@ -395,7 +393,7 @@
                         </linearGradient></defs>${sym}</svg>`);
             })();
 
-            /* ---------- Data ---------- */
+            /* ---------- Data (linked to manifestKey: image-1 .. image-40) ---------- */
             const items = Array.from({ length: MAX_ITEMS }, (_, i) => {
                 const index = i + 1;
                 const indexLabel = pad2(index);
@@ -407,6 +405,7 @@
                 const col = COLORS[(i * 7) % COLORS.length];
                 return {
                     id: `item-${indexLabel}`,
+                    manifestKey: `image-${index}`, // يطابق image-1, image-2... في image-manifest.json
                     index, indexLabel, category,
                     name: `${titlePrefix} #${indexLabel}`,
                     price: 39 + (i % 8) * 4,
@@ -419,6 +418,47 @@
                     image: ''
                 };
             });
+
+            /* ---------- Manifest Loader (assets/images/image-manifest.json) ---------- */
+            function resolveManifestImageUrl(manifestUrl, relPath) {
+                if (!relPath) return '';
+                const clean = String(relPath).trim();
+                // إذا كان الرابط كاملاً (http / https / data / /) نتركه كما هو
+                if (/^(https?:|data:|blob:|\/)/i.test(clean)) return clean;
+                // ندمج مسار مجلد المانيفست (مثلاً assets/images/) مع مسار الصورة (products/xxx.jpg)
+                const baseDir = manifestUrl.replace(/[^/]+$/, '');
+                return baseDir + clean;
+            }
+
+            async function loadImageManifest(customUrl) {
+                const manifestUrl = customUrl
+                    || document.body.getAttribute('data-manifest')
+                    || 'assets/images/image-manifest.json';
+                try {
+                    const res = await fetch(manifestUrl, { cache: 'no-cache' });
+                    if (!res.ok) return false;
+                    const data = await res.json();
+                    const productsMap = (data && data.products) || {};
+                    let updated = 0;
+
+                    items.forEach(item => {
+                        // يبحث بـ "image-1" أو "item-01" أو "1" لمرونة كاملة
+                        const raw = productsMap[item.manifestKey]
+                            || productsMap[item.id]
+                            || productsMap[String(item.index)];
+                        if (raw) {
+                            item.image = resolveManifestImageUrl(manifestUrl, raw);
+                            updated++;
+                        }
+                    });
+
+                    if (updated > 0) renderRack();
+                    return true;
+                } catch (err) {
+                    console.warn('Image manifest not loaded (using SVG fallback):', err);
+                    return false;
+                }
+            }
 
             /* ---------- State ---------- */
             let activeCat = 'all';
@@ -462,11 +502,11 @@
                 draw();
             }
 
-            /* Overlapping stack along the 27deg rail + pulled-out piece */
+            /* Overlapping stack along the 27deg rail */
             function draw() {
                 const { A, sx, sy } = G;
                 const q = 0.78, inv = 1 / (1 - q);
-                const px = sx * COS + sy * SIN;   // screen offset -> rail-plane coordinates
+                const px = sx * COS + sy * SIN;
                 const py = -sx * SIN + sy * COS;
                 let pm = 0, pi = -1;
                 for (let i = 0; i < els.length; i++) {
@@ -503,7 +543,7 @@
                 if (list[act] && list[act].id !== selectedId) renderDetails(list[act]);
             }
 
-            /* ---------- Motion engine (rail position + pull progress) ---------- */
+            /* ---------- Motion engine ---------- */
             function tick(t) {
                 const dt = Math.min(0.05, (t - lastT) / 1000 || 0.016);
                 lastT = t;
@@ -549,7 +589,6 @@
                 select((currentIndex() + delta + list.length) % list.length);
             }
 
-            /* Pull a piece out of the stack / put it back on the rail */
             function setPull(id, on) {
                 els.forEach(el => { el._t = (on && el.dataset.id === id) ? 1 : 0; });
                 pulledId = on ? id : null;
@@ -563,11 +602,11 @@
             }
             function garmentHTML(it, cls) {
                 const img = it.image && String(it.image).trim();
-                if (img) return `<img class="${cls}" src="${esc(img)}" alt="${esc(it.name)}" draggable="false" data-fb="${esc(it.id)}">`;
+                if (img) return `<img class="${cls}" src="${esc(img)}" alt="${esc(it.name)}" draggable="false" data-fb="${esc(it.id)}" data-product-image="${esc(it.manifestKey)}">`;
                 return svgGarment(it, cls);
             }
 
-            /* If an image URL fails, fall back to the drawn garment */
+            /* Fallback to SVG if manifest image fails to load */
             document.addEventListener('error', e => {
                 const t = e.target;
                 if (t && t.tagName === 'IMG' && t.dataset && t.dataset.fb) {
@@ -577,7 +616,7 @@
             }, true);
 
             function cardHTML(it, i) {
-                return `<button type="button" class="rack-hanger-card" role="option" data-id="${esc(it.id)}" data-i="${i}" tabindex="-1"
+                return `<button type="button" class="rack-hanger-card" role="option" data-id="${esc(it.id)}" data-manifest-key="${esc(it.manifestKey)}" data-i="${i}" tabindex="-1"
                             aria-label="${esc(it.name)}, ${esc(it.color)}, ${esc(it.currency)}${esc(it.price)}">
                         <span class="rk-tag">#${esc(it.indexLabel)}</span>
                         <svg class="rk-hook" viewBox="0 0 24 30" aria-hidden="true">
@@ -588,7 +627,7 @@
             }
 
             function miniHTML(it) {
-                return `<article class="mini" role="listitem" tabindex="0" data-id="${esc(it.id)}" aria-label="${esc(it.name)}">
+                return `<article class="mini" role="listitem" tabindex="0" data-id="${esc(it.id)}" data-manifest-key="${esc(it.manifestKey)}" aria-label="${esc(it.name)}">
                         <span class="mini-idx">#${esc(it.indexLabel)}</span>
                         <div class="mini-img">${garmentHTML(it, 'gm')}</div>
                         <span class="mini-name">${esc(it.name)}</span>
@@ -651,7 +690,6 @@
                 });
             }
 
-            /* flourishDelay: undefined = no intro motion; number = ms before the stack slides into place */
             function renderRack(flourishDelay) {
                 list = getFilteredItems();
                 if (!list.some(x => x.id === selectedId) && list.length) selectedId = list[0].id;
@@ -682,7 +720,7 @@
                 if (!item) return;
                 cartCount += 1;
                 $('#cartQty').textContent = String(cartCount);
-                releasePull(); // piece glides back to its place on the 27deg rail
+                releasePull();
                 const btn = $('#addTeeBtn');
                 if (!RM && btn.animate) btn.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.06)' }, { transform: 'scale(1)' }], { duration: 320, easing: 'ease-out' });
                 try {
@@ -737,7 +775,7 @@
                 const dlt = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
                 if (Math.abs(dlt) < 4) return;
                 const next = currentIndex() + (dlt > 0 ? 1 : -1);
-                if (next < 0 || next >= list.length) return; // let the page scroll at the ends
+                if (next < 0 || next >= list.length) return;
                 e.preventDefault();
                 const now = performance.now();
                 if (now - wheelT < 130) return;
@@ -786,9 +824,9 @@
                     const id = card.dataset.id;
                     const i = list.findIndex(x => x.id === id);
                     if (i < 0) return;
-                    if (pulledId === id) { releasePull(); return; }   // click again = put back
+                    if (pulledId === id) { releasePull(); return; }
                     select(i);
-                    setPull(id, true);                                // pull out of the stack
+                    setPull(id, true);
                     return;
                 }
 
@@ -806,7 +844,7 @@
                 if (e.target.closest('#imgClearBtn')) { applyChanges(items.find(x => x.id === selectedId), { image: '' }); }
             });
 
-            /* ---------- Editing: image upload + generic updates ---------- */
+            /* ---------- Editing ---------- */
             function applyChanges(item, changes) {
                 if (!item || !changes || typeof changes !== 'object') return null;
                 Object.keys(changes).forEach(k => {
@@ -831,7 +869,7 @@
                     applyChanges(item, { image: String(fr.result) });
                     try {
                         window.parent && window.parent !== window && window.parent.postMessage(
-                            { source: 'ShopTshirtApp', type: 'PRODUCT_IMAGE_CHANGED', id: item.id, image: item.image }, '*');
+                            { source: 'ShopTshirtApp', type: 'PRODUCT_IMAGE_CHANGED', id: item.id, manifestKey: item.manifestKey, image: item.image }, '*');
                     } catch (_) { /* ignore */ }
                 };
                 fr.readAsDataURL(file);
@@ -846,7 +884,8 @@
                 if (!msg || typeof msg !== 'object') return;
                 try {
                     if (msg.type === 'SET_EDIT_MODE') { document.body.classList.toggle('edit-mode', !!msg.value); return; }
-                    const t = items.find(x => x.id === msg.productId || x.id === msg.id || x.index === Number(msg.index));
+                    if (msg.type === 'RELOAD_MANIFEST') { loadImageManifest(msg.url); return; }
+                    const t = items.find(x => x.id === msg.productId || x.id === msg.id || x.manifestKey === msg.manifestKey || x.index === Number(msg.index));
                     if (!t) return;
                     if (msg.type === 'SET_PRODUCT_FIELD' && msg.field) applyChanges(t, { [msg.field]: msg.value });
                     else if (msg.type === 'SET_PRODUCT' && msg.changes) applyChanges(t, msg.changes);
@@ -858,12 +897,13 @@
             /* ---------- Public API ---------- */
             window.ShopTshirtApp = {
                 items,
+                reloadManifest: loadImageManifest,
                 updateItem(id, changes) {
-                    const found = items.find(x => x.id === id);
+                    const found = items.find(x => x.id === id || x.manifestKey === id);
                     return found ? applyChanges(found, changes) : null;
                 },
                 select(id) {
-                    const i = list.findIndex(x => x.id === id);
+                    const i = list.findIndex(x => x.id === id || x.manifestKey === id);
                     if (i > -1) select(i);
                 },
                 getCartCount() { return cartCount; },
@@ -875,7 +915,7 @@
             if ('ResizeObserver' in window) new ResizeObserver(layout).observe(stage);
             else window.addEventListener('resize', layout);
 
-            /* ---------- Entrance choreography (WAAPI, transform/opacity first) ---------- */
+            /* ---------- Entrance choreography ---------- */
             function intro() {
                 const ease = 'cubic-bezier(.2,.8,.2,1)';
                 const anim = (el, kf, o) => el && el.animate && el.animate(kf, Object.assign({ duration: 800, easing: ease, fill: 'both' }, o));
@@ -917,6 +957,8 @@
 
             renderRack(RM ? undefined : 950);
             if (!RM) intro();
+            // استدعاء الصور أوتوماتيكياً من image-manifest.json بمجرد فتح الصفحة
+            loadImageManifest();
         })();
     </script>
 </body>
