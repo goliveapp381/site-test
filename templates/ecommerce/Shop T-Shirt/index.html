@@ -27,7 +27,7 @@
             overflow-x: hidden;
         }
 
-        /* الأسلاك المتموجة في الخلفية */
+        /* ---------- Background wires (unchanged) ---------- */
         .site-wires-bg {
             position: fixed;
             inset: 0;
@@ -70,6 +70,7 @@
         .w-15 { bottom: -4%; left: 44%; transform: rotate(40deg); border-bottom-color: rgba(163, 230, 53, 0.45); border-top-color: transparent; animation-delay: 1.7s; }
         .w-16 { bottom: -8%; left: 47%; transform: rotate(43deg); border-bottom-color: rgba(217, 249, 157, 0.4);  border-top-color: transparent; animation-delay: 1.95s; }
 
+        /* ---------- Layout (unchanged) ---------- */
         .site-stage {
             position: relative;
             z-index: 1;
@@ -98,7 +99,6 @@
             align-items: center;
         }
 
-        /* أصناف الملابس على اليسار كتابة فقط بلا خلفية */
         .side-categories-column {
             display: flex;
             flex-direction: column;
@@ -125,7 +125,6 @@
             transform: translateX(6px) scale(1.06);
         }
 
-        /* شاشة التلفاز / الحاسوب الكبيرة */
         .monitor-device {
             width: 100%;
             display: flex;
@@ -145,166 +144,229 @@
             position: relative;
         }
 
+        /* ---------- Screen ---------- */
         .monitor-screen {
+            --info-w: clamp(235px, 24%, 320px);
             position: relative;
             width: 100%;
             height: 100%;
-            background: #eceae5;
+            background: radial-gradient(120% 100% at 30% 20%, #f1efea, #e4e1da);
             color: #0f172a;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 14px 18px;
         }
 
-        /* العمود المائل واصل حتى للسقف العلوي للشاشة */
+        .screen-top-bar {
+            position: absolute;
+            top: 14px;
+            left: 20px;
+            z-index: 12;
+            font-size: 0.66rem;
+            font-weight: 800;
+            letter-spacing: 0.22em;
+            color: #475569;
+            pointer-events: none;
+        }
+
+        /* Stage holding the 27° rail */
+        .rack-stage {
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: calc(100% - var(--info-w) - 30px);
+            overflow: hidden;
+            touch-action: pan-y;
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+            z-index: 5;
+        }
+
+        .rack-stage.dragging { cursor: grabbing; }
+
+        /* Plane is rotated 27deg; rail + items live inside it */
+        .rack-plane {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0;
+            height: 0;
+            transform: rotate(27deg);
+            transform-origin: 0 0;
+        }
+
         .angled-rack-rail {
             position: absolute;
-            top: 0;
-            left: 16%;
-            width: 58%;
+            top: -2px;
             height: 4px;
             border-radius: 999px;
-            background: #1e293b;
-            transform: rotate(27deg);
-            transform-origin: left top;
+            background: linear-gradient(90deg, #0f172a, #334155 60%, #0f172a);
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.25);
+            z-index: 0;
+        }
+
+        /* Hanging piece */
+        .rack-hanger-card {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: var(--tw, 200px);
+            margin-left: calc(var(--tw, 200px) / -2);
+            transform-origin: 50% 0;
+            background: none;
+            border: 0;
+            padding: 0;
+            cursor: pointer;
+            visibility: hidden;
+            will-change: transform, opacity;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .rack-hanger-card:focus-visible { outline: 3px solid #16a34a; outline-offset: 4px; border-radius: 8px; }
+
+        .rk-hook {
+            position: absolute;
+            left: 50%;
+            top: -14px;
+            width: 22px;
+            height: 30px;
+            margin-left: -11px;
             z-index: 2;
+            pointer-events: none;
         }
 
-        /* شريط التحكم العلوي داخل الشاشة */
-        .screen-top-bar {
-            position: relative;
-            z-index: 10;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.82rem;
-            font-weight: 800;
-            color: #1e293b;
-        }
-
-        .screen-pill {
+        .rk-tag {
+            position: absolute;
+            left: 50%;
+            top: -38px;
+            transform: translateX(-50%) scale(.8);
+            opacity: 0;
             background: #0f172a;
             color: #86efac;
-            padding: 4px 10px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            padding: 3px 9px;
             border-radius: 999px;
-            font-size: 0.75rem;
+            white-space: nowrap;
+            transition: opacity .25s ease, transform .25s ease;
+            pointer-events: none;
         }
 
-        /* مسار السكة: التيشيرتات متبعة للخط الأحمر مباشرة ومنحصرة داخل حدود السكة */
-        .rack-track-wrap {
-            position: relative;
-            z-index: 5;
+        .rack-hanger-card.active .rk-tag { opacity: 1; transform: translateX(-50%) scale(1); }
+
+        .rack-hanger-card .gm {
+            display: block;
             width: 100%;
-            max-width: 82%;
-            flex: 1;
-            overflow-x: auto;
-            overflow-y: hidden;
-            padding: 24px 14px 12px 10%;
+            height: calc(var(--tw, 200px) * 1.1);
+            margin-top: 12px;
+            object-fit: contain;
+            transition: transform .22s ease, filter .22s ease;
+            pointer-events: none;
+        }
+
+        .rack-hanger-card.near .gm { filter: drop-shadow(10px 6px 11px rgba(15, 23, 42, 0.32)); }
+        .rack-hanger-card:hover .gm { transform: translateY(-6px); }
+        .rack-hanger-card.active .gm {
+            filter: drop-shadow(0 0 2px #16a34a) drop-shadow(0 0 2px #16a34a) drop-shadow(0 16px 16px rgba(15, 23, 42, 0.38));
+            transform: translateY(-4px);
+        }
+
+        /* ---------- Right detail card (inside screen) ---------- */
+        .info-card {
+            position: absolute;
+            top: 50%;
+            right: 22px;
+            transform: translateY(-50%);
+            width: var(--info-w);
+            max-height: calc(100% - 28px);
+            overflow-y: auto;
+            z-index: 20;
+            padding: 16px 18px;
+            background: rgba(255, 255, 255, 0.64);
+            border: 1px solid rgba(15, 23, 42, 0.14);
+            border-radius: 14px;
             display: flex;
-            align-items: flex-start;
+            flex-direction: column;
+            gap: 9px;
+            color: #0f172a;
             scrollbar-width: thin;
         }
 
-        .rack-hanger-card {
-            position: relative;
-            flex: 0 0 108px;
-            margin-right: -54px;
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 10px;
-            padding: 6px;
-            text-align: left;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            /* تتبع زاوية الخط المائل من اليسار لليمين بدقة */
-            transform: translateY(var(--rail-y, 0px)) rotate(27deg);
-            transform-origin: top left;
-            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
-        }
-
-        .rack-hanger-card:hover {
-            transform: translateY(calc(var(--rail-y, 0px) - 4px)) rotate(24deg);
-            z-index: 60 !important;
-        }
-
-        .rack-hanger-card.active {
-            border-color: #16a34a;
-            box-shadow: 0 12px 22px rgba(22, 163, 74, 0.35);
-            transform: translateY(calc(var(--rail-y, 0px) - 6px)) rotate(20deg) scale(1.06);
-            z-index: 70 !important;
-        }
-
-        .rack-idx {
-            font-size: 0.64rem;
-            font-weight: 900;
-            color: #15803d;
-        }
-
-        .rack-thumb {
-            width: 100%;
-            height: 58px;
-            object-fit: contain;
-            background: #f8fafc;
-            border-radius: 6px;
-        }
-
-        .rack-name {
-            font-size: 0.68rem;
-            font-weight: 800;
-            color: #0f172a;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .rack-price {
+        .info-count {
             font-size: 0.7rem;
-            font-weight: 900;
-            color: #15803d;
-        }
-
-        /* تفاصيل القطعة المختارة أسفل الشاشة */
-        .screen-bottom-details {
-            position: relative;
-            z-index: 10;
-            background: rgba(255, 255, 255, 0.94);
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
-            padding: 10px 14px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            color: #0f172a;
-        }
-
-        .detail-main strong {
-            font-size: 0.95rem;
-            display: block;
-        }
-
-        .detail-main span {
-            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.2em;
             color: #475569;
         }
 
-        .detail-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .info-title {
+            font-size: clamp(1.05rem, 1.7vw, 1.5rem);
+            font-weight: 300;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            line-height: 1.25;
+            color: #0f172a;
         }
 
+        .info-rule { width: 20px; height: 1px; background: #475569; }
+
+        .info-meta {
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            color: #15803d;
+        }
+
+        .info-desc {
+            font-size: 0.78rem;
+            line-height: 1.6;
+            color: #475569;
+        }
+
+        .info-specs { display: grid; gap: 5px; }
+
+        .info-specs div {
+            display: grid;
+            grid-template-columns: 74px 1fr;
+            gap: 8px;
+            align-items: center;
+            font-size: 0.7rem;
+        }
+
+        .info-specs dt { color: #64748b; letter-spacing: 0.1em; font-weight: 700; }
+        .info-specs dd { color: #0f172a; font-weight: 800; letter-spacing: 0.04em; }
+
+        .color-dot {
+            display: inline-block;
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            border: 1px solid rgba(15, 23, 42, 0.35);
+            margin-right: 6px;
+            vertical-align: -1px;
+        }
+
+        .size-row { display: flex; flex-wrap: wrap; gap: 5px; }
+
+        .size-chip {
+            min-width: 34px;
+            padding: 5px 8px;
+            border-radius: 8px;
+            border: 1px solid #0f172a;
+            background: transparent;
+            color: #0f172a;
+            font-size: 0.72rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background .15s ease, color .15s ease;
+        }
+
+        .size-chip[aria-pressed="true"] { background: #0f172a; color: #86efac; }
+
         .detail-price-tag {
-            font-size: 1rem;
+            font-size: 1.4rem;
             font-weight: 900;
             color: #15803d;
+            letter-spacing: 0.02em;
         }
 
         .screen-btn {
@@ -312,15 +374,26 @@
             color: #ffffff;
             border: none;
             border-radius: 8px;
-            padding: 6px 12px;
-            font-size: 0.76rem;
+            padding: 8px 12px;
+            font-size: 0.78rem;
             font-weight: 700;
             cursor: pointer;
+            transition: transform .15s ease, background .15s ease;
         }
 
-        .screen-btn.green {
-            background: #16a34a;
+        .screen-btn:hover { transform: translateY(-1px); }
+        .screen-btn:active { transform: scale(.97); }
+        .screen-btn.green { background: #16a34a; width: 100%; }
+
+        .info-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
         }
+
+        .info-nav .screen-btn { padding: 6px 14px; font-size: 1rem; line-height: 1; }
+        .info-nav .info-count { color: #0f172a; }
 
         .monitor-stand {
             width: 120px;
@@ -335,10 +408,13 @@
             background: linear-gradient(180deg, #2b3140, #191d26);
         }
 
+        @media (prefers-reduced-motion: reduce) {
+            .wire-wave { animation: none; }
+            .rack-hanger-card .gm, .rk-tag, .size-chip, .screen-btn { transition: none; }
+        }
+
         @media (max-width: 900px) {
-            .monitor-layout {
-                grid-template-columns: 1fr;
-            }
+            .monitor-layout { grid-template-columns: 1fr; }
 
             .side-categories-column {
                 flex-direction: row;
@@ -346,14 +422,30 @@
                 gap: 16px;
             }
 
-            .rack-track-wrap {
-                max-width: 100%;
-                padding-left: 14px;
+            .monitor-bezel {
+                aspect-ratio: auto;
+                min-height: 0;
+                border-width: 8px;
             }
 
-            .monitor-bezel {
-                aspect-ratio: 16 / 10;
-                min-height: 360px;
+            .monitor-screen { height: auto; display: flex; flex-direction: column; }
+
+            .rack-stage {
+                position: relative;
+                inset: auto;
+                width: 100%;
+                height: 350px;
+                flex: none;
+            }
+
+            .screen-top-bar { top: 10px; left: 14px; }
+
+            .info-card {
+                position: static;
+                transform: none;
+                width: auto;
+                max-height: none;
+                margin: 0 12px 14px;
             }
         }
     </style>
@@ -386,7 +478,6 @@
         </h1>
 
         <div class="monitor-layout">
-            <!-- الأصناف على اليسار كتابة فقط -->
             <aside class="side-categories-column" aria-label="Categories">
                 <button type="button" class="side-cat-btn active" data-cat="all">All Items</button>
                 <button type="button" class="side-cat-btn" data-cat="tshirt">T-Shirt</button>
@@ -395,33 +486,38 @@
                 <button type="button" class="side-cat-btn" data-cat="jacket">Jacket</button>
             </aside>
 
-            <!-- شاشة الحاسوب / التلفاز الكبيرة -->
             <div class="monitor-device">
                 <div class="monitor-bezel">
                     <div class="monitor-screen" id="monitorScreen">
-                        <div class="angled-rack-rail" aria-hidden="true"></div>
+                        <div class="screen-top-bar">SHOP T-SHIRT &nbsp;·&nbsp; COLLECTION / 01</div>
 
-                        <div class="screen-top-bar">
-                            <span>HANGING RACK (01 - 40)</span>
-                            <div style="display:flex;gap:6px;align-items:center;">
-                                <button type="button" class="screen-btn" id="prevTeeBtn">←</button>
-                                <span class="screen-pill" id="rackCounter">01 / 40</span>
-                                <button type="button" class="screen-btn" id="nextTeeBtn">→</button>
+                        <!-- 27° display rail -->
+                        <div class="rack-stage" id="rackTrack" role="listbox" aria-label="Hanging rack, use arrow keys">
+                            <div class="rack-plane" id="rackPlane">
+                                <div class="angled-rack-rail" id="rackRail" aria-hidden="true"></div>
                             </div>
                         </div>
 
-                        <div class="rack-track-wrap" id="rackTrack"></div>
-
-                        <div class="screen-bottom-details" id="teeDetailsBar">
-                            <div class="detail-main">
-                                <strong id="detailTitle">Studio Tee #01</strong>
-                                <span id="detailMeta">Index #01 • 320 GSM Combed Cotton • S, M, L, XL</span>
+                        <!-- Right-side vertical detail card -->
+                        <aside class="info-card" id="teeDetailsBar" aria-live="polite">
+                            <div class="info-count" data-counter id="rackCounter">01 / 40</div>
+                            <h2 class="info-title" id="detailTitle">Studio Tee #01</h2>
+                            <div class="info-rule" aria-hidden="true"></div>
+                            <div class="info-meta" id="detailMeta">NO. 01 • T-SHIRT</div>
+                            <p class="info-desc" id="detailDesc"></p>
+                            <dl class="info-specs">
+                                <div><dt>MATERIAL</dt><dd id="detailMaterial">320 GSM Combed Cotton</dd></div>
+                                <div><dt>COLOR</dt><dd id="detailColor"></dd></div>
+                            </dl>
+                            <div class="size-row" id="detailSizes" role="group" aria-label="Sizes"></div>
+                            <div class="detail-price-tag" id="detailPrice">$39</div>
+                            <button type="button" class="screen-btn green" id="addTeeBtn">Add to Cart (<span id="cartQty">0</span>)</button>
+                            <div class="info-nav">
+                                <button type="button" class="screen-btn" id="prevTeeBtn" aria-label="Previous">←</button>
+                                <span class="info-count" data-counter>01 / 40</span>
+                                <button type="button" class="screen-btn" id="nextTeeBtn" aria-label="Next">→</button>
                             </div>
-                            <div class="detail-right">
-                                <span class="detail-price-tag" id="detailPrice">$39</span>
-                                <button type="button" class="screen-btn green" id="addTeeBtn">Add to Cart (<span id="cartQty">0</span>)</button>
-                            </div>
-                        </div>
+                        </aside>
                     </div>
                 </div>
                 <div class="monitor-stand" aria-hidden="true"></div>
@@ -440,22 +536,68 @@
                 '290 GSM Ring-Spun Cotton',
                 '310 GSM Boxy Weave'
             ];
+            const DESCRIPTIONS = {
+                tshirt: 'Relaxed everyday tee cut from dense, soft-hand cotton with a clean ribbed collar.',
+                pants: 'Tapered cargo pant with articulated knees and a washed, structured finish.',
+                hoodie: 'Heavyweight brushed-fleece hoodie with a boxy fit and a double-lined hood.',
+                jacket: 'Lightweight shell jacket with a water-repellent finish and matte hardware.'
+            };
+            /* 20 distinct colors; stepping by 7 keeps neighbours strongly contrasting */
+            const COLORS = [
+                ['Crimson', '#d62839'], ['Tangerine', '#f77f00'], ['Mustard', '#e9b72b'], ['Lime', '#9bc53d'],
+                ['Emerald', '#1b9e5a'], ['Teal', '#0f8b8d'], ['Sky', '#4cc9f0'], ['Cobalt', '#2f5bea'],
+                ['Navy', '#1d2b53'], ['Violet', '#7b3fe4'], ['Magenta', '#d6336c'], ['Blush', '#f4a6b8'],
+                ['Snow', '#f5f3ee'], ['Sand', '#d8c3a5'], ['Stone', '#9ca3af'], ['Charcoal', '#2f343b'],
+                ['Black', '#111214'], ['Chocolate', '#6b3f2a'], ['Olive', '#707a2f'], ['Burgundy', '#7a1f35']
+            ];
+            const RAIL_ANGLE = 27;
+            const COS = Math.cos(RAIL_ANGLE * Math.PI / 180);
+            const SIN = Math.sin(RAIL_ANGLE * Math.PI / 180);
+            const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-            function pad2(n) {
-                return String(n).padStart(2, '0');
-            }
+            const $ = s => document.querySelector(s);
+            const pad2 = n => String(n).padStart(2, '0');
+            const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+            const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
-            function svgThumb(label, cat) {
-                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="200" viewBox="0 0 240 200">
-                    <rect width="240" height="200" rx="12" fill="#f1f5f9"/>
-                    <path d="M72 48 L98 30 L142 30 L168 48 L196 72 L180 98 L160 84 L160 162 L80 162 L80 84 L60 98 L44 72 Z"
-                          fill="#1e293b" stroke="#16a34a" stroke-width="4"/>
-                    <text x="120" y="128" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="800" fill="#ffffff">#${label}</text>
-                    <text x="120" y="188" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">${cat.toUpperCase()}</text>
-                </svg>`;
-                return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
-            }
+            /* ---------- Garment silhouettes (SVG sprite) ---------- */
+            const SHAPES = {
+                tshirt: {
+                    d: ['M33 8 7 23l10 19 9-5v66h48V37l9 5 10-19L67 8Q50 25 33 8Z'],
+                    x: ['M33 8Q50 25 67 8']
+                },
+                hoodie: {
+                    d: ['M32 16 8 30 4 88l15 3 5-36v52h52V55l5 36 15-3-4-58L68 16Q50 30 32 16Z', 'M33 15Q50-3 67 15Q50 38 33 15Z'],
+                    x: ['M32 84h36l-4 14H36Z', 'M46 30v14M54 30v14']
+                },
+                jacket: {
+                    d: ['M32 14 8 30 4 88l15 3 5-36v52h52V55l5 36 15-3-4-58L68 14 50 26Z'],
+                    x: ['M50 26v80', 'M32 14l8 14 10-2M68 14l-8 14-10-2', 'M30 80h12M58 80h12']
+                },
+                pants: {
+                    d: ['M27 8h46l8 98H55L50 44l-5 62H19Z'],
+                    x: ['M27 17h46', 'M50 17v27']
+                }
+            };
 
+            (function injectSprite() {
+                const sym = Object.keys(SHAPES).map(k => {
+                    const s = SHAPES[k];
+                    return `<symbol id="g-${k}" viewBox="0 0 100 110">`
+                        + s.d.map(d => `<path d="${d}" fill="currentColor"/><path d="${d}" fill="url(#gmShade)" stroke="rgba(0,0,0,.55)" stroke-width="1.6" stroke-linejoin="round"/>`).join('')
+                        + s.x.map(d => `<path d="${d}" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="1.4" stroke-linecap="round"/>`).join('')
+                        + `</symbol>`;
+                }).join('');
+                document.body.insertAdjacentHTML('afterbegin',
+                    `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+                        <linearGradient id="gmShade" x1="0" x2="1">
+                            <stop offset="0" stop-color="#fff" stop-opacity=".24"/>
+                            <stop offset=".5" stop-color="#000" stop-opacity="0"/>
+                            <stop offset="1" stop-color="#000" stop-opacity=".3"/>
+                        </linearGradient></defs>${sym}</svg>`);
+            })();
+
+            /* ---------- Data (same shape as before + color/description) ---------- */
             const items = Array.from({ length: MAX_ITEMS }, (_, i) => {
                 const index = i + 1;
                 const indexLabel = pad2(index);
@@ -465,6 +607,7 @@
                     : category === 'pants' ? 'Cargo Pant'
                     : category === 'hoodie' ? 'Heavy Hoodie'
                     : 'Shell Jacket';
+                const col = COLORS[(i * 7) % COLORS.length];
 
                 return {
                     id: `item-${indexLabel}`,
@@ -476,115 +619,290 @@
                     currency: '$',
                     quality,
                     sizes: 'S, M, L, XL',
+                    color: col[0],
+                    colorHex: col[1],
+                    description: DESCRIPTIONS[category],
                     image: ''
                 };
             });
 
+            /* ---------- State ---------- */
             let activeCat = 'all';
             let selectedId = items[0].id;
             let cartCount = 0;
+            let selectedSize = null;
+            let list = [];
+            let els = [];
+            let vis = [];
+            let nearFlags = [];
+            let pos = 0;
+            let target = 0;
+            let raf = 0;
+            let lastT = 0;
+            let G = { tw: 200, A: 150, x0: 120, y0: 30 };
 
-            function getThumb(item) {
-                return item.image && item.image.trim() ? item.image.trim() : svgThumb(item.indexLabel, item.category);
+            const stage = $('#rackTrack');
+            const plane = $('#rackPlane');
+            const rail = $('#rackRail');
+
+            const getFilteredItems = () => activeCat === 'all' ? items : items.filter(it => it.category === activeCat);
+
+            /* ---------- Geometry ---------- */
+            function layout() {
+                const W = stage.clientWidth, H = stage.clientHeight;
+                if (!W || !H) return;
+                const mob = W < 560;
+                const tw = Math.min(W * (mob ? 0.42 : 0.27), H * 0.46);
+                const x0 = tw * 0.55 + W * 0.02;
+                const y0 = H * 0.075;
+                const A = Math.max(30, Math.min(W * 0.2, H * 0.34, (W * 0.95 - x0) / 4.05));
+                G = { tw, A, x0, y0 };
+                plane.style.left = x0 + 'px';
+                plane.style.top = y0 + 'px';
+                stage.style.setProperty('--tw', tw + 'px');
+                rail.style.left = (-A * 1.4) + 'px';
+                rail.style.width = (A * 6.6) + 'px';
+                draw();
             }
 
-            function getFilteredItems() {
-                return activeCat === 'all' ? items : items.filter(it => it.category === activeCat);
+            /* Overlapping stack: items compress and shrink along the 27° rail */
+            function draw() {
+                const { A } = G;
+                const q = 0.78, inv = 1 / (1 - q);
+                const act = clamp(Math.round(pos), 0, list.length - 1);
+
+                for (let i = 0; i < els.length; i++) {
+                    const d = i - pos, el = els[i];
+                    if (d < -1.4 || d > 14) {
+                        if (vis[i] !== 0) { el.style.visibility = 'hidden'; vis[i] = 0; }
+                        continue;
+                    }
+                    if (vis[i] !== 1) { el.style.visibility = 'visible'; vis[i] = 1; }
+
+                    const dist = d >= 0 ? A * (1 - Math.pow(q, d)) * inv : A * 1.13 * d;
+                    const s = Math.pow(0.9, Math.max(d, 0));
+                    const o = d < 0 ? Math.max(0, 1 + d / 1.4) : d > 10 ? Math.max(0, (14 - d) / 4) : 1;
+
+                    el.style.transform = `translate3d(${dist.toFixed(1)}px,0,0) rotate(-${RAIL_ANGLE}deg) scale(${s.toFixed(3)})`;
+                    el.style.opacity = o.toFixed(2);
+                    el.style.zIndex = String(1000 - Math.round(d * 10));
+
+                    const near = d < 6;
+                    if (nearFlags[i] !== near) { el.classList.toggle('near', near); nearFlags[i] = near; }
+                }
+
+                if (list[act] && list[act].id !== selectedId) renderDetails(list[act]);
+            }
+
+            /* ---------- Motion (critically-damped easing, no libraries) ---------- */
+            function tick(t) {
+                const dt = Math.min(0.05, (t - lastT) / 1000 || 0.016);
+                lastT = t;
+                const diff = target - pos;
+                if (Math.abs(diff) < 0.0008) { pos = target; draw(); raf = 0; return; }
+                pos += diff * (1 - Math.exp(-dt * 8));
+                draw();
+                raf = requestAnimationFrame(tick);
+            }
+
+            function moveTo(v, instant) {
+                target = clamp(v, 0, Math.max(0, list.length - 1));
+                if (RM || instant) {
+                    if (raf) { cancelAnimationFrame(raf); raf = 0; }
+                    pos = target; draw(); return;
+                }
+                if (!raf) { lastT = performance.now(); raf = requestAnimationFrame(tick); }
+            }
+
+            function currentIndex() {
+                return Math.max(0, list.findIndex(x => x.id === selectedId));
+            }
+
+            function select(i) {
+                if (!list.length) return;
+                i = clamp(i, 0, list.length - 1);
+                renderDetails(list[i]);
+                moveTo(i);
+            }
+
+            function stepBy(delta) {
+                if (!list.length) return;
+                select((currentIndex() + delta + list.length) % list.length);
+            }
+
+            /* ---------- Rendering ---------- */
+            function garmentHTML(it) {
+                if (it.image && it.image.trim()) {
+                    return `<img class="gm" src="${esc(it.image.trim())}" alt="${esc(it.name)}" draggable="false">`;
+                }
+                return `<svg class="gm" viewBox="0 0 100 110" style="color:${esc(it.colorHex)}" aria-hidden="true"><use href="#g-${it.category}"/></svg>`;
+            }
+
+            function cardHTML(it, i) {
+                return `<button type="button" class="rack-hanger-card" role="option" data-id="${it.id}" data-i="${i}" tabindex="-1"
+                            aria-label="${esc(it.name)}, ${esc(it.color)}, ${it.currency}${it.price}">
+                        <span class="rk-tag">#${it.indexLabel}</span>
+                        <svg class="rk-hook" viewBox="0 0 24 30" aria-hidden="true">
+                            <path d="M12 29V17c0-4 5-5 5-9a5 5 0 1 0-10 0" fill="none" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+                        </svg>
+                        ${garmentHTML(it)}
+                    </button>`;
             }
 
             function renderDetails(item) {
                 if (!item) return;
+                const changed = item.id !== selectedId;
                 selectedId = item.id;
-                document.getElementById('detailTitle').textContent = item.name;
-                document.getElementById('detailMeta').textContent =
-                    `Index #${item.indexLabel} • ${item.quality} • ${item.sizes}`;
-                document.getElementById('detailPrice').textContent = `${item.currency}${item.price}`;
-                document.getElementById('rackCounter').textContent = `${item.indexLabel} / ${pad2(items.length)}`;
+                if (changed) selectedSize = null;
 
-                document.querySelectorAll('.rack-hanger-card').forEach(el => {
-                    el.classList.toggle('active', el.dataset.id === item.id);
+                $('#detailTitle').textContent = item.name;
+                $('#detailMeta').textContent = `NO. ${item.indexLabel} • ${item.category.toUpperCase()}`;
+                $('#detailDesc').textContent = item.description || '';
+                $('#detailMaterial').textContent = item.quality;
+                $('#detailColor').innerHTML = `<span class="color-dot" style="background:${esc(item.colorHex)}"></span>${esc(item.color)}`;
+                $('#detailPrice').textContent = `${item.currency}${item.price}`;
+                document.querySelectorAll('[data-counter]').forEach(n => {
+                    n.textContent = `${item.indexLabel} / ${pad2(items.length)}`;
+                });
+
+                $('#detailSizes').innerHTML = String(item.sizes || '').split(',').map(s => s.trim()).filter(Boolean)
+                    .map(s => `<button type="button" class="size-chip" data-size="${esc(s)}" aria-pressed="${s === selectedSize}">${esc(s)}</button>`).join('');
+
+                els.forEach((el, i) => {
+                    const on = list[i] && list[i].id === item.id;
+                    el.classList.toggle('active', on);
+                    el.setAttribute('aria-selected', on);
+                    el.tabIndex = on ? 0 : -1;
                 });
             }
 
-            function renderRack() {
-                const list = getFilteredItems();
-                const track = document.getElementById('rackTrack');
+            function renderRack(flourish) {
+                list = getFilteredItems();
+                if (!list.some(x => x.id === selectedId) && list.length) selectedId = list[0].id;
 
-                if (!list.some(x => x.id === selectedId) && list.length) {
-                    selectedId = list[0].id;
+                els.forEach(e => e.remove());
+                plane.insertAdjacentHTML('beforeend', list.map(cardHTML).join(''));
+                els = Array.from(plane.querySelectorAll('.rack-hanger-card'));
+                vis = []; nearFlags = [];
+
+                const idx = currentIndex();
+                if (raf) { cancelAnimationFrame(raf); raf = 0; }
+                pos = target = idx;
+                layout();
+                renderDetails(list[idx]);
+
+                if (flourish && !RM && list.length > 1) {
+                    pos = Math.min(list.length - 1, idx + 3);
+                    draw();
+                    moveTo(idx);
                 }
-
-                track.innerHTML = list.map((it, idx) => {
-                    // يتبع زاوية ميلان العمود (tan(27deg) ≈ 0.51) مع مسافة أفقية صافية لكل قطعة
-                    const railY = Math.min(110, idx * 27);
-                    const z = list.length - idx;
-                    const isAct = it.id === selectedId;
-                    return `
-                        <button
-                            type="button"
-                            class="rack-hanger-card ${isAct ? 'active' : ''}"
-                            style="--rail-y:${railY}px; z-index:${isAct ? 70 : z};"
-                            data-id="${it.id}"
-                        >
-                            <span class="rack-idx">#${it.indexLabel}</span>
-                            <img class="rack-thumb" src="${getThumb(it)}" alt="${it.name}">
-                            <span class="rack-name">${it.name}</span>
-                            <span class="rack-price">${it.currency}${it.price}</span>
-                        </button>
-                    `;
-                }).join('');
-
-                const current = items.find(x => x.id === selectedId) || list[0];
-                if (current) renderDetails(current);
             }
 
-            // تحريك السكة مع السكرول
+            /* ---------- Input: drag along the 27° axis ---------- */
+            let drag = null;
+
+            stage.addEventListener('pointerdown', e => {
+                if (e.button > 0) return;
+                if (raf) { cancelAnimationFrame(raf); raf = 0; }
+                target = pos;
+                drag = { x: e.clientX, y: e.clientY, p: pos, moved: false, lx: e.clientX, ly: e.clientY, lt: performance.now(), v: 0 };
+            });
+
+            stage.addEventListener('pointermove', e => {
+                if (!drag) return;
+                const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+                const proj = dx * COS + dy * SIN;
+                if (!drag.moved && Math.abs(proj) > 6) {
+                    drag.moved = true;
+                    stage.setPointerCapture(e.pointerId);
+                    stage.classList.add('dragging');
+                }
+                if (!drag.moved) return;
+
+                const unit = G.A * 0.55;
+                const now = performance.now();
+                const dp = ((e.clientX - drag.lx) * COS + (e.clientY - drag.ly) * SIN) / unit;
+                drag.v = -dp / Math.max(1, now - drag.lt);
+                drag.lx = e.clientX; drag.ly = e.clientY; drag.lt = now;
+
+                pos = clamp(drag.p - proj / unit, -0.3, list.length - 0.7);
+                target = pos;
+                draw();
+            });
+
+            function endDrag() {
+                if (!drag) return;
+                const was = drag.moved, v = drag.v;
+                drag = null;
+                stage.classList.remove('dragging');
+                if (was) select(Math.round(clamp(pos + v * 180, 0, list.length - 1)));
+            }
+            stage.addEventListener('pointerup', endDrag);
+            stage.addEventListener('pointercancel', endDrag);
+
+            /* Wheel / trackpad scroll over the rail */
+            let wheelT = 0;
+            stage.addEventListener('wheel', e => {
+                const dlt = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+                if (Math.abs(dlt) < 4) return;
+                const next = currentIndex() + (dlt > 0 ? 1 : -1);
+                if (next < 0 || next >= list.length) return;
+                e.preventDefault();
+                const now = performance.now();
+                if (now - wheelT < 130) return;
+                wheelT = now;
+                select(next);
+            }, { passive: false });
+
+            /* Page scroll still maps to the rack when the page itself scrolls */
             let ticking = false;
             window.addEventListener('scroll', () => {
                 if (ticking) return;
                 ticking = true;
                 requestAnimationFrame(() => {
-                    const track = document.getElementById('rackTrack');
-                    const list = getFilteredItems();
-                    if (track && list.length) {
-                        const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-                        const progress = Math.min(1, Math.max(0, window.scrollY / maxScroll));
-                        track.scrollLeft = progress * Math.max(0, track.scrollWidth - track.clientWidth);
-
-                        const pos = Math.min(list.length - 1, Math.max(0, Math.round(progress * (list.length - 1))));
-                        renderDetails(list[pos]);
+                    const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+                    if (maxScroll > 40 && list.length) {
+                        const progress = clamp(window.scrollY / maxScroll, 0, 1);
+                        select(Math.round(progress * (list.length - 1)));
                     }
                     ticking = false;
                 });
             }, { passive: true });
 
+            /* Keyboard: ← / → */
+            document.addEventListener('keydown', e => {
+                const tag = (document.activeElement && document.activeElement.tagName) || '';
+                if (/INPUT|TEXTAREA|SELECT/.test(tag)) return;
+                if (e.key === 'ArrowRight') { e.preventDefault(); stepBy(1); }
+                else if (e.key === 'ArrowLeft') { e.preventDefault(); stepBy(-1); }
+            });
+
+            /* ---------- Clicks (categories, items, sizes, nav, cart) ---------- */
             document.addEventListener('click', e => {
                 const catBtn = e.target.closest('.side-cat-btn');
                 if (catBtn) {
                     activeCat = catBtn.dataset.cat || 'all';
                     document.querySelectorAll('.side-cat-btn').forEach(b => b.classList.toggle('active', b === catBtn));
-                    renderRack();
+                    renderRack(true);
                     return;
                 }
 
                 const card = e.target.closest('.rack-hanger-card');
                 if (card) {
-                    const found = items.find(x => x.id === card.dataset.id);
-                    if (found) renderDetails(found);
+                    const i = list.findIndex(x => x.id === card.dataset.id);
+                    if (i > -1) select(i);
                     return;
                 }
 
-                if (e.target.closest('#prevTeeBtn')) {
-                    const list = getFilteredItems();
-                    const i = list.findIndex(x => x.id === selectedId);
-                    if (list.length) renderDetails(list[(i - 1 + list.length) % list.length]);
+                const chip = e.target.closest('.size-chip');
+                if (chip) {
+                    selectedSize = chip.dataset.size;
+                    document.querySelectorAll('.size-chip').forEach(c => c.setAttribute('aria-pressed', c === chip));
+                    return;
                 }
 
-                if (e.target.closest('#nextTeeBtn')) {
-                    const list = getFilteredItems();
-                    const i = list.findIndex(x => x.id === selectedId);
-                    if (list.length) renderDetails(list[(i + 1) % list.length]);
-                }
+                if (e.target.closest('#prevTeeBtn')) { stepBy(-1); return; }
+                if (e.target.closest('#nextTeeBtn')) { stepBy(1); return; }
 
                 if (e.target.closest('#addTeeBtn')) {
                     cartCount += 1;
@@ -592,7 +910,7 @@
                 }
             });
 
-            // ربط صفحة edit عبر postMessage
+            /* ---------- postMessage bridge (unchanged behaviour) ---------- */
             window.addEventListener('message', event => {
                 const msg = event.data;
                 if (!msg || typeof msg !== 'object') return;
@@ -608,6 +926,7 @@
                 }
             });
 
+            /* ---------- Public API (unchanged + small helpers) ---------- */
             window.ShopTshirtApp = {
                 items,
                 updateItem(id, changes) {
@@ -616,10 +935,18 @@
                     Object.assign(found, changes);
                     renderRack();
                     return found;
-                }
+                },
+                select(id) {
+                    const i = list.findIndex(x => x.id === id);
+                    if (i > -1) select(i);
+                },
+                getCartCount() { return cartCount; }
             };
 
-            renderRack();
+            if ('ResizeObserver' in window) new ResizeObserver(layout).observe(stage);
+            else window.addEventListener('resize', layout);
+
+            renderRack(true);
         })();
     </script>
 </body>
