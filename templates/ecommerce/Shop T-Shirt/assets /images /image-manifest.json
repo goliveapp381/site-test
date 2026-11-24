@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "products": {
+    "image-4": "Jacket/jackt1.webp",
+    "image-8": "Jacket/jackt2.png",
+    "image-12": "Jacket/jackt3.jpeg",
+    "image-16": "Jacket/jackt4.png"
+  }
+}
