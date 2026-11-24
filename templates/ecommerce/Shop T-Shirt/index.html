@@ -136,7 +136,7 @@
 
         .rack-hanger-card .gm {
             display: block; width: 100%; height: calc(var(--tw, 200px) * 1.1); margin-top: 12px;
-            object-fit: contain; transition: transform .22s ease, filter .25s ease; pointer-events: none;
+            object-fit: contain; border-radius: 12px; transition: transform .22s ease, filter .25s ease; pointer-events: none;
         }
         .rack-hanger-card.near .gm { filter: drop-shadow(10px 8px 11px rgba(0, 0, 0, 0.4)); }
         .rack-hanger-card:hover .gm { transform: translateY(-6px); }
@@ -214,7 +214,7 @@
         .mini:hover { transform: translateY(-3px); background: rgba(255, 255, 255, 0.14); }
         .mini.active { border-color: #86efac; background: rgba(134, 239, 172, 0.16); transform: translateY(-4px); }
         .mini-img { aspect-ratio: 1; display: grid; place-items: center; }
-        .mini .gm { width: 82%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.35)); pointer-events: none; }
+        .mini .gm { width: 82%; height: 100%; object-fit: contain; border-radius: 8px; filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.35)); pointer-events: none; }
         .mini-idx { font-size: 0.64rem; font-weight: 900; color: #86efac; letter-spacing: 0.1em; }
         .mini-name { font-size: 0.74rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .mini-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
@@ -252,7 +252,7 @@
     </style>
 </head>
 
-<body data-template="shop-tshirt" data-template-version="1.3.0" data-manifest="assets/images/image-manifest.json">
+<body data-template="shop-tshirt" data-template-version="1.4.1" data-manifest="assets/images/image-manifest.json">
 
     <div class="site-wires-bg" aria-hidden="true">
         <span class="wire-wave w-1"></span><span class="wire-wave w-2"></span><span class="wire-wave w-3"></span><span class="wire-wave w-4"></span>
@@ -357,8 +357,7 @@
                 ['Black', '#111214'], ['Chocolate', '#6b3f2a'], ['Olive', '#707a2f'], ['Burgundy', '#7a1f35']
             ];
 
-            /* الصور الافتراضية لصنف Jacket (مفتاح المانيفست -> المسار).
-               أضف هنا أي صور أخرى بنفس الطريقة؛ أي منتج غير موجود هنا يعرض رسم SVG. */
+            /* الصور الافتراضية لصنف Jacket داخل assets/images/Jacket/ */
             const DEFAULT_IMAGES = {
                 'image-4':  'assets/images/Jacket/jackt1.webp',
                 'image-8':  'assets/images/Jacket/jackt2.png',
@@ -378,6 +377,10 @@
             const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
             const smooth = () => (RM ? 'auto' : 'smooth');
             const hasOwn = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+
+            function toAbsUrl(rel) {
+                try { return new URL(rel, location.href).href; } catch (_) { return rel; }
+            }
 
             /* ---------- Garment silhouettes (SVG fallback sprite) ---------- */
             const SHAPES = {
@@ -427,10 +430,15 @@
                     color: col[0],
                     colorHex: col[1],
                     description: DESCRIPTIONS[category],
-                    image: DEFAULT_IMAGES[manifestKey] || '',  // الجاكيتات الأربع مربوطة افتراضياً
-                    _manualOverride: false,                    // true = تعديل يدوي لا يمسحه المانيفست
-                    _badImage: ''                              // آخر رابط صورة فشل تحميله (يُعرض SVG بدلاً منه)
+                    image: DEFAULT_IMAGES[manifestKey] || '',
+                    _manualOverride: false,
+                    _badImage: ''
                 };
+            });
+
+            /* طباعة روابط الجاكيتات الافتراضية في Console لتشخيص أي 404 */
+            Object.entries(DEFAULT_IMAGES).forEach(([k, rel]) => {
+                console.warn('[ShopTshirtApp] Default image:', k, '->', rel, '| resolved:', toAbsUrl(rel));
             });
 
             /* ---------- Manifest Loader (assets/images/image-manifest.json) ---------- */
@@ -454,11 +462,9 @@
                     let updated = 0;
 
                     items.forEach(item => {
-                        // نقرأ فقط المفاتيح الموجودة فعلاً في data.products
                         const raw = [item.manifestKey, item.id, String(item.index)]
                             .map(k => (hasOwn(productsMap, k) ? productsMap[k] : null))
                             .find(v => typeof v === 'string' && v.trim());
-                        // لا نمسح أي صورة عُدّلت يدوياً / عبر updateItem / postMessage
                         if (raw && !item._manualOverride) {
                             const url = resolveManifestImageUrl(manifestUrl, raw);
                             if (url !== item.image) {
@@ -471,8 +477,7 @@
 
                     if (updated > 0) renderRack();
                     return true;
-                } catch (err) {
-                    console.warn('Image manifest not loaded (using current images / SVG fallback):', err);
+                } catch (_) {
                     return false;
                 }
             }
@@ -618,7 +623,6 @@
                 return `<svg class="${cls}" viewBox="0 0 100 110" style="color:${esc(it.colorHex)}" aria-hidden="true"><use href="#g-${shapeOf(it)}"/></svg>`;
             }
 
-            /* صورة صالحة => <img> ، غير ذلك (فارغة / فشلت سابقاً) => رسم SVG الملوّن */
             function garmentHTML(it, cls) {
                 const img = it.image && String(it.image).trim();
                 if (img && img !== it._badImage) {
@@ -627,12 +631,13 @@
                 return svgGarment(it, cls);
             }
 
-            /* استبدال صورة مكسورة برسم SVG وتذكّر الرابط الفاشل حتى لا يُعاد تحميله */
             function fallbackImg(img) {
                 if (!img || !img.isConnected || !img.dataset) return;
                 const it = items.find(x => x.id === img.dataset.fb);
                 if (!it) return;
-                it._badImage = img.getAttribute('src') || '';
+                const failedSrc = img.getAttribute('src') || '';
+                console.warn('[ShopTshirtApp] Image failed -> SVG fallback:', it.id, it.manifestKey, '| failed url:', toAbsUrl(failedSrc));
+                it._badImage = failedSrc;
                 const holder = document.createElement('div');
                 holder.innerHTML = svgGarment(it, img.className);
                 img.replaceWith(holder.firstElementChild);
@@ -643,7 +648,6 @@
                 if (t && t.tagName === 'IMG' && t.dataset && t.dataset.fb) fallbackImg(t);
             }, true);
 
-            /* حالة صور فشلت قبل ربط الحدث (مثلاً من الكاش) */
             function checkBrokenImages() {
                 document.querySelectorAll('img[data-fb]').forEach(img => {
                     if (img.complete && img.naturalWidth === 0) fallbackImg(img);
@@ -885,13 +889,12 @@
                 if (e.target.closest('#addTeeBtn')) { addToCart(items.find(x => x.id === selectedId)); return; }
                 if (e.target.closest('#imgReplaceBtn')) { $('#imgInput').click(); return; }
                 if (e.target.closest('#imgClearBtn')) {
-                    // Remove image: تفريغ الصورة + _manualOverride=true (يتم داخل applyChanges) + العودة فوراً لرسم SVG
                     const it = items.find(x => x.id === selectedId);
                     if (it) { applyChanges(it, { image: '' }); notifyImageChanged(it); }
                 }
             });
 
-            /* ---------- Editing (كل تعديل لحقل image => _manualOverride = true) ---------- */
+            /* ---------- Editing ---------- */
             function applyChanges(item, changes) {
                 if (!item || !changes || typeof changes !== 'object') return null;
                 Object.keys(changes).forEach(k => {
@@ -904,7 +907,6 @@
                     else if (k === 'sizes' && Array.isArray(v)) v = v.map(String).join(', ');
                     item[k] = v;
                 });
-                // أي تعديل على image (يدوي / postMessage / updateItem) يحميه من المانيفست
                 if (hasOwn(changes, 'image') && !hasOwn(changes, '_manualOverride')) item._manualOverride = true;
                 renderRack();
                 return item;
@@ -916,7 +918,7 @@
                 if (!file || !item) return;
                 const fr = new FileReader();
                 fr.onload = () => {
-                    applyChanges(item, { image: String(fr.result) }); // يضبط _manualOverride = true
+                    applyChanges(item, { image: String(fr.result) });
                     notifyImageChanged(item);
                 };
                 fr.readAsDataURL(file);
@@ -938,7 +940,7 @@
                     else if (msg.type === 'SET_PRODUCT' && msg.changes) applyChanges(t, msg.changes);
                     else if (msg.type === 'SET_PRODUCT_IMAGE') applyChanges(t, { image: msg.value || msg.image || '' });
                     else if (msg.type === 'SELECT_PRODUCT') window.ShopTshirtApp.select(t.id);
-                } catch (err) { console.warn('ShopTshirtApp message error', err); }
+                } catch (_) { /* ignore */ }
             });
 
             /* ---------- Public API ---------- */
@@ -1004,7 +1006,6 @@
 
             renderRack(RM ? undefined : 950);
             if (!RM) intro();
-            // تحميل المانيفست تلقائياً بعد فتح الصفحة (لا يمسح أي تعديل يدوي)
             loadImageManifest();
         })();
     </script>
